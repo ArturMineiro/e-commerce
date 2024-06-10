@@ -6,6 +6,7 @@ import Navbar from './components/Navbar'
 import Carrinho from './pages/Carrinho'
 import Curtidos from './pages/Curtidos'
 import Login from './pages/Login'
+import Footer from './components/Footer'
 
 function App() {
   
@@ -23,6 +24,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         {/* Adicione outras rotas aqui conforme necessário */}
     </Routes> </div>
+    <Footer/>
 </div>
   )
 }
