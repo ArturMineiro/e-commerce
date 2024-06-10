@@ -6,7 +6,7 @@ function Carrousel() {
         if (carouselElement) {
           import('bootstrap').then((bootstrap) => {
             new bootstrap.Carousel(carouselElement, {
-              interval: 3000, // 2 segundos
+              interval: 2000, // 2 segundos
               ride: 'carousel'
             });
           });
