@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 
+
 function Carrousel() {
     useEffect(() => {
         const carouselElement = document.querySelector<HTMLDivElement>('#carouselExampleSlidesOnly');
