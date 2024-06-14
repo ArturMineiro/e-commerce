@@ -2,12 +2,14 @@ import { Link } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
 import { FaCartShopping } from "react-icons/fa6";
-
+import logo from "/assets/logo.png";
 function Navbar() {
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark py-4">
         <div className="container-fluid">
-            { <Link className="navbar-brand" to="/">Meu Site</Link> }
+        <Link to="/"> 
+        <img src={logo} alt="Logo" className="rounded-circle" style={{ width: '80px', height: '80px' }} />
+        </Link>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
             </button>
