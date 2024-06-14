@@ -1,9 +1,10 @@
+import CardLaterais from "../components/CardLaterais"
+
 function Carrinho(){
-    return(
-    <div>
-Intens adicionados ao carrinho
-    </div>
-    )
+return(
+    <CardLaterais></CardLaterais>
+)
+
 }
 
 export default Carrinho
