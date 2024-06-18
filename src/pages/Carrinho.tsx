@@ -2,12 +2,22 @@ import CardLaterais from "../components/CardLaterais"
 
 function Carrinho(){
 return(
-   <div> <h1>Carrinhos</h1>
-    <div className="d-flex justify-content-center align-items-center"> 
-    
-    <CardLaterais></CardLaterais>
+    <div className="container"> 
+    <div className="row">
+      <h1>Carrinhos</h1>
+      <div className="d-flex flex-column justify-content-center align-items-center"> 
+        <div className="col mb-3"> 
+          <CardLaterais/>
+        </div>
+        <div className="col mb-3"> 
+          <CardLaterais/>
+        </div>
+        <div className="col mb-3"> 
+          <CardLaterais/>
+        </div>
+      </div>
     </div>
-    </div>
+  </div>
 )
 
 }
