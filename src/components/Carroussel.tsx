@@ -3,7 +3,7 @@ function Carroussel() {
 
 
   return (
-    <div id="carouselExampleControls" className="carousel slide carousel-custom-height mb-4 mt-4" data-bs-ride="carousel">
+    <div id="carouselExampleControls" className="carousel slide carousel-custom-height mb-4 mt-4 " data-bs-ride="carousel">
       <div className="carousel-inner">
         <div className="carousel-item active">
           <img className="d-block w-100 rounded" src="/assets/homeimage1.jpg" alt="First slide" style={{ height: '500px' }}/>
