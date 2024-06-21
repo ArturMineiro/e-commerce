@@ -61,7 +61,7 @@ function Navbar() {
                                   </Link>
                               </li>
                               <li>
-                                  <Link className="dropdown-item" to="/logout">
+                                  <Link className="dropdown-item" to="/home">
                                       Sair
                                   </Link>
                               </li>
