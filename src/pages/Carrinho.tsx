@@ -6,13 +6,13 @@ return(
     <div className="row">
       <h1>Carrinhos</h1>
       <div className="d-flex flex-column justify-content-center align-items-center"> 
-        <div className="col mb-3"> 
+        <div className="col mb-2"> 
           <CardLaterais/>
         </div>
-        <div className="col mb-3"> 
+        <div className="col mb-2"> 
           <CardLaterais/>
         </div>
-        <div className="col mb-3"> 
+        <div className="col mb-2"> 
           <CardLaterais/>
         </div>
       </div>
