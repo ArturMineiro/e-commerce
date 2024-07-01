@@ -7,6 +7,7 @@ import Carrinho from './pages/Carrinho'
 import Curtidos from './pages/Curtidos'
 import Login from './pages/Login'
 import Footer from './components/Footer'
+import Meuspedidos from './pages/Meuspedidos'
 
 function App() {
   
@@ -22,6 +23,7 @@ function App() {
         <Route path="/carrinho" element={<Carrinho />} />
         <Route path="/curtidos" element={<Curtidos />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/meuspedidos" element={<Meuspedidos />} />
         {/* Adicione outras rotas aqui conforme necessário */}
     </Routes> </div>
     <Footer/>

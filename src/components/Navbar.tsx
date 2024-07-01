@@ -34,6 +34,9 @@ function Navbar() {
                       <Search />
                   </div>
                   <ul className="navbar-nav ms-auto">
+                  <li className="nav-item me-3">
+                  <Link className="nav-link fs-4 mt-2" to="meuspedidos"> Meus pedidos </Link>
+                      </li>
                       <li className="nav-item me-3">
                           <Link className="nav-link fs-2" to="/curtidos">
                               <FaHeart />
