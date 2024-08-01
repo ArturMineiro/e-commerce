@@ -59,8 +59,8 @@ function Navbar() {
                           </a>
                           <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                               <li>
-                                  <Link className="dropdown-item" to="/login">
-                                      Login
+                                  <Link className="dropdown-item" to="/register">
+                                      Registrar
                                   </Link>
                               </li>
                               <li>

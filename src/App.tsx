@@ -8,6 +8,7 @@ import Curtidos from './pages/Curtidos'
 import Login from './pages/Login'
 import Footer from './components/Footer'
 import Meuspedidos from './pages/Meuspedidos'
+import Register from './pages/Register'
 
 function App() {
   
@@ -24,6 +25,7 @@ function App() {
         <Route path="/curtidos" element={<Curtidos />} />
         <Route path="/login" element={<Login />} />
         <Route path="/meuspedidos" element={<Meuspedidos />} />
+        <Route path="/register" element={<Register/>} />
         {/* Adicione outras rotas aqui conforme necessário */}
     </Routes> </div>
     <Footer/>
