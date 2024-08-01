@@ -49,7 +49,7 @@ function Navbar() {
                       </li>
                       <li className="nav-item dropdown">
                           <a
-                              className="nav-link dropdown-toggle fs-2"
+                              className="nav-link  fs-2"
                               id="navbarDropdown"
                               role="button"
                               data-bs-toggle="dropdown"
