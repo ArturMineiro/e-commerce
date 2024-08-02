@@ -8,11 +8,11 @@ function Register() {
           <h2>Registrar</h2>
           <form>
             <div className="form-row">
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-3 w-100">
                 <label htmlFor="registerUsername">Usuário</label>
-                <input type="text" className="form-control" id="registerUsername" placeholder="Nome de usuário" required />
+                <input type="text" className="form-control " id="registerUsername" placeholder="Nome de usuário" required />
               </div>
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-3 w-100">
                 <label htmlFor="registerEmail">Email</label>
                 <input type="email" className="form-control" id="registerEmail" placeholder="Digite seu email" required />
               </div>

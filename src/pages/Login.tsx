@@ -35,7 +35,7 @@ function Login() {
               <h2>Login</h2>
               <form>
                 <div className="form-row">
-                  <div className="col-md-4 mb-3">
+                  <div className="col-md-4 mb-3 w-100">
                     <label htmlFor="validationServer01">Usuário</label>
                     <input type="text" className="form-control" id="validationServer01" placeholder="Nome de usuário" required />
                   </div>
