@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Produto;
 use Illuminate\Http\Request;
 
 class ProdutoController extends Controller
@@ -13,7 +14,8 @@ class ProdutoController extends Controller
      */
     public function index()
     {
-        //
+        $produtos = Produto::all();
+        return response()->json($produtos);
     }
 
     /**
@@ -34,7 +36,18 @@ class ProdutoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'nome' => 'required|string|max:255',
+            'descricao' =>'nullable|string',
+            'preco' => 'required|numeric',
+            'quantidade' => 'required|integer',
+            'categoria' => 'nullable|string|max:255',
+            'imagens' => 'nullable|array',
+        ]);
+
+        $pruduto = Produto::create($validatedData);
+        
+        return response()->json($produto,201);
     }
 
     /**
@@ -45,7 +58,8 @@ class ProdutoController extends Controller
      */
     public function show($id)
     {
-        //
+        $produto = Produto::findOrFail($id);
+        return response()->json($produto);
     }
 
     /**
@@ -68,7 +82,18 @@ class ProdutoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $validatedData = $request->validate([
+            'nome' => 'sometimes|required|string|max:255',
+            'descricao' => 'nullable|string',
+            'preco' => 'sometimes|required|integer',
+            'quantidade' => 'sometimes|required|integer',
+            'categoria'  => 'nullable|string|max:255',
+            'imagens' => 'nullable|array',
+        ]);
+        $produto = Produto::findOrFail($id);
+        $produto->update($validatedData);
+
+        return response()->json($produto);
     }
 
     /**
@@ -79,6 +104,8 @@ class ProdutoController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $produto = Produto::findOrFail($id);
+        $produto->delete();
+        return response()->json(null,204);
     }
 }
