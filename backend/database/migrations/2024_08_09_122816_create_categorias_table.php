@@ -1,9 +1,10 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateProdutosTable extends Migration
+class CreateCategoriasTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,14 +13,14 @@ class CreateProdutosTable extends Migration
      */
     public function up()
     {
-        Schema::create('produtos', function (Blueprint $table) {
+        Schema::create('categorias', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
             $table->text('descricao')->nullable();
-            $table->decimal('preco', 10, 2);
-            $table->integer('quantidade')->default(0);
-            $table->string('categoria')->nullable();
-            $table->json('imagens')->nullable();
+            $table->string('identificador_amigavel')->unique();
+            $table->string('imagem')->nullable();
+            $table->unsignedBigInteger('categoria_pai_id')->nullable();
+            $table->foreing('categoria_pai_id')->references('id')->on('categorias');
             $table->timestamps();
         });
     }
@@ -31,6 +32,6 @@ class CreateProdutosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('produtos');
+        Schema::dropIfExists('categorias');
     }
 }
