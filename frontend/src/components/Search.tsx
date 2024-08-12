@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 interface Produto {
     id: number;
     nome: string;
-    // Adicione outras propriedades relevantes do produto aqui, conforme necessário
+   
 }
 
 function Search() {
