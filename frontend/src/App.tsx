@@ -9,6 +9,7 @@ import Login from './pages/Login'
 import Footer from './components/Footer'
 import Meuspedidos from './pages/Meuspedidos'
 import Register from './pages/Register'
+import CadastrarProdutos from './admin/CadastrarProdutos'
 
 function App() {
   
@@ -19,6 +20,7 @@ function App() {
 <Navbar />
 <div className={styles.conteudo}> 
     <Routes>
+    <Route path="/admin/Cadastrarprodutos" element={<CadastrarProdutos />} />
         <Route path="/home" element={<Home />} />
         <Route path="/" element={<Home />} />
         <Route path="/carrinho" element={<Carrinho />} />

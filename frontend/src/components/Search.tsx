@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-// Define um tipo para o produto
+
 interface Produto {
     id: number;
     nome: string;
