@@ -27,3 +27,7 @@ Route::get('/search', [SearchController::class, 'search']);
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 Route::middleware('auth:sanctum')->get('/user', [UserController::class, 'getUser']);
+
+Route::get('/test', function () {
+    return response()->json(['message' => 'API está funcionando!']);
+});

@@ -15,12 +15,14 @@ class CreateCategoriasTable extends Migration
     {
         Schema::create('categorias', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id'); // Criação da coluna user_id
+            $table->foreign('user_id')->references('id')->on('users'); // Definição da chave estrangeira para user_id
             $table->string('nome');
             $table->text('descricao')->nullable();
             $table->string('identificador_amigavel')->unique();
             $table->string('imagem')->nullable();
             $table->unsignedBigInteger('categoria_pai_id')->nullable();
-            $table->foreing('categoria_pai_id')->references('id')->on('categorias');
+            $table->foreign('categoria_pai_id')->references('id')->on('categorias'); // Definição da chave estrangeira para categoria_pai_id
             $table->timestamps();
         });
     }
