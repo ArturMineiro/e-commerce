@@ -19,6 +19,10 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
+
+            if($validator->errors()->has('email')){
+                return response()->json(['message'=> 'Este email já está cadastrado'],409);
+            }
             return response()->json($validator->errors(), 400);
         }
 
