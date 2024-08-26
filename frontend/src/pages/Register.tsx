@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-
+import { useNavigate, Link } from 'react-router-dom';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -100,6 +100,9 @@ const Register: React.FC = () => {
             {error && <div className="alert alert-danger text-center">{error}</div>}
             <button className="btn btn-primary btn-block" type="submit">Registrar</button>
           </form>
+          <div className="mt-3">
+        <Link to="/login">Já tem uma conta? entre aqui.</Link>
+      </div>
         </div>
       </div>
     </div>
