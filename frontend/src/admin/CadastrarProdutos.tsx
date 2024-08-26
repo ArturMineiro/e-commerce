@@ -1,62 +1,62 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-function CadastrarProdutos() {
+const CadastrarProdutos: React.FC = () => {
   const [produto, setProduto] = useState({
     nome: '',
     descricao: '',
     preco: '',
     quantidade: '',
     categoria: '',
-    imagens: [],
+    imagens: [] as File[],
   });
 
-  // Função para lidar com mudanças nos campos de texto
-  const handleChange = (e) => {
+  const navigate = useNavigate();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProduto({
       ...produto,
       [e.target.name]: e.target.value,
     });
   };
 
-  // Função para lidar com mudanças nos arquivos (imagens)
-  const handleFileChange = (e) => {
-    setProduto({
-      ...produto,
-      imagens: e.target.files,
-    });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setProduto({
+        ...produto,
+        imagens: Array.from(e.target.files),
+      });
+    }
   };
 
-  // Função para enviar os dados ao backend quando o formulário for submetido
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Criação de um FormData para enviar os dados, incluindo arquivos
     const formData = new FormData();
-    for (let key in produto) {
+    Object.keys(produto).forEach((key) => {
       if (key === 'imagens') {
-        Array.from(produto[key]).forEach((file) => {
+        produto.imagens.forEach((file) => {
           formData.append('imagens[]', file);
         });
       } else {
-        formData.append(key, produto[key]);
+        formData.append(key, (produto as any)[key]);
       }
-    }
+    });
 
     try {
-        // Ajuste a URL base para refletir o endereço do seu servidor Laravel
-        const url = 'http://localhost:8000/api/produtos'; // URL corrigida
-        console.log('Enviando requisição para:', url);
-        const response = await axios.post(url, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        console.log('Produto cadastrado com sucesso:', response.data);
-      } catch (error) {
-        console.error('Erro ao cadastrar produto:', error);
-      }
-    };
+      const url = 'http://localhost:8000/api/produtos';
+      const response = await axios.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Produto cadastrado com sucesso:', response.data);
+      navigate('/home'); // Redirecionar após o sucesso
+    } catch (error) {
+      console.error('Erro ao cadastrar produto:', error);
+    }
+  };
 
   return (
     <div className="container mt-5">
@@ -80,6 +80,7 @@ function CadastrarProdutos() {
             name="descricao"
             value={produto.descricao}
             onChange={handleChange}
+            required
           />
         </div>
         <div className="form-group">
@@ -112,22 +113,24 @@ function CadastrarProdutos() {
             name="categoria"
             value={produto.categoria}
             onChange={handleChange}
+            required
           />
         </div>
         <div className="form-group">
           <label>Imagens</label>
           <input
             type="file"
-            className="form-control-file"
+            className="form-control"
             name="imagens"
-            onChange={handleFileChange}
             multiple
+            onChange={handleFileChange}
+            required
           />
         </div>
         <button type="submit" className="btn btn-primary mt-3">Cadastrar</button>
       </form>
     </div>
   );
-}
+};
 
 export default CadastrarProdutos;

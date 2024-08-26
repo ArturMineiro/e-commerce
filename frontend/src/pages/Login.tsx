@@ -1,62 +1,74 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 
-function Login() {
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-  
-  const handleForgotPasswordClick = () => {
-    setIsForgotPassword(true);
+const Login: React.FC = () => {
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const navigate = useNavigate(); // Hook para navegação
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCredentials({
+      ...credentials,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleBackToLoginClick = () => {
-    setIsForgotPassword(false);
+  const loginUser = async (credentials: { email: string; password: string }) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/login', credentials);
+      const { access_token, user } = response.data;
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Redirecionar com base no perfil do usuário
+      if (user.role === 'admin') {
+        navigate('/admin/Cadastrarprodutos');
+      } else {
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    loginUser(credentials);
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center">
-      <div className="login-container w-50">
-        <div className="login-form shadow p-3 mb-5 bg-white rounded">
-          {isForgotPassword ? (
-            <>
-              <h2>Recuperar Senha</h2>
-              <form>
-                <div className="form-row mt-5">
-                  <div className="col-md-8 mb-3 ">
-                    <label htmlFor="email">Email</label>
-                    <input type="email" className="form-control" id="email" placeholder="Digite seu email" required />
-                  </div>
-                  <button className="btn btn-primary mr-2" type="submit">Enviar Email de Redefinição</button>
-                  <button className="btn btn-secondary d-flex justify-content-end mt-2" type="button" onClick={handleBackToLoginClick}>Voltar ao Login</button>
-                </div>
-              
-              </form>
-            </>
-          ) : (
-            <>
-              <h2>Login</h2>
-              <form>
-                <div className="form-row">
-                  <div className="col-md-4 mb-3 w-100">
-                    <label htmlFor="validationServer01">Usuário</label>
-                    <input type="text" className="form-control" id="validationServer01" placeholder="Nome de usuário" required />
-                  </div>
-                  <div className="col-md-4 mb-3">
-                    <label htmlFor="validationServer02">Senha</label>
-                    <input type="password" className="form-control" id="validationServer02" placeholder="Senha" required />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="col-md-4 mb-3">
-                    <a href="#" className="text-primary" onClick={handleForgotPasswordClick}>Esqueceu sua senha?</a>
-                  </div>
-                </div>
-                <button className="btn btn-primary" type="submit">Logar</button>
-              </form>
-            </>
-          )}
+    <div className="container mt-5">
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            className="form-control"
+            name="email"
+            value={credentials.email}
+            onChange={handleChange}
+            required
+          />
         </div>
+        <div className="form-group">
+          <label>Senha</label>
+          <input
+            type="password"
+            className="form-control"
+            name="password"
+            value={credentials.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary mt-3">Entrar</button>
+      </form>
+      <div className="mt-3">
+        <Link to="/register">Não tem uma conta? Registre-se aqui.</Link>
       </div>
     </div>
   );
-}
+};
 
 export default Login;
