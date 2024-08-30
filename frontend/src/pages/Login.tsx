@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../hooks/AuthContext';
 
 const Login: React.FC = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const navigate = useNavigate(); // Hook para navegação
+  const { updateAuthStatus } = useAuth(); // Chame a função updateAuthStatus
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({
@@ -20,9 +22,12 @@ const Login: React.FC = () => {
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
 
+      // Atualize o estado de autenticação
+      updateAuthStatus();
+
       // Redirecionar com base no perfil do usuário
       if (user.role === 'admin') {
-        navigate('/admin/Cadastrarprodutos');
+        navigate('/admin/cadastrarprodutos');
       } else {
         navigate('/home');
       }

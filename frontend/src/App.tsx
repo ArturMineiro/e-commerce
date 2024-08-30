@@ -9,26 +9,29 @@ import Footer from './components/Footer';
 import Meuspedidos from './pages/Meuspedidos';
 import Register from './pages/Register';
 import CadastrarProdutos from './admin/CadastrarProdutos';
-import ProtectedRoute from './components/ProtectedRoute'; 
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './hooks/AuthContext';
 
 const App: React.FC = () => {
   return (
-    <div>
-      <Navbar />
-      <div className="conteudo">
-        <Routes>
-          <Route path="/admin/cadastrarprodutos" element={<ProtectedRoute element={<CadastrarProdutos />} />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/carrinho" element={<Carrinho />} />
-          <Route path="/curtidos" element={<Curtidos />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/meuspedidos" element={<Meuspedidos />} />
-          <Route path="/register" element={<Register />} />
-        </Routes>
+    <AuthProvider>
+      <div>
+        <Navbar />
+        <div className="conteudo">
+          <Routes>
+            <Route path="/admin/cadastrarprodutos" element={<ProtectedRoute element={<CadastrarProdutos />} />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/carrinho" element={<Carrinho />} />
+            <Route path="/curtidos" element={<Curtidos />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/meuspedidos" element={<Meuspedidos />} />
+            <Route path="/register" element={<Register />} />
+          </Routes>
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </AuthProvider>
   );
 };
 

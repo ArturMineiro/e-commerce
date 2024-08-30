@@ -1,24 +1,25 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
-import { FaHeart } from 'react-icons/fa6';
-import { FaCartShopping } from 'react-icons/fa6';
+import { FaHeart, FaCartShopping } from 'react-icons/fa6';
 import logo from '/assets/logo.png';
 import Search from './Search';
+import { useAuth } from '../hooks/AuthContext'; // Atualize o caminho se necessário
 
-// Função para verificar se o usuário está logado
-const isLoggedIn = (): boolean => {
-  return !!localStorage.getItem('token');
-};
+const Navbar: React.FC = () => {
+  const { loggedIn, logout } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(loggedIn);
+  const navigate = useNavigate();
 
-// Função para limpar o estado de login
-const handleLogout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  window.location.href = '/'; // Redirecionar para a home ou página de login
-};
+  useEffect(() => {
+    setIsAuthenticated(loggedIn);
+  }, [loggedIn]);
 
-function Navbar() {
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container-fluid">
@@ -46,7 +47,7 @@ function Navbar() {
             <Search />
           </div>
           <ul className="navbar-nav ms-auto">
-            {isLoggedIn() && (
+            {isAuthenticated && (
               <li className="nav-item me-3">
                 <Link className="nav-link fs-4 mt-2" to="/meuspedidos">
                   Meus pedidos
@@ -74,7 +75,7 @@ function Navbar() {
                 <FaUserCircle />
               </a>
               <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                {!isLoggedIn() ? (
+                {!isAuthenticated ? (
                   <li>
                     <Link className="dropdown-item" to="/login">
                       Login
@@ -89,12 +90,11 @@ function Navbar() {
                 )}
               </ul>
             </li>
-            {/* Adicione outros links aqui conforme necessário */}
           </ul>
         </div>
       </div>
     </nav>
   );
-}
+};
 
 export default Navbar;
