@@ -7,9 +7,11 @@ const Register: React.FC = () => {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
-  
+
   const [error, setError] = useState<string | null>(null);
+  const [passwordValidationError, setPasswordValidationError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -19,9 +21,31 @@ const Register: React.FC = () => {
     });
   };
 
+  const validatePassword = (password: string): string | null => {
+    // Verifica se a senha tem pelo menos 6 caracteres e contém pelo menos uma letra maiúscula
+    if (password.length < 6) {
+      return 'A senha deve ter pelo menos 6 caracteres.';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'A senha deve conter pelo menos uma letra maiúscula.';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setPasswordValidationError(passwordError);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
     try {
       const response = await axios.post('http://localhost:8000/api/register', {
         ...formData,
@@ -32,12 +56,14 @@ const Register: React.FC = () => {
         name: '',
         email: '',
         password: '',
+        confirmPassword: '', // Limpar o campo de confirmação de senha
       });
       setError(null);
+      setPasswordValidationError(null);
     } catch (error: any) {
       if (error.response) {
         if (error.response.status === 409) { // Verificando se o status é 409
-          setError('Este email já está cadastrado. deseja recuperar sua senha?.');
+          setError('Este email já está cadastrado. Deseja recuperar sua senha?');
         } else {
           setError('Erro ao registrar usuário. Verifique os dados e tente novamente.');
         }
@@ -50,6 +76,7 @@ const Register: React.FC = () => {
       }
     }
   };
+
   return (
     <div className="d-flex justify-content-center align-items-center min-vh-100">
       <div className="register-container w-75 w-md-50">
@@ -95,14 +122,32 @@ const Register: React.FC = () => {
                   placeholder="Sua senha"
                   required
                 />
+                {passwordValidationError && (
+                  <div className="alert alert-warning mt-2">{passwordValidationError}</div>
+                )}
+              </div>
+              <div className="col-md-12 mb-3">
+                <label htmlFor="confirmPassword">Confirmar Senha</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirme sua senha"
+                  required
+                />
               </div>
             </div>
+
+            <button className="btn btn-primary btn-block mb-3" type="submit">Registrar</button>
             {error && <div className="alert alert-danger text-center">{error}</div>}
-            <button className="btn btn-primary btn-block" type="submit">Registrar</button>
           </form>
+
           <div className="mt-3">
-        <Link to="/login">Já tem uma conta? entre aqui.</Link>
-      </div>
+            <Link to="/login">Já tem uma conta? Entre aqui.</Link>
+          </div>
         </div>
       </div>
     </div>
