@@ -28,7 +28,7 @@ const Login: React.FC = () => {
 
       // Redirecionar com base no perfil do usuário
       if (user.role === 'admin') {
-        navigate('/admin/cadastrarprodutos');
+        navigate('/admin/dashboard');
       } else {
         navigate('/home');
       }
