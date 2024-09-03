@@ -11,7 +11,7 @@ function Dashboard() {
     });
 
     return (
-        <div className="container mt-5">
+        <div className="container mt-5 shadow p-3 mb-5 bg-body rounded">
             <h1 className="mb-4">Admin Dashboard</h1>
             <div className="row">
                 <div className="col-md-3">

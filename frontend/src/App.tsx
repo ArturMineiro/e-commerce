@@ -12,6 +12,7 @@ import CadastrarProdutos from './admin/CadastrarProdutos';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './hooks/AuthContext';
 import Dashboard from './admin/Dashbord';
+import CadastrarBanners from './admin/CadastrarBanners';
 
 const App: React.FC = () => {
   return (
@@ -22,6 +23,7 @@ const App: React.FC = () => {
           <Routes>
           <Route path="/admin/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
             <Route path="/admin/cadastrarprodutos" element={<ProtectedRoute element={<CadastrarProdutos />} />} />
+            <Route path="/admin/cadastrarbanners" element={<ProtectedRoute element={<CadastrarBanners />} />} />
             <Route path="/home" element={<Home />} />
             <Route path="/" element={<Home />} />
             <Route path="/carrinho" element={<Carrinho />} />

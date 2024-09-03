@@ -59,7 +59,7 @@ const CadastrarProdutos: React.FC = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5 shadow p-3 mb-5 bg-body rounded">
       <h2>Cadastrar Produto</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
