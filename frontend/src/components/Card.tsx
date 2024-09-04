@@ -1,3 +1,5 @@
+import React from 'react';
+
 function Card(){
     return(
         <div className="card mb-4 md-3 shadow p-3 mb-5 bg-white rounded" style={{ width: '17rem', border: 'none' }}>
