@@ -14,6 +14,7 @@ import { AuthProvider } from './hooks/AuthContext';
 import Dashboard from './admin/Dashbord';
 import CadastrarBanners from './admin/CadastrarBanners';
 import ControleUsuario from './admin/ControleUsuarios';
+import HistoricoCompras from './admin/HistoricoCompras';
 
 const App: React.FC = () => {
   return (
@@ -26,6 +27,7 @@ const App: React.FC = () => {
             <Route path="/admin/cadastrarprodutos" element={<ProtectedRoute element={<CadastrarProdutos />} />} />
             <Route path="/admin/cadastrarbanners" element={<ProtectedRoute element={<CadastrarBanners />} />} />
             <Route path="/admin/controleusuarios" element={<ProtectedRoute element={<ControleUsuario/>} />} />
+            <Route path="/admin/historicocompras" element={<ProtectedRoute element={<HistoricoCompras/>} />} />
             <Route path="/home" element={<Home />} />
             <Route path="/" element={<Home />} />
             <Route path="/carrinho" element={<Carrinho />} />
