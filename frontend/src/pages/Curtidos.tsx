@@ -1,5 +1,5 @@
 import Card from "../components/Card"
-
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 
 
 

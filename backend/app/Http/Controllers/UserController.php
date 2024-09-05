@@ -9,6 +9,12 @@ use App\Models\User;
 
 class UserController extends Controller
 {
+
+    public function index()
+    {
+        $users = User::all();
+        return response()->json($users, 200); // Corrigido de reponse() para response()
+    }
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [

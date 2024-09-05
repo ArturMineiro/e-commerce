@@ -3,46 +3,44 @@ import axios from 'axios';
 
 interface Usuario {
     id: number;
-    nome: string;
+    name: string;
     email: string;
-    status: 'ativo' | 'bloqueado';
-    historicoCompras: string[];
+    role: 'customer' | 'admin';
+    email_verified_at: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 function ControleUsuario() {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [message, setMessage] = useState<string>('');
 
-    // useEffect(() => {
-      
-    //     const fetchUsuarios = async () => {
-    //         try {
-    //             const response = await axios.get('/api/usuarios');
-    //             setUsuarios(response.data);
-    //         } catch (error) {
-    //             setMessage('Erro ao carregar os usuários.');
-    //         }
-    //     };
-    //     fetchUsuarios();
-    // }, []);
+    useEffect(() => {
+        const fetchUsuarios = async () => {
+            const token = localStorage.getItem('token');
+            console.log('Token:', token);
 
-    const toggleStatus = async (id: number) => {
-        try {
-            const usuario = usuarios.find(user => user.id === id);
-            if (usuario) {
-                const novoStatus = usuario.status === 'ativo' ? 'bloqueado' : 'ativo';
-                await axios.put(`/api/usuarios/${id}/status`, { status: novoStatus });
-                setUsuarios(prevUsuarios =>
-                    prevUsuarios.map(user =>
-                        user.id === id ? { ...user, status: novoStatus } : user
-                    )
-                );
-                setMessage(`Usuário ${usuario.nome} ${novoStatus === 'ativo' ? 'desbloqueado' : 'bloqueado'} com sucesso!`);
+            if (!token) {
+                setMessage('Token não encontrado. Por favor, faça o login novamente.');
+                return;
             }
-        } catch (error) {
-            setMessage('Erro ao alterar o status do usuário.');
-        }
-    };
+
+            try {
+                const response = await axios.get('http://localhost:8000/api/usuarios', {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                console.log('Dados recebidos:', response.data);
+                setUsuarios(response.data);
+            } catch (error) {
+                console.error('Erro ao buscar os usuários:', error);
+                setMessage('Erro ao carregar os usuários. Verifique sua conexão ou tente novamente mais tarde.');
+            }
+        };
+
+        fetchUsuarios();
+    }, []);
 
     return (
         <div className="container mt-5">
@@ -53,32 +51,20 @@ function ControleUsuario() {
                     <tr>
                         <th>Nome</th>
                         <th>Email</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                        <th>Histórico de Compras</th>
+                        <th>Role</th>
+                        <th>Data de Criação</th>
+                        <th>Data de Atualização</th>
+                        <th>Histórico</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {usuarios.map(usuario => (
+                    {usuarios.map((usuario) => (
                         <tr key={usuario.id}>
-                            <td>{usuario.nome}</td>
+                            <td>{usuario.name}</td>
                             <td>{usuario.email}</td>
-                            <td>{usuario.status}</td>
-                            <td>
-                                <button
-                                    className={`btn btn-${usuario.status === 'ativo' ? 'danger' : 'success'}`}
-                                    onClick={() => toggleStatus(usuario.id)}
-                                >
-                                    {usuario.status === 'ativo' ? 'Bloquear' : 'Desbloquear'}
-                                </button>
-                            </td>
-                            <td>
-                                <ul>
-                                    {usuario.historicoCompras.map((compra, index) => (
-                                        <li key={index}>{compra}</li>
-                                    ))}
-                                </ul>
-                            </td>
+                            <td>{usuario.role}</td>
+                            <td>{new Date(usuario.created_at).toLocaleDateString()}</td>
+                            <td>{new Date(usuario.updated_at).toLocaleDateString()}</td>
                         </tr>
                     ))}
                 </tbody>
