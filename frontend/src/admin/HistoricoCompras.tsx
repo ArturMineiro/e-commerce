@@ -1,26 +1,11 @@
-import React from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import axios from 'axios';
 
-interface HistoricoCompra {
-    id: number;
-    descricao: string;
-    data: string;
-    valor: number;
+function HistoricoCompras(){
+return (
+    <div>dsdasd</div>
+)
 }
 
-interface HistoricoComprasProps {
-    compras: HistoricoCompra[];
-}
 
-function HistoricoCompras({ compras }: HistoricoComprasProps) {
-    return (
-        <ul>
-            {compras.map((compra) => (
-                <li key={compra.id}>
-                    {compra.descricao} - {compra.data} - R$ {compra.valor}
-                </li>
-            ))}
-        </ul>
-    );
-}
-
-export default HistoricoCompras;
+export default HistoricoCompras
