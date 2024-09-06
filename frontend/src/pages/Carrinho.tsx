@@ -1,5 +1,5 @@
 import CardLaterais from "../components/CardLaterais"
-
+import React, { useState, ChangeEvent, FormEvent } from 'react'; 
 function Carrinho(){
 return(
     <div className="container"> 

@@ -38,17 +38,30 @@ class ProdutoController extends Controller
     {
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
-            'descricao' =>'nullable|string',
+            'descricao' => 'nullable|string',
             'preco' => 'required|numeric',
             'quantidade' => 'required|integer',
             'categoria' => 'nullable|string|max:255',
             'imagens' => 'nullable|array',
+            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // validação de imagem
         ]);
-
-        $pruduto = Produto::create($validatedData);
-        
-        return response()->json($produto,201);
+    
+        $imagePaths = [];
+    
+        if ($request->hasFile('imagens')) {
+            foreach ($request->file('imagens') as $image) {
+                $path = $image->store('produtos', 'public');
+                $imagePaths[] = $path;
+            }
+        }
+    
+        $validatedData['imagens'] = json_encode($imagePaths); // Salvar os caminhos das imagens como JSON
+    
+        $produto = Produto::create($validatedData);
+    
+        return response()->json($produto, 201);
     }
+    
 
     /**
      * Display the specified resource.
