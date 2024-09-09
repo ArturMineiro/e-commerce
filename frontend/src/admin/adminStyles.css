@@ -1,19 +1,19 @@
 
   .carousel-item img {
     width: 100%;
-    height: auto; /* Permite que a altura se ajuste automaticamente */
-    max-height: 300px; /* Limita a altura máxima da imagem */
-    object-fit: cover; /* Faz com que a imagem se ajuste sem distorcer */
+    height: auto;
+    max-height: 300px; 
+    object-fit: cover; 
   }
   
-  /* Adiciona responsividade para telas menores */
+  
   @media (max-width: 768px) {
     .card-img-top {
-      max-height: 300px; /* Reduz a altura máxima para telas menores */
+      max-height: 300px; 
     }
     
     .carousel-item img {
-      max-height: 300px; /* Reduz a altura máxima para telas menores */
+      max-height: 300px; 
     }
   }
   
