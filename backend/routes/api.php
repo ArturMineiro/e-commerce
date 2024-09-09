@@ -17,10 +17,10 @@ use App\Http\Controllers\SearchController;
 
 // Rotas de Produtos
 Route::get('/produtos', [ProdutoController::class, 'index']); // Listar todos os produtos
-Route::get('/produtos/{id}', [ProdutoController::class, 'show']); // Mostrar um produto específico
-Route::post('/produtos', [ProdutoController::class, 'store']); // Criar um novo produto
-Route::put('/produtos/{id}', [ProdutoController::class, 'update']); // Atualizar um produto existente
-Route::delete('/produtos/{id}', [ProdutoController::class, 'destroy']); // Deletar um produto
+Route::get('/produtos/{id}', [ProdutoController::class, 'show']); 
+Route::post('/produtos/store', [ProdutoController::class, 'store']);
+Route::put('/produtos/update/{id}', [ProdutoController::class, 'update']); 
+Route::delete('/produtos/delete/{id}', [ProdutoController::class, 'destroy']);
 
 
 Route::get('/search', [SearchController::class, 'search']);

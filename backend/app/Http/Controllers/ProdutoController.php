@@ -50,7 +50,7 @@ class ProdutoController extends Controller
     
         if ($request->hasFile('imagens')) {
             foreach ($request->file('imagens') as $image) {
-                $path = $image->store('produtos', 'public');
+                $path = $image->store('imagens', 'public'); // Ajustado para 'imagens'
                 $imagePaths[] = $path;
             }
         }
@@ -62,7 +62,6 @@ class ProdutoController extends Controller
         return response()->json($produto, 201);
     }
     
-
     /**
      * Display the specified resource.
      *

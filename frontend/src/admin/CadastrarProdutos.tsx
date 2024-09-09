@@ -32,7 +32,7 @@ const CadastrarProdutos: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     const formData = new FormData();
     Object.keys(produto).forEach((key) => {
       if (key === 'imagens') {
@@ -43,16 +43,16 @@ const CadastrarProdutos: React.FC = () => {
         formData.append(key, (produto as any)[key]);
       }
     });
-
+  
     try {
-      const url = 'http://localhost:8000/api/produtos';
+      const url = 'http://localhost:8000/api/produtos/store';
       const response = await axios.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       console.log('Produto cadastrado com sucesso:', response.data);
-      navigate('/home'); // Redirecionar após o sucesso
+      navigate('/admin/cadastrarprodutos'); // Redirecionar após o sucesso
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);
     }
@@ -129,6 +129,9 @@ const CadastrarProdutos: React.FC = () => {
         </div>
         <button type="submit" className="btn btn-primary mt-3">Cadastrar</button>
       </form>
+      <div className="mt-3">
+        <a href="/admin/administraprodutos" className="btn btn-secondary">Ir para Administrar Produtos</a>
+      </div>
     </div>
   );
 };
