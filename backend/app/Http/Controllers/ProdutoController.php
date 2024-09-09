@@ -15,9 +15,16 @@ class ProdutoController extends Controller
     public function index()
     {
         $produtos = Produto::all();
+    
+        // Atualizar os caminhos das imagens
+        $produtos->map(function ($produto) {
+            $produto->imagens = json_decode($produto->imagens);
+            return $produto;
+        });
+    
         return response()->json($produtos);
     }
-
+    
     /**
      * Show the form for creating a new resource.
      *
@@ -97,17 +104,18 @@ class ProdutoController extends Controller
         $validatedData = $request->validate([
             'nome' => 'sometimes|required|string|max:255',
             'descricao' => 'nullable|string',
-            'preco' => 'sometimes|required|integer',
+            'preco' => 'sometimes|required|numeric',
             'quantidade' => 'sometimes|required|integer',
             'categoria'  => 'nullable|string|max:255',
             'imagens' => 'nullable|array',
         ]);
+    
         $produto = Produto::findOrFail($id);
         $produto->update($validatedData);
-
+    
         return response()->json($produto);
     }
-
+    
     /**
      * Remove the specified resource from storage.
      *

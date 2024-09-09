@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Carousel } from 'react-bootstrap';
+import './adminStyles.css'; // Importe o arquivo CSS
 
 interface Produto {
   id: number;
@@ -16,7 +17,6 @@ const AdministrarProdutos: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editedProduct, setEditedProduct] = useState<Produto | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProdutos = async () => {
@@ -33,7 +33,7 @@ const AdministrarProdutos: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:8000/api/produtos/delete/${id}`);
+      await axios.delete(`http://localhost:8000/api/produtos/${id}`);
       setProdutos(produtos.filter((produto) => produto.id !== id));
     } catch (error) {
       console.error('Erro ao deletar produto:', error);
@@ -86,14 +86,14 @@ const AdministrarProdutos: React.FC = () => {
                   <input
                     type="text"
                     name="nome"
-                    value={editedProduct?.nome}
+                    value={editedProduct?.nome || ''}
                     onChange={handleChange}
                     className="form-control mb-2"
                     placeholder="Nome do Produto"
                   />
                   <textarea
                     name="descricao"
-                    value={editedProduct?.descricao}
+                    value={editedProduct?.descricao || ''}
                     onChange={handleChange}
                     className="form-control mb-2"
                     placeholder="Descrição"
@@ -101,7 +101,7 @@ const AdministrarProdutos: React.FC = () => {
                   <input
                     type="number"
                     name="preco"
-                    value={editedProduct?.preco}
+                    value={editedProduct?.preco || ''}
                     onChange={handleChange}
                     className="form-control mb-2"
                     placeholder="Preço"
@@ -109,7 +109,7 @@ const AdministrarProdutos: React.FC = () => {
                   <input
                     type="number"
                     name="quantidade"
-                    value={editedProduct?.quantidade}
+                    value={editedProduct?.quantidade || ''}
                     onChange={handleChange}
                     className="form-control mb-2"
                     placeholder="Quantidade"
@@ -117,7 +117,7 @@ const AdministrarProdutos: React.FC = () => {
                   <input
                     type="text"
                     name="categoria"
-                    value={editedProduct?.categoria}
+                    value={editedProduct?.categoria || ''}
                     onChange={handleChange}
                     className="form-control mb-2"
                     placeholder="Categoria"
@@ -125,7 +125,11 @@ const AdministrarProdutos: React.FC = () => {
                   <div className="mb-2">
                     {editedProduct?.imagens.map((imagem, index) => (
                       <div key={index}>
-                        <img src={imagem} alt="Produto" className="img-fluid mb-2" />
+                        <img
+                          src={imagem} // Mostrar imagem diretamente
+                          alt={`Produto Imagem ${index}`}
+                          className="img-fluid"
+                        />
                         <input
                           type="file"
                           onChange={(e) => handleImageChange(e, index)}
@@ -141,11 +145,19 @@ const AdministrarProdutos: React.FC = () => {
               </div>
             ) : (
               <div className="card">
-                <img
-                  src={produto.imagens[0]} // Mostrando a primeira imagem como destaque
-                  className="card-img-top"
-                  alt="Produto"
-                />
+                {produto.imagens.length > 0 && (
+                  <Carousel className="card-img-top">
+                    {produto.imagens.map((imagem, index) => (
+                      <Carousel.Item key={index}>
+                        <img
+                          src={`http://localhost:8000/${imagem}`} // Corrigido aqui
+                          className="d-block w-100"
+                          alt={`Produto Imagem ${index}`}
+                        />
+                      </Carousel.Item>
+                    ))}
+                  </Carousel>
+                )}
                 <div className="card-body">
                   <h5 className="card-title">{produto.nome}</h5>
                   <p className="card-text">{produto.descricao}</p>

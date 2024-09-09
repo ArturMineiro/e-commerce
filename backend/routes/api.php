@@ -19,7 +19,7 @@ use App\Http\Controllers\SearchController;
 Route::get('/produtos', [ProdutoController::class, 'index']); // Listar todos os produtos
 Route::get('/produtos/{id}', [ProdutoController::class, 'show']); 
 Route::post('/produtos/store', [ProdutoController::class, 'store']);
-Route::put('/produtos/update/{id}', [ProdutoController::class, 'update']); 
+Route::put('/produtos/update/{id}', [ProdutoController::class, 'update']);
 Route::delete('/produtos/delete/{id}', [ProdutoController::class, 'destroy']);
 
 
