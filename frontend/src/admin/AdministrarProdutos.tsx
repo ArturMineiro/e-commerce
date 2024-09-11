@@ -33,7 +33,7 @@ const AdministrarProdutos: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:8000/api/produtos/${id}`);
+      await axios.delete(`http://localhost:8000/api/produtos/delete/${id}`);
       setProdutos(produtos.filter((produto) => produto.id !== id));
     } catch (error) {
       console.error('Erro ao deletar produto:', error);
