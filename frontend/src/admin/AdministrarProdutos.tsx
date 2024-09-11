@@ -150,7 +150,7 @@ const AdministrarProdutos: React.FC = () => {
                     {produto.imagens.map((imagem, index) => (
                       <Carousel.Item key={index}>
                         <img
-                          src={`http://localhost:8000/${imagem}`} // Corrigido aqui
+                          src={`http://localhost:8000/storage/${imagem}`} // Corrigido aqui
                           className="d-block w-100"
                           alt={`Produto Imagem ${index}`}
                         />
