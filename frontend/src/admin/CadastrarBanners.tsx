@@ -3,42 +3,46 @@ import axios from 'axios';
 
 function CadastrarBanners() {
     const [bannerName, setBannerName] = useState<string>('');
-    const [bannerImage, setBannerImage] = useState<File | null>(null);
+    const [bannerImages, setBannerImages] = useState<File[]>([]);
     const [message, setMessage] = useState<string>('');
 
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setBannerImage(e.target.files[0]);
+        if (e.target.files) {
+            setBannerImages(Array.from(e.target.files));
         }
     };
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
-        if (!bannerImage) {
-            setMessage('Selecione uma imagem para o banner.');
+        if (bannerImages.length === 0) {
+            setMessage('Selecione pelo menos uma imagem para o banner.');
             return;
         }
 
         const formData = new FormData();
         formData.append('bannerName', bannerName);
-        formData.append('bannerImage', bannerImage);
+        bannerImages.forEach((image) => {
+            formData.append('bannerImages[]', image);
+        });
 
         try {
-            await axios.post('/api/banners', formData, {
+            await axios.post('http://localhost:8000/api/banners', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setMessage('Banner cadastrado com sucesso!');
+            setMessage('Banners cadastrados com sucesso!');
+            setBannerName('');
+            setBannerImages([]);
         } catch (error) {
-            setMessage('Erro ao cadastrar o banner. Tente novamente.');
+            setMessage('Erro ao cadastrar os banners. Tente novamente.');
         }
     };
 
     return (
         <div className="container mt-5 shadow p-3 mb-5 bg-body rounded">
-            <h2>Cadastrar Novo Banner</h2>
+            <h2>Cadastrar Novos Banners</h2>
             {message && <div className="alert alert-info">{message}</div>}
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
@@ -54,17 +58,18 @@ function CadastrarBanners() {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="bannerImage" className="form-label">Imagem do Banner</label>
+                    <label htmlFor="bannerImages" className="form-label">Imagens do Banner</label>
                     <input
                         type="file"
                         className="form-control"
-                        id="bannerImage"
+                        id="bannerImages"
+                        multiple
                         onChange={handleImageChange}
                         required
                     />
                 </div>
 
-                <button type="submit" className="btn btn-primary">Cadastrar Banner</button>
+                <button type="submit" className="btn btn-primary">Cadastrar Banners</button>
             </form>
         </div>
     );

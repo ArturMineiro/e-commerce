@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\BannerController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,6 +15,9 @@ use App\Http\Controllers\SearchController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+//Banners
+Route::post('/banners', [BannerController::class, 'cadastroBanner']);
+Route::get('/banners', [BannerController::class, 'mostrarBanners']);
 
 // Rotas de Produtos
 Route::get('/produtos', [ProdutoController::class, 'index']); // Listar todos os produtos
@@ -22,7 +26,7 @@ Route::post('/produtos/store', [ProdutoController::class, 'store']);
 Route::put('/produtos/update/{id}', [ProdutoController::class, 'update']);
 Route::delete('/produtos/delete/{id}', [ProdutoController::class, 'destroy']);
 
-
+//
 Route::get('/search', [SearchController::class, 'search']);
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
