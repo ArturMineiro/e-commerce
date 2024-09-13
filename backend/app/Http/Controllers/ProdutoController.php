@@ -12,18 +12,18 @@ class ProdutoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        $produtos = Produto::all();
+    // public function index()
+    // {
+    //     $produtos = Produto::all();
     
-        // Atualizar os caminhos das imagens
-        $produtos->map(function ($produto) {
-            $produto->imagens = json_decode($produto->imagens);
-            return $produto;
-        });
+    //     // Atualizar os caminhos das imagens
+    //     $produtos->map(function ($produto) {
+    //         $produto->imagens = json_decode($produto->imagens);
+    //         return $produto;
+    //     });
     
-        return response()->json($produtos);
-    }
+    //     return response()->json($produtos);
+    // }
     
     /**
      * Show the form for creating a new resource.
@@ -41,7 +41,7 @@ class ProdutoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function criarProdutos(Request $request)
     {
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
@@ -75,7 +75,7 @@ class ProdutoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function mostrarProdutos($id)
     {
         $produto = Produto::findOrFail($id);
         return response()->json($produto);
@@ -99,7 +99,7 @@ class ProdutoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function atualizarProduto(Request $request, $id)
     {
         $validatedData = $request->validate([
             'nome' => 'sometimes|required|string|max:255',
@@ -122,7 +122,7 @@ class ProdutoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function deletarProduto($id)
     {
         $produto = Produto::findOrFail($id);
         $produto->delete();
