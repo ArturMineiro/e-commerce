@@ -35,4 +35,22 @@ class BannerController extends Controller
         $banners = Banner::all();
         return response()->json($banners);
     }
+
+    public function deletarBanner($id)
+    {
+        $banner = Banner::findOrFail($id);
+    
+        $imagePaths = json_decode($banner->image_urls, true);
+        
+        foreach ($imagePaths as $imagePath) {
+            if (Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath); // Corrigido para "exists"
+            }
+        }
+        
+        $banner->delete();
+    
+        return response()->json(['message' => 'Banner excluído com sucesso!']);
+    }
+    
 }

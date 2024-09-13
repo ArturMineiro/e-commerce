@@ -1,17 +1,38 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Carousel } from 'react-bootstrap';
+import './adminStyles.css'; 
+
 
 function CadastrarBanners() {
     const [bannerName, setBannerName] = useState<string>('');
     const [bannerImages, setBannerImages] = useState<File[]>([]);
     const [message, setMessage] = useState<string>('');
+    const [banners, setBanners] = useState<any[]>([]); // Para armazenar banners existentes
 
+    // Carregar banners existentes
+    useEffect(() => {
+        const fetchBanners = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/api/banners');
+                setBanners(response.data);
+            } catch (error) {
+                setMessage('Erro ao carregar os banners.');
+            }
+        };
+
+        fetchBanners();
+    }, []);
+
+    // Handle change for selecting images
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             setBannerImages(Array.from(e.target.files));
         }
     };
 
+    // Handle banner submission
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -35,8 +56,27 @@ function CadastrarBanners() {
             setMessage('Banners cadastrados com sucesso!');
             setBannerName('');
             setBannerImages([]);
+            // Atualiza a lista de banners após cadastrar
+            const response = await axios.get('http://localhost:8000/api/banners');
+            setBanners(response.data);
         } catch (error) {
             setMessage('Erro ao cadastrar os banners. Tente novamente.');
+        }
+    };
+
+    const handleDelete = async (bannerId: number) => {
+        try {
+            await axios.delete(`http://localhost:8000/api/banners/${bannerId}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            setMessage('Banner excluído com sucesso!');
+            // Atualiza a lista de banners após excluir
+            setBanners(banners.filter(banner => banner.id !== bannerId)); 
+        } catch (error) {
+            setMessage('Erro ao excluir o banner. Tente novamente.');
+            console.log('error');
         }
     };
 
@@ -71,6 +111,37 @@ function CadastrarBanners() {
 
                 <button type="submit" className="btn btn-primary">Cadastrar Banners</button>
             </form>
+
+            <h2 className="mt-5">Gerenciar Banners</h2>
+            {banners.length === 0 ? (
+                <p>Nenhum banner cadastrado.</p>
+            ) : (
+                <>
+                    <Carousel className="custom-carousel"> {/* Aplica a classe customizada */}
+                        {banners.map((banner) => {
+                            const imageUrls = JSON.parse(banner.image_urls); // Assumindo que é uma lista de URLs
+                            return imageUrls.map((url: string, index: number) => (
+                                <Carousel.Item key={`${banner.id}-${index}`}>
+                                    <img
+                                        className="d-block w-100"
+                                        src={`http://localhost:8000/storage/${url}`}
+                                        alt={`Banner ${index}`}
+                                    />
+                                    <Carousel.Caption>
+                                        <h5>{banner.name}</h5>
+                                        <button
+                                            className="btn btn-danger"
+                                            onClick={() => handleDelete(banner.id)}
+                                        >
+                                            Excluir
+                                        </button>
+                                    </Carousel.Caption>
+                                </Carousel.Item>
+                            ));
+                        })}
+                    </Carousel>
+                </>
+            )}
         </div>
     );
 }

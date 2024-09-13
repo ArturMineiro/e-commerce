@@ -16,4 +16,13 @@
       max-height: 300px; 
     }
   }
-  
+  .custom-carousel {
+    max-width: 600px;
+    max-height: 400px;
+    margin: 0 auto;
+}
+
+.custom-carousel img {
+    object-fit: cover;
+    max-height: 100%;
+}
