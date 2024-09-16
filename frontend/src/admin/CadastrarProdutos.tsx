@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import SuccessMessage from '../hooks/SucessMenssage';
+import ErrorMessage from '../hooks/ErrorMenssage';
+
 
 const CadastrarProdutos: React.FC = () => {
   const [produto, setProduto] = useState({
@@ -12,7 +15,8 @@ const CadastrarProdutos: React.FC = () => {
     imagens: [] as File[],
   });
 
-  const [mensagem, setMensagem] = useState<string | null>(null); // Estado para armazenar a mensagem
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null); // Estado para mensagem de sucesso
+  const [mensagemErro, setMensagemErro] = useState<string | null>(null);       // Estado para mensagem de erro
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -52,18 +56,20 @@ const CadastrarProdutos: React.FC = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       // Definir a mensagem de sucesso
-      setMensagem('Produto cadastrado com sucesso!');
+      setMensagemSucesso('Produto cadastrado com sucesso!');
+      setMensagemErro(null); // Limpar a mensagem de erro, se houver
       
       // Redirecionar após 3 segundos
       setTimeout(() => {
         navigate('/admin/administraprodutos');
       }, 3000);
-      
+
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);
-      setMensagem('Erro ao cadastrar o produto. Tente novamente.'); // Definir a mensagem de erro
+      setMensagemErro('Erro ao cadastrar o produto. Tente novamente.');
+      setMensagemSucesso(null); // Limpar a mensagem de sucesso, se houver
     }
   };
 
@@ -72,10 +78,11 @@ const CadastrarProdutos: React.FC = () => {
       <h2>Cadastrar Produto</h2>
       
       {/* Exibir a mensagem de sucesso ou erro */}
-      {mensagem && (
-        <div className={`alert ${mensagem.includes('sucesso') ? 'alert-success' : 'alert-danger'}`} role="alert">
-          {mensagem}
-        </div>
+      {mensagemSucesso && (
+        <SuccessMessage message={mensagemSucesso} onClose={() => setMensagemSucesso(null)} />
+      )}
+      {mensagemErro && (
+        <ErrorMessage message={mensagemErro} onClose={() => setMensagemErro(null)} />
       )}
 
       <form onSubmit={handleSubmit}>
@@ -154,3 +161,4 @@ const CadastrarProdutos: React.FC = () => {
 };
 
 export default CadastrarProdutos;
+``
