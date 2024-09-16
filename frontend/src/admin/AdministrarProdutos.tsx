@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Carousel } from 'react-bootstrap';
+import { Carousel, Alert } from 'react-bootstrap';
 import './adminStyles.css'; // Importe o arquivo CSS
 
 interface Produto {
@@ -17,6 +17,7 @@ const AdministrarProdutos: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editedProduct, setEditedProduct] = useState<Produto | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProdutos = async () => {
@@ -35,6 +36,12 @@ const AdministrarProdutos: React.FC = () => {
     try {
       await axios.delete(`http://localhost:8000/api/produtos/delete/${id}`);
       setProdutos(produtos.filter((produto) => produto.id !== id));
+      setSuccessMessage('Produto excluído com sucesso!');
+      
+      // Limpa a mensagem após 3 segundos
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
     } catch (error) {
       console.error('Erro ao deletar produto:', error);
     }
@@ -77,6 +84,10 @@ const AdministrarProdutos: React.FC = () => {
   return (
     <div className="container mt-5">
       <h2>Administrar Produtos</h2>
+
+      {/* Exibe a mensagem de sucesso */}
+      {successMessage && <Alert variant="success">{successMessage}</Alert>}
+
       <div className="row">
         {produtos.map((produto) => (
           <div key={produto.id} className="col-md-4 mb-4">
