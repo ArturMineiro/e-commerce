@@ -23,7 +23,7 @@ Route::get('/banners', [BannerController::class, 'mostrarBanners']);
 Route::delete('/banners/{id}', [BannerController::class, 'deletarBanner']);
 
 // Rotas de Produtos
-// Route::get('/produtos', [ProdutoController::class, 'index']); 
+Route::get('/produtos', [ProdutoController::class, 'index']); 
 Route::get('/produtos/{id}', [ProdutoController::class, 'mostrarProdutos']); 
 Route::post('/produtos/store', [ProdutoController::class, 'criarProdutos']);
 Route::put('/produtos/update/{id}', [ProdutoController::class, 'atualizarProduto']);

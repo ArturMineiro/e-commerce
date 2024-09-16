@@ -12,18 +12,18 @@ class ProdutoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    // public function index()
-    // {
-    //     $produtos = Produto::all();
+    public function index()
+    {
+        $produtos = Produto::all();
     
-    //     // Atualizar os caminhos das imagens
-    //     $produtos->map(function ($produto) {
-    //         $produto->imagens = json_decode($produto->imagens);
-    //         return $produto;
-    //     });
+        // Atualizar os caminhos das imagens
+        $produtos->map(function ($produto) {
+            $produto->imagens = json_decode($produto->imagens);
+            return $produto;
+        });
     
-    //     return response()->json($produtos);
-    // }
+        return response()->json($produtos);
+    }
     
     /**
      * Show the form for creating a new resource.
@@ -66,7 +66,7 @@ class ProdutoController extends Controller
     
         $produto = Produto::create($validatedData);
     
-        return response()->json($produto, 201);
+        return response()->json(['message' => 'Produto cadastrado com sucesso']);
     }
     
     /**

@@ -12,6 +12,7 @@ const CadastrarProdutos: React.FC = () => {
     imagens: [] as File[],
   });
 
+  const [mensagem, setMensagem] = useState<string | null>(null); // Estado para armazenar a mensagem
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -32,7 +33,7 @@ const CadastrarProdutos: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     const formData = new FormData();
     Object.keys(produto).forEach((key) => {
       if (key === 'imagens') {
@@ -43,7 +44,7 @@ const CadastrarProdutos: React.FC = () => {
         formData.append(key, (produto as any)[key]);
       }
     });
-  
+
     try {
       const url = 'http://localhost:8000/api/produtos/store';
       const response = await axios.post(url, formData, {
@@ -51,16 +52,32 @@ const CadastrarProdutos: React.FC = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Produto cadastrado com sucesso:', response.data);
-      navigate('/admin/cadastrarprodutos'); // Redirecionar após o sucesso
+      
+      // Definir a mensagem de sucesso
+      setMensagem('Produto cadastrado com sucesso!');
+      
+      // Redirecionar após 3 segundos
+      setTimeout(() => {
+        navigate('/admin/administraprodutos');
+      }, 3000);
+      
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);
+      setMensagem('Erro ao cadastrar o produto. Tente novamente.'); // Definir a mensagem de erro
     }
   };
 
   return (
     <div className="container mt-5 shadow p-3 mb-5 bg-body rounded">
       <h2>Cadastrar Produto</h2>
+      
+      {/* Exibir a mensagem de sucesso ou erro */}
+      {mensagem && (
+        <div className={`alert ${mensagem.includes('sucesso') ? 'alert-success' : 'alert-danger'}`} role="alert">
+          {mensagem}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Nome</label>
