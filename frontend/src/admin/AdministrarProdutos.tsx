@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Carousel, Alert } from 'react-bootstrap';
 import './adminStyles.css'; // Importe o arquivo CSS
+import ErrorMessage from '../hooks/ErrorMenssage';
+import SuccessMessage from '../hooks/SucessMenssage';
 
 interface Produto {
   id: number;
@@ -17,7 +19,10 @@ const AdministrarProdutos: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editedProduct, setEditedProduct] = useState<Produto | null>(null);
+
+  // Estado para controlar mensagens de sucesso/erro
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProdutos = async () => {
@@ -37,12 +42,8 @@ const AdministrarProdutos: React.FC = () => {
       await axios.delete(`http://localhost:8000/api/produtos/delete/${id}`);
       setProdutos(produtos.filter((produto) => produto.id !== id));
       setSuccessMessage('Produto excluído com sucesso!');
-      
-      // Limpa a mensagem após 3 segundos
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
     } catch (error) {
+      setErrorMessage('Erro ao excluir o produto.');
       console.error('Erro ao deletar produto:', error);
     }
   };
@@ -61,7 +62,9 @@ const AdministrarProdutos: React.FC = () => {
         ));
         setEditingProductId(null);
         setEditedProduct(null);
+        setSuccessMessage('Produto atualizado com sucesso!');
       } catch (error) {
+        setErrorMessage('Erro ao salvar o produto.');
         console.error('Erro ao salvar produto:', error);
       }
     }
@@ -81,12 +84,20 @@ const AdministrarProdutos: React.FC = () => {
     }
   };
 
+  const handleCloseSuccessMessage = () => setSuccessMessage(null);
+  const handleCloseErrorMessage = () => setErrorMessage(null);
+
   return (
     <div className="container mt-5">
       <h2>Administrar Produtos</h2>
 
-      {/* Exibe a mensagem de sucesso */}
-      {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      {/* Mensagens de Sucesso/Erro */}
+      {successMessage && (
+        <SuccessMessage message={successMessage} onClose={handleCloseSuccessMessage} />
+      )}
+      {errorMessage && (
+        <ErrorMessage message={errorMessage} onClose={handleCloseErrorMessage} />
+      )}
 
       <div className="row">
         {produtos.map((produto) => (
@@ -161,7 +172,7 @@ const AdministrarProdutos: React.FC = () => {
                     {produto.imagens.map((imagem, index) => (
                       <Carousel.Item key={index}>
                         <img
-                          src={`http://localhost:8000/storage/${imagem}`} // Corrigido aqui
+                          src={`http://localhost:8000/storage/${imagem}`}
                           className="d-block w-100"
                           alt={`Produto Imagem ${index}`}
                         />
