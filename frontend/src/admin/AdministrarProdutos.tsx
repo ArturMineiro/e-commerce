@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Carousel, Alert, Button, Card, Form } from 'react-bootstrap';
-import './adminStyles.css'; // Importe o arquivo CSS
 
 interface Produto {
   id: number;
@@ -123,7 +122,7 @@ const AdministrarProdutos: React.FC = () => {
   };
 
   return (
-    <div className="admin-produtos">
+    <div className="container mt-4">
       <h1>Administração de Produtos</h1>
 
       {/* Mensagens de sucesso e erro */}
@@ -138,136 +137,141 @@ const AdministrarProdutos: React.FC = () => {
         </Alert>
       )}
 
-      <div className="produtos-lista">
+      <div className="row">
         {produtos.map((produto) => (
-          <Card key={produto.id} className="produto-card">
-            {editingProductId === produto.id ? (
-              <div>
-                <Card.Body>
-                  <Form.Group controlId="formNome">
-                    <Form.Control
-                      type="text"
-                      value={editedProduct?.nome || ''}
-                      onChange={(e) =>
-                        setEditedProduct((prevState) =>
-                          prevState ? { ...prevState, nome: e.target.value } : null
-                        )
-                      }
-                      placeholder="Nome do produto"
-                      className="mb-2"
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="formDescricao">
-                    <Form.Control
-                      as="textarea"
-                      value={editedProduct?.descricao || ''}
-                      onChange={(e) =>
-                        setEditedProduct((prevState) =>
-                          prevState ? { ...prevState, descricao: e.target.value } : null
-                        )
-                      }
-                      placeholder="Descrição do produto"
-                      className="mb-2"
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="formPreco">
-                    <Form.Control
-                      type="number"
-                      value={editedProduct?.preco || 0}
-                      onChange={(e) =>
-                        setEditedProduct((prevState) =>
-                          prevState ? { ...prevState, preco: parseFloat(e.target.value) } : null
-                        )
-                      }
-                      placeholder="Preço"
-                      className="mb-2"
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="formQuantidade">
-                    <Form.Control
-                      type="number"
-                      value={editedProduct?.quantidade || 0}
-                      onChange={(e) =>
-                        setEditedProduct((prevState) =>
-                          prevState ? { ...prevState, quantidade: parseInt(e.target.value, 10) } : null
-                        )
-                      }
-                      placeholder="Quantidade"
-                      className="mb-2"
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="formCategoria">
-                    <Form.Control
-                      type="text"
-                      value={editedProduct?.categoria || ''}
-                      onChange={(e) =>
-                        setEditedProduct((prevState) =>
-                          prevState ? { ...prevState, categoria: e.target.value } : null
-                        )
-                      }
-                      placeholder="Categoria"
-                      className="mb-2"
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="formImagens">
-                    <Form.Label>Adicionar Imagens</Form.Label>
-                    <Form.Control
-                      type="file"
-                      multiple
-                      onChange={(e) => setNewImages(e.target.files)}
-                      className="mb-2"
-                    />
-                    <Button variant="primary" onClick={handleAddImages}>
-                      Adicionar Imagens
-                    </Button>
-                  </Form.Group>
-                  <div className="imagens-lista">
-                    <h5>Imagens</h5>
-                    {(editedProduct?.imagens || []).map((imagem, index) => (
-                      <div key={index} className="image-preview">
-                        <img
-                          src={`http://localhost:8000/storage/${imagem}`}
-                          alt={`Imagem ${index}`}
-                        />
-                        <Button variant="danger" onClick={() => handleDeleteImage(index)}>Excluir Imagem</Button>
-                      </div>
-                    ))}
-                  </div>
-                </Card.Body>
-                <Card.Footer>
-                  <Button variant="primary" onClick={handleSave}>Salvar</Button>
-                  <Button variant="secondary" onClick={handleCancelEdit}>Cancelar</Button>
-                </Card.Footer>
-              </div>
-            ) : (
-              <div>
-                <Card.Body>
-                  <h5>{produto.nome}</h5>
-                  <p>{produto.descricao}</p>
-                  <p>Preço: R${produto.preco}</p>
-                  <p>Quantidade: {produto.quantidade}</p>
-                  <p>Categoria: {produto.categoria}</p>
-                  {produto.imagens && produto.imagens.length > 0 && (
-                    <Carousel>
-                      {produto.imagens.map((imagem, index) => (
-                        <Carousel.Item key={index}>
+          <div key={produto.id} className="col-md-4 mb-4">
+            <Card>
+              {editingProductId === produto.id ? (
+                <div>
+                  <Card.Body>
+                    <Form.Group controlId="formNome">
+                      <Form.Control
+                        type="text"
+                        value={editedProduct?.nome || ''}
+                        onChange={(e) =>
+                          setEditedProduct((prevState) =>
+                            prevState ? { ...prevState, nome: e.target.value } : null
+                          )
+                        }
+                        placeholder="Nome do produto"
+                        className="mb-2"
+                      />
+                    </Form.Group>
+                    <Form.Group controlId="formDescricao">
+                      <Form.Control
+                        as="textarea"
+                        value={editedProduct?.descricao || ''}
+                        onChange={(e) =>
+                          setEditedProduct((prevState) =>
+                            prevState ? { ...prevState, descricao: e.target.value } : null
+                          )
+                        }
+                        placeholder="Descrição do produto"
+                        className="mb-2"
+                      />
+                    </Form.Group>
+                    <Form.Group controlId="formPreco">
+                      <Form.Control
+                        type="number"
+                        value={editedProduct?.preco || 0}
+                        onChange={(e) =>
+                          setEditedProduct((prevState) =>
+                            prevState ? { ...prevState, preco: parseFloat(e.target.value) } : null
+                          )
+                        }
+                        placeholder="Preço"
+                        className="mb-2"
+                      />
+                    </Form.Group>
+                    <Form.Group controlId="formQuantidade">
+                      <Form.Control
+                        type="number"
+                        value={editedProduct?.quantidade || 0}
+                        onChange={(e) =>
+                          setEditedProduct((prevState) =>
+                            prevState ? { ...prevState, quantidade: parseInt(e.target.value, 10) } : null
+                          )
+                        }
+                        placeholder="Quantidade"
+                        className="mb-2"
+                      />
+                    </Form.Group>
+                    <Form.Group controlId="formCategoria">
+                      <Form.Control
+                        type="text"
+                        value={editedProduct?.categoria || ''}
+                        onChange={(e) =>
+                          setEditedProduct((prevState) =>
+                            prevState ? { ...prevState, categoria: e.target.value } : null
+                          )
+                        }
+                        placeholder="Categoria"
+                        className="mb-2"
+                      />
+                    </Form.Group>
+                    <Form.Group controlId="formImagens">
+                      <Form.Label>Adicionar Imagens</Form.Label>
+                      <Form.Control
+                        type="file"
+                        multiple
+                        onChange={(e) => setNewImages(e.target.files)}
+                        className="mb-2"
+                      />
+                      <Button variant="primary" onClick={handleAddImages}>
+                        Adicionar Imagens
+                      </Button>
+                    </Form.Group>
+                    <div>
+                      <h5>Imagens</h5>
+                      {(editedProduct?.imagens || []).map((imagem, index) => (
+                        <div key={index} className="mb-2">
                           <img
-                            className="d-block w-100"
                             src={`http://localhost:8000/storage/${imagem}`}
                             alt={`Imagem ${index}`}
+                            style={{ maxWidth: '100%', height: 'auto' }}
                           />
-                        </Carousel.Item>
+                          <Button variant="danger" onClick={() => handleDeleteImage(index)} className="mt-2">
+                            Excluir Imagem
+                          </Button>
+                        </div>
                       ))}
-                    </Carousel>
-                  )}
-                </Card.Body>
-                <Card.Footer>
-                  <Button variant="warning" onClick={() => handleEdit(produto)}>Editar</Button>
-                  <Button variant="danger" onClick={() => handleDelete(produto.id)}>Excluir</Button>
-                </Card.Footer>
-              </div>
-            )}
-          </Card>
+                    </div>
+                  </Card.Body>
+                  <Card.Footer>
+                    <Button variant="primary" onClick={handleSave}>Salvar</Button>
+                    <Button variant="secondary" onClick={handleCancelEdit} className="ms-2">Cancelar</Button>
+                  </Card.Footer>
+                </div>
+              ) : (
+                <div>
+                  <Card.Body>
+                    <h5>{produto.nome}</h5>
+                    <p>{produto.descricao}</p>
+                    <p>Preço: R${produto.preco}</p>
+                    <p>Quantidade: {produto.quantidade}</p>
+                    <p>Categoria: {produto.categoria}</p>
+                    {produto.imagens && produto.imagens.length > 0 && (
+                      <Carousel>
+                        {produto.imagens.map((imagem, index) => (
+                          <Carousel.Item key={index}>
+                            <img
+                              className="d-block w-100"
+                              src={`http://localhost:8000/storage/${imagem}`}
+                              alt={`Imagem ${index}`}
+                            />
+                          </Carousel.Item>
+                        ))}
+                      </Carousel>
+                    )}
+                  </Card.Body>
+                  <Card.Footer>
+                    <Button variant="warning" onClick={() => handleEdit(produto)}>Editar</Button>
+                    <Button variant="danger" onClick={() => handleDelete(produto.id)} className="ms-2">Excluir</Button>
+                  </Card.Footer>
+                </div>
+              )}
+            </Card>
+          </div>
         ))}
       </div>
     </div>
