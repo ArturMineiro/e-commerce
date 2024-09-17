@@ -28,6 +28,9 @@ Route::get('/produtos/{id}', [ProdutoController::class, 'mostrarProdutos']);
 Route::post('/produtos/store', [ProdutoController::class, 'criarProdutos']);
 Route::put('/produtos/update/{id}', [ProdutoController::class, 'atualizarProduto']);
 Route::delete('/produtos/delete/{id}', [ProdutoController::class, 'deletarProduto']);
+Route::delete('/produtos/{id}/imagem', [ProdutoController::class, 'deletarImagem']);
+// Adicione esta linha no seu arquivo de rotas
+Route::post('/produtos/{id}/imagens', [ProdutoController::class, 'adicionarImagens']);
 
 //pesquisa
 Route::get('/search', [SearchController::class, 'search']);

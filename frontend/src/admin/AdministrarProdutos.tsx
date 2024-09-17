@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Carousel, Alert } from 'react-bootstrap';
+import { Carousel, Alert, Button, Card, Form } from 'react-bootstrap';
 import './adminStyles.css'; // Importe o arquivo CSS
-import ErrorMessage from '../hooks/ErrorMenssage';
-import SuccessMessage from '../hooks/SucessMenssage';
 
 interface Produto {
   id: number;
@@ -12,13 +10,14 @@ interface Produto {
   preco: number;
   quantidade: number;
   categoria: string;
-  imagens: string[];
+  imagens: string[]; // Imagens como um array de strings
 }
 
 const AdministrarProdutos: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editedProduct, setEditedProduct] = useState<Produto | null>(null);
+  const [newImages, setNewImages] = useState<FileList | null>(null);
 
   // Estado para controlar mensagens de sucesso/erro
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -31,11 +30,59 @@ const AdministrarProdutos: React.FC = () => {
         setProdutos(response.data);
       } catch (error) {
         console.error('Erro ao buscar produtos:', error);
+        setErrorMessage('Erro ao buscar produtos.');
       }
     };
 
     fetchProdutos();
   }, []);
+
+  const handleDeleteImage = async (index: number) => {
+    if (editedProduct) {
+      try {
+        await axios.delete(`http://localhost:8000/api/produtos/${editedProduct.id}/imagem`, {
+          data: { imagem_index: index },
+        });
+
+        // Remove a imagem localmente após a exclusão no servidor
+        const newImages = editedProduct.imagens.filter((_, i) => i !== index);
+        setEditedProduct({ ...editedProduct, imagens: newImages });
+
+        setSuccessMessage('Imagem removida com sucesso!');
+      } catch (error) {
+        setErrorMessage('Erro ao remover a imagem.');
+        console.error('Erro ao deletar imagem:', error);
+      }
+    }
+  };
+
+  const handleAddImages = async () => {
+    if (editedProduct && newImages) {
+      const formData = new FormData();
+      for (let i = 0; i < newImages.length; i++) {
+        formData.append('imagens[]', newImages[i]);
+      }
+
+      try {
+        await axios.post(`http://localhost:8000/api/produtos/${editedProduct.id}/imagens`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        // Atualize a lista de imagens após o upload
+        const response = await axios.get<Produto>(`http://localhost:8000/api/produtos/${editedProduct.id}`);
+        setEditedProduct(response.data);
+
+        // Limpa os arquivos após o upload
+        setNewImages(null);
+        setSuccessMessage('Imagens adicionadas com sucesso!');
+      } catch (error) {
+        setErrorMessage('Erro ao adicionar as imagens.');
+        console.error('Erro ao adicionar imagens:', error);
+      }
+    }
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -50,13 +97,13 @@ const AdministrarProdutos: React.FC = () => {
 
   const handleEdit = (produto: Produto) => {
     setEditingProductId(produto.id);
-    setEditedProduct({ ...produto });
+    setEditedProduct({ ...produto, imagens: produto.imagens || [] }); // Garantir que imagens é um array
   };
 
   const handleSave = async () => {
     if (editedProduct) {
       try {
-        await axios.put(`http://localhost:8000/api/produtos/${editedProduct.id}`, editedProduct);
+        await axios.put(`http://localhost:8000/api/produtos/update/${editedProduct.id}`, editedProduct);
         setProdutos(produtos.map((produto) =>
           produto.id === editedProduct.id ? editedProduct : produto
         ));
@@ -64,144 +111,163 @@ const AdministrarProdutos: React.FC = () => {
         setEditedProduct(null);
         setSuccessMessage('Produto atualizado com sucesso!');
       } catch (error) {
-        setErrorMessage('Erro ao salvar o produto.');
-        console.error('Erro ao salvar produto:', error);
+        setErrorMessage('Erro ao atualizar o produto.');
+        console.error('Erro ao atualizar produto:', error);
       }
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (editedProduct) {
-      setEditedProduct({ ...editedProduct, [e.target.name]: e.target.value });
-    }
+  const handleCancelEdit = () => {
+    setEditingProductId(null);
+    setEditedProduct(null);
   };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    if (editedProduct && e.target.files) {
-      const newImages = [...editedProduct.imagens];
-      newImages[index] = URL.createObjectURL(e.target.files[0]);
-      setEditedProduct({ ...editedProduct, imagens: newImages });
-    }
-  };
-
-  const handleCloseSuccessMessage = () => setSuccessMessage(null);
-  const handleCloseErrorMessage = () => setErrorMessage(null);
 
   return (
-    <div className="container mt-5">
-      <h2>Administrar Produtos</h2>
+    <div className="admin-produtos">
+      <h1>Administração de Produtos</h1>
 
-      {/* Mensagens de Sucesso/Erro */}
+      {/* Mensagens de sucesso e erro */}
       {successMessage && (
-        <SuccessMessage message={successMessage} onClose={handleCloseSuccessMessage} />
+        <Alert variant="success" onClose={() => setSuccessMessage(null)} dismissible>
+          {successMessage}
+        </Alert>
       )}
       {errorMessage && (
-        <ErrorMessage message={errorMessage} onClose={handleCloseErrorMessage} />
+        <Alert variant="danger" onClose={() => setErrorMessage(null)} dismissible>
+          {errorMessage}
+        </Alert>
       )}
 
-      <div className="row">
+      <div className="produtos-lista">
         {produtos.map((produto) => (
-          <div key={produto.id} className="col-md-4 mb-4">
+          <Card key={produto.id} className="produto-card">
             {editingProductId === produto.id ? (
-              <div className="card">
-                <div className="card-body">
-                  <input
-                    type="text"
-                    name="nome"
-                    value={editedProduct?.nome || ''}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    placeholder="Nome do Produto"
-                  />
-                  <textarea
-                    name="descricao"
-                    value={editedProduct?.descricao || ''}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    placeholder="Descrição"
-                  />
-                  <input
-                    type="number"
-                    name="preco"
-                    value={editedProduct?.preco || ''}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    placeholder="Preço"
-                  />
-                  <input
-                    type="number"
-                    name="quantidade"
-                    value={editedProduct?.quantidade || ''}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    placeholder="Quantidade"
-                  />
-                  <input
-                    type="text"
-                    name="categoria"
-                    value={editedProduct?.categoria || ''}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    placeholder="Categoria"
-                  />
-                  <div className="mb-2">
-                    {editedProduct?.imagens.map((imagem, index) => (
-                      <div key={index}>
+              <div>
+                <Card.Body>
+                  <Form.Group controlId="formNome">
+                    <Form.Control
+                      type="text"
+                      value={editedProduct?.nome || ''}
+                      onChange={(e) =>
+                        setEditedProduct((prevState) =>
+                          prevState ? { ...prevState, nome: e.target.value } : null
+                        )
+                      }
+                      placeholder="Nome do produto"
+                      className="mb-2"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="formDescricao">
+                    <Form.Control
+                      as="textarea"
+                      value={editedProduct?.descricao || ''}
+                      onChange={(e) =>
+                        setEditedProduct((prevState) =>
+                          prevState ? { ...prevState, descricao: e.target.value } : null
+                        )
+                      }
+                      placeholder="Descrição do produto"
+                      className="mb-2"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="formPreco">
+                    <Form.Control
+                      type="number"
+                      value={editedProduct?.preco || 0}
+                      onChange={(e) =>
+                        setEditedProduct((prevState) =>
+                          prevState ? { ...prevState, preco: parseFloat(e.target.value) } : null
+                        )
+                      }
+                      placeholder="Preço"
+                      className="mb-2"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="formQuantidade">
+                    <Form.Control
+                      type="number"
+                      value={editedProduct?.quantidade || 0}
+                      onChange={(e) =>
+                        setEditedProduct((prevState) =>
+                          prevState ? { ...prevState, quantidade: parseInt(e.target.value, 10) } : null
+                        )
+                      }
+                      placeholder="Quantidade"
+                      className="mb-2"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="formCategoria">
+                    <Form.Control
+                      type="text"
+                      value={editedProduct?.categoria || ''}
+                      onChange={(e) =>
+                        setEditedProduct((prevState) =>
+                          prevState ? { ...prevState, categoria: e.target.value } : null
+                        )
+                      }
+                      placeholder="Categoria"
+                      className="mb-2"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="formImagens">
+                    <Form.Label>Adicionar Imagens</Form.Label>
+                    <Form.Control
+                      type="file"
+                      multiple
+                      onChange={(e) => setNewImages(e.target.files)}
+                      className="mb-2"
+                    />
+                    <Button variant="primary" onClick={handleAddImages}>
+                      Adicionar Imagens
+                    </Button>
+                  </Form.Group>
+                  <div className="imagens-lista">
+                    <h5>Imagens</h5>
+                    {(editedProduct?.imagens || []).map((imagem, index) => (
+                      <div key={index} className="image-preview">
                         <img
-                          src={imagem} // Mostrar imagem diretamente
-                          alt={`Produto Imagem ${index}`}
-                          className="img-fluid"
+                          src={`http://localhost:8000/storage/${imagem}`}
+                          alt={`Imagem ${index}`}
                         />
-                        <input
-                          type="file"
-                          onChange={(e) => handleImageChange(e, index)}
-                          className="form-control mb-2"
-                        />
+                        <Button variant="danger" onClick={() => handleDeleteImage(index)}>Excluir Imagem</Button>
                       </div>
                     ))}
                   </div>
-                  <button className="btn btn-success" onClick={handleSave}>
-                    Salvar
-                  </button>
-                </div>
+                </Card.Body>
+                <Card.Footer>
+                  <Button variant="primary" onClick={handleSave}>Salvar</Button>
+                  <Button variant="secondary" onClick={handleCancelEdit}>Cancelar</Button>
+                </Card.Footer>
               </div>
             ) : (
-              <div className="card">
-                {produto.imagens.length > 0 && (
-                  <Carousel className="card-img-top">
-                    {produto.imagens.map((imagem, index) => (
-                      <Carousel.Item key={index}>
-                        <img
-                          src={`http://localhost:8000/storage/${imagem}`}
-                          className="d-block w-100"
-                          alt={`Produto Imagem ${index}`}
-                        />
-                      </Carousel.Item>
-                    ))}
-                  </Carousel>
-                )}
-                <div className="card-body">
-                  <h5 className="card-title">{produto.nome}</h5>
-                  <p className="card-text">{produto.descricao}</p>
-                  <p className="card-text">Preço: R${produto.preco}</p>
-                  <p className="card-text">Quantidade: {produto.quantidade}</p>
-                  <p className="card-text">Categoria: {produto.categoria}</p>
-                  <button
-                    className="btn btn-primary mr-3"
-                    onClick={() => handleEdit(produto)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleDelete(produto.id)}
-                  >
-                    Excluir
-                  </button>
-                </div>
+              <div>
+                <Card.Body>
+                  <h5>{produto.nome}</h5>
+                  <p>{produto.descricao}</p>
+                  <p>Preço: R${produto.preco}</p>
+                  <p>Quantidade: {produto.quantidade}</p>
+                  <p>Categoria: {produto.categoria}</p>
+                  {produto.imagens && produto.imagens.length > 0 && (
+                    <Carousel>
+                      {produto.imagens.map((imagem, index) => (
+                        <Carousel.Item key={index}>
+                          <img
+                            className="d-block w-100"
+                            src={`http://localhost:8000/storage/${imagem}`}
+                            alt={`Imagem ${index}`}
+                          />
+                        </Carousel.Item>
+                      ))}
+                    </Carousel>
+                  )}
+                </Card.Body>
+                <Card.Footer>
+                  <Button variant="warning" onClick={() => handleEdit(produto)}>Editar</Button>
+                  <Button variant="danger" onClick={() => handleDelete(produto.id)}>Excluir</Button>
+                </Card.Footer>
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
     </div>

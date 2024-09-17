@@ -6,16 +6,7 @@
     object-fit: cover; 
   }
   
-  
-  @media (max-width: 768px) {
-    .card-img-top {
-      max-height: 300px; 
-    }
-    
-    .carousel-item img {
-      max-height: 300px; 
-    }
-  }
+ 
   .custom-carousel {
     max-width: 600px;
     max-height: 400px;
@@ -25,4 +16,40 @@
 .custom-carousel img {
     object-fit: cover;
     max-height: 100%;
+}
+
+.imagemEditar{
+  height: 250px;
+  width: 250px;
+  margin-bottom: 5px;
+}
+.admin-produtos {
+  margin: 0 auto;
+  padding: 20px; /* Adicione preenchimento interno */
+}
+/* adminStyles.css */
+.produtos-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.produto-card {
+  flex: 1 1 calc(33.333% - 1rem);
+  margin: 0.5rem;
+}
+
+.image-preview {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.image-preview img {
+  max-width: 100px;
+  margin-right: 1rem;
+}
+
+.custom-carousel img {
+  max-height: 400px;
 }

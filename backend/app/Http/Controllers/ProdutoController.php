@@ -128,4 +128,62 @@ class ProdutoController extends Controller
         $produto->delete();
         return response()->json(null,204);
     }
+    public function deletarImagem(Request $request, $id)
+{
+    $produto = Produto::findOrFail($id);
+
+    // Valida que o índice da imagem a ser deletada foi passado
+    $validatedData = $request->validate([
+        'imagem_index' => 'required|integer',
+    ]);
+
+    $imagens = json_decode($produto->imagens, true);
+
+    // Verificar se o índice da imagem é válido
+    if (!isset($imagens[$validatedData['imagem_index']])) {
+        return response()->json(['message' => 'Índice da imagem inválido'], 400);
+    }
+
+    // Remove a imagem do array
+    $imagemRemovida = $imagens[$validatedData['imagem_index']];
+    unset($imagens[$validatedData['imagem_index']]);
+
+    // Reindexar o array e salvar novamente
+    $produto->imagens = json_encode(array_values($imagens));
+    $produto->save();
+
+    // Opcional: Excluir a imagem do sistema de arquivos
+    \Storage::delete('public/' . $imagemRemovida);
+
+    return response()->json(['message' => 'Imagem removida com sucesso']);
+}
+
+
+public function adicionarImagens(Request $request, $id)
+{
+    $produto = Produto::findOrFail($id);
+
+    $validatedData = $request->validate([
+        'imagens' => 'required|array',
+        'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+    ]);
+
+    $imagePaths = [];
+
+    if ($request->hasFile('imagens')) {
+        foreach ($request->file('imagens') as $image) {
+            $path = $image->store('imagens', 'public'); // Ajustado para 'imagens'
+            $imagePaths[] = $path;
+        }
+    }
+
+    // Adicionar as novas imagens ao array existente
+    $imagensExistentes = json_decode($produto->imagens, true) ?? [];
+    $imagensAtualizadas = array_merge($imagensExistentes, $imagePaths);
+    $produto->imagens = json_encode($imagensAtualizadas);
+    $produto->save();
+
+    return response()->json(['message' => 'Imagens adicionadas com sucesso']);
+}
+
 }
