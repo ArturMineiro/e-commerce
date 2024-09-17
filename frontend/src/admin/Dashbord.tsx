@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Dashboard() {
     // Exemplo de dados de estatísticas para exibir no dashboard
-    const [stats, setStats] = useState({
+    const [stats, setStats] = React.useState({
         totalSales: 1500,
         totalProducts: 75,
         totalUsers: 200,
@@ -56,6 +57,14 @@ function Dashboard() {
                                 Este é um painel administrativo para gerenciar as operações do e-commerce. 
                                 Aqui você pode monitorar vendas, produtos, usuários e pedidos.
                             </p>
+                            <div className="list-group">
+                                <Link to="/admin/dashboard" className="list-group-item list-group-item-action">Dashboard</Link>
+                                <Link to="/admin/cadastrarprodutos" className="list-group-item list-group-item-action">Cadastrar Produtos</Link>
+                                <Link to="/admin/cadastrarbanners" className="list-group-item list-group-item-action">Cadastrar Banners</Link>
+                                <Link to="/admin/controleusuarios" className="list-group-item list-group-item-action">Controle de Usuários</Link>
+                                <Link to="/admin/historicocompras" className="list-group-item list-group-item-action">Histórico de Compras</Link>
+                                <Link to="/admin/administraprodutos" className="list-group-item list-group-item-action">Administrar Produtos</Link>
+                            </div>
                         </div>
                     </div>
                 </div>
