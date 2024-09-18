@@ -58,7 +58,7 @@ function Dashboard() {
                                 Aqui você pode monitorar vendas, produtos, usuários e pedidos.
                             </p>
                             <div className="list-group">
-                                <Link to="/admin/dashboard" className="list-group-item list-group-item-action">Dashboard</Link>
+                               
                                 <Link to="/admin/cadastrarprodutos" className="list-group-item list-group-item-action">Cadastrar Produtos</Link>
                                 <Link to="/admin/cadastrarbanners" className="list-group-item list-group-item-action">Cadastrar Banners</Link>
                                 <Link to="/admin/controleusuarios" className="list-group-item list-group-item-action">Controle de Usuários</Link>
