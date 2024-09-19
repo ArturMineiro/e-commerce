@@ -9,7 +9,7 @@ interface Produto {
   preco: number;
   quantidade: number;
   categoria: string;
-  imagens: string[]; // Imagens como um array de strings
+  imagens: string[]; 
 }
 
 const AdministrarProdutos: React.FC = () => {
@@ -176,7 +176,10 @@ const AdministrarProdutos: React.FC = () => {
               <Card.Body>
                 <Card.Title>{produto.nome}</Card.Title>
                 <Card.Text>{produto.descricao}</Card.Text>
-                <Card.Text>Preço: R$ {typeof produto.preco === 'number' ? produto.preco.toFixed(2) : 'N/A'}</Card.Text>
+                <Card.Text>
+                Preço: R$ {Number(produto.preco) ? Number(produto.preco).toFixed(2) : 'N/A'}
+                </Card.Text>
+
                 <Card.Text>Quantidade: {produto.quantidade}</Card.Text>
                 <Card.Text>Categoria: {produto.categoria}</Card.Text>
                 <Button variant="primary" onClick={() => handleEditProduct(produto)}>Editar</Button>
