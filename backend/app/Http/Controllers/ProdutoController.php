@@ -68,20 +68,40 @@ class ProdutoController extends Controller
 
     public function atualizarProduto(Request $request, $id)
     {
+        $produto = Produto::findOrFail($id);
+    
+        // Validar os dados recebidos
         $validatedData = $request->validate([
             'nome' => 'sometimes|required|string|max:255',
             'descricao' => 'nullable|string',
             'preco' => 'sometimes|required|numeric',
             'quantidade' => 'sometimes|required|integer',
-            'categoria'  => 'nullable|string|max:255',
+            'categoria' => 'nullable|string|max:255',
             'imagens' => 'nullable|array',
+            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-    
-        $produto = Produto::findOrFail($id);
+
+        // Se novas imagens forem enviadas, fazer o upload delas
+        if ($request->hasFile('imagens')) {
+            $existingImages = json_decode($produto->imagens, true) ?? [];
+            $newImages = [];
+
+            foreach ($request->file('imagens') as $image) {
+                $path = $image->store('imagens', 'public');
+                $newImages[] = $path;
+            }
+
+            // Mesclar as novas imagens com as existentes
+            $mergedImages = array_merge($existingImages, $newImages);
+            $produto->imagens = json_encode($mergedImages);
+        }
+
+        // Atualizar os outros campos
         $produto->update($validatedData);
-    
-        return response()->json($produto);
+
+        return response()->json(['message' => 'Produto atualizado com sucesso']);
     }
+
     
     public function deletarProduto($id)
     {

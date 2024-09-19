@@ -121,21 +121,35 @@ const AdministrarProdutos: React.FC = () => {
   const handleSaveChanges = async () => {
     if (editedProduct) {
       try {
-        await axios.put(`http://localhost:8000/api/produtos/${editedProduct.id}`, editedProduct);
+        // Atualizar os dados do produto sem lidar com imagens aqui
+        await axios.put(`http://localhost:8000/api/produtos/update/${editedProduct.id}`, {
+          nome: editedProduct.nome,
+          descricao: editedProduct.descricao,
+          preco: editedProduct.preco,
+          quantidade: editedProduct.quantidade,
+          categoria: editedProduct.categoria,
+        });
+  
+        // Apenas exiba a mensagem de sucesso
         setSuccessMessage('Produto atualizado com sucesso!');
-        // Atualize a lista de produtos após salvar
+        
+        // Atualize a lista de produtos com o produto editado
         const updatedProdutos = produtos.map((produto) =>
           produto.id === editedProduct.id ? editedProduct : produto
         );
         setProdutos(updatedProdutos);
-        setEditingProductId(null); // Sair do modo de edição após salvar
-        setShowModal(false); // Fechar o modal
+  
+        // Fechar o modal após salvar
+        setEditingProductId(null);
+        setShowModal(false);
       } catch (error) {
         setErrorMessage('Erro ao atualizar o produto.');
         console.error('Erro ao atualizar produto:', error);
       }
     }
   };
+  
+  
 
   return (
     <Container>
