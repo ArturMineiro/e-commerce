@@ -104,11 +104,25 @@ class ProdutoController extends Controller
 
     
     public function deletarProduto($id)
-    {
-        $produto = Produto::findOrFail($id);
-        $produto->delete();
-        return response()->json(null, 204);
+{
+    $produto = Produto::findOrFail($id);
+
+    // Verifica se o produto tem imagens associadas
+    if (!empty($produto->imagens)) {
+        $imagens = json_decode($produto->imagens, true);
+
+        // Excluir cada imagem do sistema de arquivos
+        foreach ($imagens as $imagem) {
+            Storage::delete('public/' . $imagem);
+        }
     }
+
+    // Deletar o produto do banco de dados
+    $produto->delete();
+
+    return response()->json(['message' => 'Produto e imagens deletados com sucesso'], 204);
+}
+
 
     public function deletarImagem(Request $request, $id)
     {
