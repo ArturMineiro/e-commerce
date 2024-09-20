@@ -2,19 +2,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextProps {
   loggedIn: boolean;
-  login: () => void;
+  login: (token: string, user: any) => void;
   logout: () => void;
   updateAuthStatus: () => void;
+  user: any;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loggedIn, setLoggedIn] = useState<boolean>(isLoggedIn());
+  const [user, setUser] = useState<any>(getUser());
 
   useEffect(() => {
     const handleStorageChange = () => {
       setLoggedIn(isLoggedIn());
+      setUser(getUser());
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -24,23 +27,27 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     };
   }, []);
 
-  const login = () => {
-    localStorage.setItem('token', 'your-token-here');
+  const login = (token: string, userData: any) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
     setLoggedIn(true);
+    setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setLoggedIn(false);
+    setUser(null);
   };
 
   const updateAuthStatus = () => {
     setLoggedIn(isLoggedIn());
+    setUser(getUser());
   };
 
   return (
-    <AuthContext.Provider value={{ loggedIn, login, logout, updateAuthStatus }}>
+    <AuthContext.Provider value={{ loggedIn, login, logout, updateAuthStatus, user }}>
       {children}
     </AuthContext.Provider>
   );
@@ -56,6 +63,11 @@ const useAuth = (): AuthContextProps => {
 
 const isLoggedIn = (): boolean => {
   return !!localStorage.getItem('token');
+};
+
+const getUser = (): any => {
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
 };
 
 export { AuthProvider, useAuth };

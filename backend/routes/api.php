@@ -35,10 +35,14 @@ Route::post('/produtos/{id}/imagens', [ProdutoController::class, 'adicionarImage
 
 //pesquisa
 Route::get('/search', [SearchController::class, 'search']);
+
 Route::post('/register', [UserController::class, 'register']);
-//login / autorização
 Route::post('/login', [UserController::class, 'login']);
-Route::middleware('auth:sanctum')->get('/user', [UserController::class, 'getUser']);
+
+// Rotas Protegidas
+Route::middleware(['auth:api'])->group(function () {
+    Route::get('/user', [UserController::class, 'getUser']);
+});
 Route::middleware('auth:sanctum')->get('/usuarios', [UserController::class, 'index']);
 
 

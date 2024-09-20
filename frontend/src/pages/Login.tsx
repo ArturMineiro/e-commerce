@@ -7,7 +7,7 @@ const Login: React.FC = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate(); 
-  const { updateAuthStatus } = useAuth();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({
@@ -18,13 +18,13 @@ const Login: React.FC = () => {
 
   const loginUser = async (credentials: { email: string; password: string }) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/login', credentials);
+      const response = await axios.post('http://localhost:8000/api/login', credentials, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       const { access_token, user } = response.data;
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // Atualizando o estado de autenticação
-      updateAuthStatus();
+      login(access_token, user);
 
       // Redirecionar com base no perfil do usuário
       if (user.role === 'admin') {
@@ -32,9 +32,20 @@ const Login: React.FC = () => {
       } else {
         navigate('/home');
       }
-    } catch (error) {
-      setError('Login incorreto. Verifique suas credenciais e tente novamente.');
-      console.error('Erro ao fazer login:', error);
+    } catch (error: any) {
+      if (error.response) {
+        if (error.response.status === 401) {
+          setError('Credenciais inválidas. Por favor, tente novamente.');
+        } else if (error.response.status === 422) {
+          setError('Por favor, preencha todos os campos corretamente.');
+        } else {
+          setError('Erro no servidor. Tente novamente mais tarde.');
+        }
+        console.error('Erro ao fazer login:', error.response.data);
+      } else {
+        setError('Erro ao conectar com o servidor.');
+        console.error('Erro ao fazer login:', error.message);
+      }
     }
   };
 
@@ -50,7 +61,7 @@ const Login: React.FC = () => {
   return (
     <div className="container mt-5">
       <h2>Login</h2>
-    
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Email</label>
