@@ -53,4 +53,33 @@ class BannerController extends Controller
         return response()->json(['message' => 'Banner excluído com sucesso!']);
     }
     
+    public function deletarImagem(Request $request, $id)
+{
+    $banner = Banner::findOrFail($id);
+    $imagePaths = json_decode($banner->image_urls, true);
+
+    // Caminho da imagem a ser excluída
+    $imageUrl = $request->input('imageUrl');
+
+    // Verifica se a imagem existe na lista de URLs
+    if (($key = array_search($imageUrl, $imagePaths)) !== false) {
+        // Remove a imagem do array
+        unset($imagePaths[$key]);
+
+        // Exclui a imagem do disco
+        if (Storage::disk('public')->exists($imageUrl)) {
+            Storage::disk('public')->delete($imageUrl);
+        }
+
+        // Atualiza o campo 'image_urls' do banner
+        $banner->image_urls = json_encode(array_values($imagePaths)); // Reindexa o array
+        $banner->save();
+
+        return response()->json(['message' => 'Imagem excluída com sucesso!']);
+    }
+
+    return response()->json(['message' => 'Imagem não encontrada.'], 404);
+}
+
+    
 }

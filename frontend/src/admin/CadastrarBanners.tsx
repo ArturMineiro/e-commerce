@@ -2,8 +2,7 @@ import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Carousel } from 'react-bootstrap';
-import './adminStyles.css'; 
-
+import './adminStyles.css';
 
 function CadastrarBanners() {
     const [bannerName, setBannerName] = useState<string>('');
@@ -64,7 +63,29 @@ function CadastrarBanners() {
         }
     };
 
-    const handleDelete = async (bannerId: number) => {
+    // Função para excluir uma imagem individualmente
+    const handleDeleteImage = async (bannerId: number, imageUrl: string) => {
+        try {
+            await axios.post(`http://localhost:8000/api/banners/${bannerId}/delete-image`, {
+                imageUrl,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            setMessage('Imagem excluída com sucesso!');
+            // Atualiza a lista de banners após excluir a imagem
+            const response = await axios.get('http://localhost:8000/api/banners');
+            setBanners(response.data);
+        } catch (error) {
+            setMessage('Erro ao excluir a imagem. Tente novamente.');
+            console.log(error);
+        }
+    };
+
+    // Função para excluir um banner inteiro
+    const handleDeleteBanner = async (bannerId: number) => {
         try {
             await axios.delete(`http://localhost:8000/api/banners/${bannerId}`, {
                 headers: {
@@ -73,10 +94,10 @@ function CadastrarBanners() {
             });
             setMessage('Banner excluído com sucesso!');
             // Atualiza a lista de banners após excluir
-            setBanners(banners.filter(banner => banner.id !== bannerId)); 
+            setBanners(banners.filter(banner => banner.id !== bannerId));
         } catch (error) {
             setMessage('Erro ao excluir o banner. Tente novamente.');
-            console.log('error');
+            console.log(error);
         }
     };
 
@@ -117,29 +138,40 @@ function CadastrarBanners() {
                 <p>Nenhum banner cadastrado.</p>
             ) : (
                 <>
-                    <Carousel className="custom-carousel"> {/* Aplica a classe customizada */}
+                   
                         {banners.map((banner) => {
-                            const imageUrls = JSON.parse(banner.image_urls); // Assumindo que é uma lista de URLs
-                            return imageUrls.map((url: string, index: number) => (
-                                <Carousel.Item key={`${banner.id}-${index}`}>
-                                    <img
-                                        className="d-block w-100"
-                                        src={`http://localhost:8000/storage/${url}`}
-                                        alt={`Banner ${index}`}
-                                    />
-                                    <Carousel.Caption>
-                                        <h5>{banner.name}</h5>
-                                        <button
-                                            className="btn btn-danger"
-                                            onClick={() => handleDelete(banner.id)}
-                                        >
-                                            Excluir
-                                        </button>
-                                    </Carousel.Caption>
-                                </Carousel.Item>
-                            ));
+                            const imageUrls = JSON.parse(banner.image_urls);
+                            return (
+                                <div key={banner.id}>
+                                    <h5>{banner.name}</h5>
+                                    <div className="d-flex">
+                                        {imageUrls.map((url: string, index: number) => (
+                                            <div key={`${banner.id}-${index}`} className="m-2">
+                                                <img
+                                                    className="d-block w-100"
+                                                    src={`http://localhost:8000/storage/${url}`}
+                                                    alt={`Banner ${index}`}
+                                                    style={{ width: '200px', height:'200px' }}
+                                                />
+                                                <button
+                                                    className="btn btn-danger mt-2"
+                                                    onClick={() => handleDeleteImage(banner.id, url)}
+                                                >
+                                                    Excluir Imagem
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button
+                                        className="btn btn-danger mt-2"
+                                        onClick={() => handleDeleteBanner(banner.id)}
+                                    >
+                                        Excluir Banner
+                                    </button>
+                                </div>
+                            );
                         })}
-                    </Carousel>
+        
                 </>
             )}
         </div>
