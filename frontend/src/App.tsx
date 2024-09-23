@@ -24,18 +24,21 @@ const App: React.FC = () => {
         <Navbar />
         <div className="conteudo">
           <Routes>
-          <Route path="/admin/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-            <Route path="/admin/cadastrarprodutos" element={<ProtectedRoute element={<CadastrarProdutos />} />} />
-            <Route path="/admin/cadastrarbanners" element={<ProtectedRoute element={<CadastrarBanners />} />} />
-            <Route path="/admin/controleusuarios" element={<ProtectedRoute element={<ControleUsuario/>} />} />
-            <Route path="/admin/historicocompras" element={<ProtectedRoute element={<HistoricoCompras/>} />} />
-            <Route path="/admin/administraprodutos" element={<ProtectedRoute element={<AdministrarProdutos/>} />} />
+            {/* Rotas de Admin */}
+            <Route path="/admin/dashboard" element={<ProtectedRoute element={<Dashboard />} requiredRole="admin" />} />
+            <Route path="/admin/cadastrarprodutos" element={<ProtectedRoute element={<CadastrarProdutos />} requiredRole="admin" />} />
+            <Route path="/admin/cadastrarbanners" element={<ProtectedRoute element={<CadastrarBanners />} requiredRole="admin" />} />
+            <Route path="/admin/controleusuarios" element={<ProtectedRoute element={<ControleUsuario />} requiredRole="admin" />} />
+            <Route path="/admin/historicocompras" element={<ProtectedRoute element={<HistoricoCompras />} requiredRole="admin" />} />
+            <Route path="/admin/administraprodutos" element={<ProtectedRoute element={<AdministrarProdutos />} requiredRole="admin" />} />
+
+            {/* Rotas de Cliente */}
             <Route path="/home" element={<Home />} />
             <Route path="/" element={<Home />} />
             <Route path="/carrinho" element={<Carrinho />} />
             <Route path="/curtidos" element={<Curtidos />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/meuspedidos" element={<Meuspedidos />} />
+            <Route path="/meuspedidos" element={<ProtectedRoute element={<Meuspedidos />} requiredRole="customer" />} />
             <Route path="/register" element={<Register />} />
           </Routes>
         </div>
@@ -44,5 +47,6 @@ const App: React.FC = () => {
     </AuthProvider>
   );
 };
+
 
 export default App;

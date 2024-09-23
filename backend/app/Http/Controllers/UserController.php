@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -8,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Http\Resources\UserResource; // Importação correta do UserResource
 
 class UserController extends Controller
 {
@@ -40,29 +42,29 @@ class UserController extends Controller
             'role' => $request->role,
         ]);
 
-        return response()->json(['message' => 'Usuário registrado com sucesso', 'user' => $user], 201);
+        return response()->json(['message' => 'Usuário registrado com sucesso', 'user' => new UserResource($user)], 201);
     }
 
     public function login(Request $request)
     {
         // Log das requisições brutas
         \Log::info('Dados recebidos no login:', $request->all());
-
+    
         // Validação das credenciais
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:8',
         ]);
-
+    
         if ($validator->fails()) {
             \Log::warning('Validação falhou:', $validator->errors()->toArray());
             return response()->json(['message' => 'Dados inválidos', 'errors' => $validator->errors()], 422);
         }
-
+    
         $credentials = $request->only('email', 'password');
-
+    
         \Log::info('Tentando autenticar usuário:', $credentials);
-
+    
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
                 \Log::warning('Credenciais inválidas para o usuário: ' . ($credentials['email'] ?? 'Desconhecido'));
@@ -72,18 +74,24 @@ class UserController extends Controller
             \Log::error('Erro ao criar token JWT:', ['error' => $e->getMessage()]);
             return response()->json(['message' => 'Não foi possível criar o token'], 500);
         }
-
+    
         $user = Auth::user();
-
+    
         \Log::info('Usuário autenticado com sucesso:', ['user_id' => $user->id]);
-
+    
         return response()->json([
             'access_token' => $token,
-            'token_type' => 'Bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => $user
+            'token_type'   => 'Bearer',
+            'expires_in'   => auth('api')->factory()->getTTL() * 60,
+            'user'         => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'role'  => $user->role, // Adicionando a role aqui
+            ],
         ]);
     }
+    
 
     public function getUser(Request $request)
     {

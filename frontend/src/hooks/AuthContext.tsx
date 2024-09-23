@@ -1,18 +1,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import jwtDecode from 'jwt-decode';
+
+interface DecodedToken {
+  sub: number;
+  name: string;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
 
 interface AuthContextProps {
   loggedIn: boolean;
-  login: (token: string, user: any) => void;
+  login: (token: string) => void;
   logout: () => void;
-  updateAuthStatus: () => void;
-  user: any;
+  user: DecodedToken | null;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loggedIn, setLoggedIn] = useState<boolean>(isLoggedIn());
-  const [user, setUser] = useState<any>(getUser());
+  const [user, setUser] = useState<DecodedToken | null>(getUser());
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -27,27 +36,21 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     };
   }, []);
 
-  const login = (token: string, userData: any) => {
+  const login = (token: string) => {
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    const decoded = decodeToken(token);
     setLoggedIn(true);
-    setUser(userData);
+    setUser(decoded);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setLoggedIn(false);
     setUser(null);
   };
 
-  const updateAuthStatus = () => {
-    setLoggedIn(isLoggedIn());
-    setUser(getUser());
-  };
-
   return (
-    <AuthContext.Provider value={{ loggedIn, login, logout, updateAuthStatus, user }}>
+    <AuthContext.Provider value={{ loggedIn, login, logout, user }}>
       {children}
     </AuthContext.Provider>
   );
@@ -56,18 +59,37 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const useAuth = (): AuthContextProps => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
 };
 
 const isLoggedIn = (): boolean => {
-  return !!localStorage.getItem('token');
+  const token = localStorage.getItem('token');
+  if (!token) return false;
+
+  const decoded: DecodedToken | null = decodeToken(token);
+  if (!decoded) return false;
+
+  const currentTime = Date.now() / 1000;
+
+  return decoded.exp > currentTime;
 };
 
-const getUser = (): any => {
-  const user = localStorage.getItem('user');
-  return user ? JSON.parse(user) : null;
+const getUser = (): DecodedToken | null => {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+
+  return decodeToken(token);
+};
+
+const decodeToken = (token: string): DecodedToken | null => {
+  try {
+    return jwtDecode<DecodedToken>(token);
+  } catch (error) {
+    console.error('Erro ao decodificar o token:', error);
+    return null;
+  }
 };
 
 export { AuthProvider, useAuth };
