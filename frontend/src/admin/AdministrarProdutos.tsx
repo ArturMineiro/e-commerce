@@ -79,7 +79,7 @@ const AdministrarProdutos: React.FC = () => {
       setSuccessMessage('Produto removido com sucesso!');
     } catch (error) {
       setErrorMessage('Erro ao remover o produto.');
-      console.error('Erro ao deletar produto:', error);
+     
     }
   };
   
@@ -105,7 +105,7 @@ const AdministrarProdutos: React.FC = () => {
         setSuccessMessage('Imagens adicionadas com sucesso!');
       } catch (error) {
         setErrorMessage('Erro ao adicionar imagens.');
-        console.error('Erro ao adicionar imagens:', error);
+        // console.error('Erro ao adicionar imagens:', error);
       } finally {
         setNewImages(null); // Limpar o estado dos arquivos
       }
@@ -144,7 +144,7 @@ const AdministrarProdutos: React.FC = () => {
         setShowModal(false);
       } catch (error) {
         setErrorMessage('Erro ao atualizar o produto.');
-        console.error('Erro ao atualizar produto:', error);
+        // console.error('Erro ao atualizar produto:', error);
       }
     }
   };

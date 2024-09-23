@@ -62,7 +62,7 @@ const Login: React.FC = () => {
       const userRole = decoded.role;
   
       // Log para verificar a role do usuário
-      console.log('Role do usuário:', userRole);
+      // console.log('Role do usuário:', userRole);
   
       // Redirecionar com base no perfil do usuário
       if (userRole === 'admin') {
@@ -79,10 +79,10 @@ const Login: React.FC = () => {
         } else {
           setError('Erro no servidor. Tente novamente mais tarde.');
         }
-        console.error('Erro ao fazer login:', error.response.data);
+        // console.error('Erro ao fazer login:', error.response.data);
       } else {
         setError('Erro ao conectar com o servidor.');
-        console.error('Erro ao fazer login:', error.message);
+        //console.error('Erro ao fazer login:', error.message);
       }
     }
   };
