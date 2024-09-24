@@ -6,7 +6,6 @@ import logo from '/assets/logo.png';
 import './Components.css'; // Certifique-se de importar o arquivo CSS corretamente
 import Search from './Search';
 import { useAuth } from '../hooks/AuthContext'; // Atualize o caminho se necessário
-
 const Navbar: React.FC = () => {
   const { loggedIn, logout } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(loggedIn);
@@ -24,7 +23,6 @@ const Navbar: React.FC = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container-fluid">
-        
         <Link to="/" className="navbar-brand">
           <img
             src={logo}
@@ -45,7 +43,6 @@ const Navbar: React.FC = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
         
-        {/* Adiciona a search-container ao lado do logo */}
         <div className="search-container">
           <Search />
         </div>
