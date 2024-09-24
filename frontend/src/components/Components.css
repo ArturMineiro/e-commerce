@@ -1,0 +1,25 @@
+
+  /* Estilos responsivos para dispositivos móveis */
+  @media (max-width: 768px) {
+    .navbar .logo {
+      margin: 0 auto;
+      display: block;
+    }
+  
+    .navbar .search-container {
+      display: block;
+      margin-top: 10px;
+    }
+  
+    .navbar .icons-container {
+         justify-content: center;
+      margin-top: 10px;
+    }
+  
+    .navbar-collapse {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  
