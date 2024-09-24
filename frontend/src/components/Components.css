@@ -7,13 +7,10 @@
 .navbar .search-container {
   margin-left: 35%;
   justify-content: center;
-  width: 60%;
+  
 }
 
-.navbar .icons-container {
-  display: flex;
-  justify-content: flex-end; /* Alinhamento normal no desktop */
-}
+
 
 /* Estilos responsivos para dispositivos móveis */
 @media (max-width: 768px) {
@@ -39,7 +36,7 @@
     width: 50%;
   }
 
-  /* Ícones alinhados à esquerda no mobile */
+ 
   .navbar .icons-container {
     display: flex;
     justify-content: center; 
@@ -49,7 +46,7 @@
 
   /* Remove a margem à direita dos ícones */
   .navbar-nav .nav-item {
-    margin-right: 0; /* Remova a margem direita */
+    margin-right: 0; 
   }
 
   .navbar-nav {

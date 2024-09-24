@@ -50,7 +50,7 @@ const Navbar: React.FC = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto icons-container">
             {isAuthenticated && (
-              <li className="nav-item me-3">
+              <li className="nav-item me-3 ">
                 <Link className="nav-link fs-4 mt-2" to="/meuspedidos">
                   Meus pedidos
                 </Link>
