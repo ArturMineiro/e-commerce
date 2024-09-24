@@ -1,25 +1,62 @@
+/* Estilos normais para desktop */
+.navbar .logo {
+  width: 80px;
+  height: 80px;
+}
 
-  /* Estilos responsivos para dispositivos móveis */
-  @media (max-width: 768px) {
-    .navbar .logo {
-      margin: 0 auto;
-      display: block;
-    }
-  
-    .navbar .search-container {
-      display: block;
-      margin-top: 10px;
-    }
-  
-    .navbar .icons-container {
-         justify-content: center;
-      margin-top: 10px;
-    }
-  
-    .navbar-collapse {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+.navbar .search-container {
+  margin-left: 35%;
+  justify-content: center;
+  width: 60%;
+}
+
+.navbar .icons-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Estilos responsivos para dispositivos móveis */
+@media (max-width: 768px) {
+  /* Ajusta logo e campo de busca para ficarem lado a lado */
+  .navbar .container-fluid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  
+
+  .navbar .logo {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+  }
+
+  .navbar .search-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: flex-start;
+    margin-right: 10px;
+    margin-left: 15%;
+    width: 50%;
+  }
+
+  /* Ícones continuam lado a lado */
+  .navbar .icons-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-direction: row; /* Certifica-se de que eles fiquem lado a lado */
+  }
+
+  .navbar-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center; /* Garante que os ícones fiquem alinhados verticalmente */
+  }
+
+  /* Navbar colapsada centralizada */
+  .navbar-collapse {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

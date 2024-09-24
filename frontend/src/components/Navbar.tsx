@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { FaHeart, FaCartShopping } from 'react-icons/fa6';
 import logo from '/assets/logo.png';
-import './Components.css'
+import './Components.css'; // Certifique-se de importar o arquivo CSS corretamente
 import Search from './Search';
 import { useAuth } from '../hooks/AuthContext'; // Atualize o caminho se necessário
 
@@ -29,10 +29,8 @@ const Navbar: React.FC = () => {
           <img
             src={logo}
             alt="Logo"
-            className="rounded-circle"
-            style={{ width: '80px', height: '80px' }}
+            className="rounded-circle logo"
           />
-          
         </Link>
         
         <button
@@ -46,12 +44,14 @@ const Navbar: React.FC = () => {
         >
           <span className="navbar-toggler-icon"></span>
         </button>
+        
+        {/* Adiciona a search-container ao lado do logo */}
+        <div className="search-container">
+          <Search />
+        </div>
+
         <div className="collapse navbar-collapse" id="navbarNav">
-          <div className="d-flex flex-grow-1 justify-content-center">
-            <Search />
-          </div>
-         
-          <ul className="navbar-nav ms-auto">
+          <ul className="navbar-nav ms-auto icons-container">
             {isAuthenticated && (
               <li className="nav-item me-3">
                 <Link className="nav-link fs-4 mt-2" to="/meuspedidos">
