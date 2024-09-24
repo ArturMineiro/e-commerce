@@ -142,8 +142,9 @@ function CadastrarBanners() {
                         {banners.map((banner) => {
                             const imageUrls = JSON.parse(banner.image_urls);
                             return (
-                                <div key={banner.id}>
-                                    <h5>{banner.name}</h5>
+                                
+                                <div key={banner.id}>  
+
                                     <div className="d-flex">
                                         {imageUrls.map((url: string, index: number) => (
                                             <div key={`${banner.id}-${index}`} className="m-2">
@@ -162,18 +163,21 @@ function CadastrarBanners() {
                                             </div>
                                         ))}
                                     </div>
-                                    <button
-                                        className="btn btn-danger mt-2"
-                                        onClick={() => handleDeleteBanner(banner.id)}
-                                    >
-                                        Excluir Banner
-                                    </button>
+                                    
+                             
                                 </div>
+                                
                             );
                         })}
         
                 </>
             )}
+                   <button
+                                        className="btn btn-danger mt-2"
+                                        onClick={() => handleDeleteBanner(banner.id)}
+                                    >
+                                        Excluir Banner completo
+                                    </button>
         </div>
     );
 }
