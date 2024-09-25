@@ -80,7 +80,7 @@ function CadastrarBanners() {
             setBanners(response.data);
         } catch (error) {
             setMessage('Erro ao excluir a imagem. Tente novamente.');
-            console.log(error);
+            // console.log(error);
         }
     };
 
@@ -97,7 +97,7 @@ function CadastrarBanners() {
             setBanners(banners.filter(banner => banner.id !== bannerId));
         } catch (error) {
             setMessage('Erro ao excluir o banner. Tente novamente.');
-            console.log(error);
+            // console.log(error);
         }
     };
 

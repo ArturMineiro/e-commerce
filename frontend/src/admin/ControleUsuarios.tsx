@@ -18,7 +18,7 @@ function ControleUsuario() {
     useEffect(() => {
         const fetchUsuarios = async () => {
             const token = localStorage.getItem('token');
-            console.log('Token:', token);
+            // console.log('Token:', token);
 
             if (!token) {
                 setMessage('Token não encontrado. Por favor, faça o login novamente.');
@@ -31,7 +31,7 @@ function ControleUsuario() {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                console.log('Dados recebidos:', response.data);
+                // console.log('Dados recebidos:', response.data);
                 setUsuarios(response.data);
             } catch (error) {
                 console.error('Erro ao buscar os usuários:', error);
