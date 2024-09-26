@@ -31,7 +31,7 @@ function ControleUsuario() {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                // console.log('Dados recebidos:', response.data);
+                // console.log('Dados recebidos:', response.data);'
                 setUsuarios(response.data);
             } catch (error) {
                 console.error('Erro ao buscar os usuários:', error);

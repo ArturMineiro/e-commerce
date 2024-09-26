@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React from 'react';
 import Card from "../components/Card";
 import Carroussel from "../components/Carroussel";
 
@@ -7,7 +7,7 @@ function Home() {
         <div className="container mt-5">
             <h1 className="text-center">Home Page</h1>
        
-         <Carroussel />
+            <Carroussel />
         
             <p className="lead text-center">Bem-vindo à página inicial!</p>
             <div className="row justify-content-center">
