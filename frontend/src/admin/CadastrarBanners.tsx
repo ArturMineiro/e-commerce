@@ -160,6 +160,12 @@ function CadastrarBanners() {
                                                 >
                                                     Excluir Imagem
                                                 </button>
+                                                <button
+                                        className="btn btn-danger mt-2"
+                                        onClick={() => handleDeleteBanner(banner.id)}
+                                    >
+                                        Excluir Banner completo
+                                    </button>
                                             </div>
                                         ))}
                                     </div>
@@ -172,12 +178,7 @@ function CadastrarBanners() {
         
                 </>
             )}
-                   <button
-                                        className="btn btn-danger mt-2"
-                                        onClick={() => handleDeleteBanner(banner.id)}
-                                    >
-                                        Excluir Banner completo
-                                    </button>
+                   
         </div>
     );
 }

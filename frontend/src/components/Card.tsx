@@ -6,13 +6,14 @@ interface CardProps {
     nome: string;
     descricao: string;
     preco: number;
+    quantidade: number;
     imagens: string[];
   };
 }
 
 const Card: React.FC<CardProps> = ({ produto }) => {
   return (
-    <div className="card mb-4 md-3 shadow p-3 mb-5 bg-white rounded" style={{ width: '17rem', border: 'none' }}>
+    <div className="card mb-4 md-3 shadow p-3 mb-5 bg-white rounded" style={{ width: '30rem', border: 'none' }}>
       {produto.imagens.length > 0 ? (
         <img 
           src={`http://localhost:8000/storage/${produto.imagens[0]}`} 
@@ -32,6 +33,8 @@ const Card: React.FC<CardProps> = ({ produto }) => {
         <h5 className="card-title">{produto.nome}</h5>
         <p className="card-text">{produto.descricao}</p>
         <p className="card-text">R$ {Number(produto.preco).toFixed(2)}</p>
+        <p className="card-text">Quantidade disponível: {produto.quantidade}</p>
+        
       </div>
     </div>
   );

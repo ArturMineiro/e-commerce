@@ -41,7 +41,7 @@ function Carroussel() {
                                     className="d-block w-100 rounded"
                                     src={`http://localhost:8000/storage/${url}`} 
                                     alt={`Banner ${imgIndex}`}
-                                    style={{ height: '500px', width: '500px' }}
+                                    style={{ height: '700px', width: '500px' }}
                                 />
                             </div>
                         ));
