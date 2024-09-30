@@ -13,7 +13,7 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({ produto }) => {
   return (
-    <div className="card mb-4 md-3 p-3 mb-5 bg-white rounded " style={{ width: '50rem'}}>
+    <div className="card mb-4 md-3 p-3 mb-5 shadow-lg p-3 mb-5 bg-white rounded" style={{ width: '50rem'}}>
       {produto.imagens.length > 0 ? (
         <div id={`carouselProduto${produto.id}`} className="carousel slide" data-bs-ride="carousel">
           <div className="carousel-inner" style={{ height: '20em' }}>
