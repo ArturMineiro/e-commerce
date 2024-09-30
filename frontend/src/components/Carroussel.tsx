@@ -29,6 +29,7 @@ function Carroussel() {
             id="carouselExampleControls"
             className="carousel slide mb-4 mt-4"
             data-bs-ride="carousel"
+            
         >
             <div className="carousel-inner">
                 {banners.length > 0 ? (
@@ -41,11 +42,16 @@ function Carroussel() {
                                 key={`${banner.id}-${imgIndex}`}
                                 className={`carousel-item ${index === 0 && imgIndex === 0 ? 'active' : ''}`}
                             >
-                                <img
-                             
-                                    src={`http://localhost:8000/storage/${url}`}
-                                    alt={`Banner ${imgIndex}`}
-                                />
+                           <img
+    src={`http://localhost:8000/storage/${url}`}
+    alt={`Banner ${imgIndex}`}
+    style={{
+        width: '100%',
+        height: 'auto', 
+        maxHeight: '800px',
+        objectFit: 'cover', 
+    }}
+/>
                             </div>
                         ));
                     })
