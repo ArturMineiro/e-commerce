@@ -1,5 +1,5 @@
 e-commerce criando projeto npm create vite@latest
-composer require intervention/image
+
 npm install
 
 npm install bootstrap
