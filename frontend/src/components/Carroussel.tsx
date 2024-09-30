@@ -25,23 +25,26 @@ function Carroussel() {
     }, []);
 
     return (
-        <div id="carouselExampleControls" className="carousel slide carousel-custom-height mb-4 mt-4" data-bs-ride="carousel">
-           
+        <div
+            id="carouselExampleControls"
+            className="carousel slide mb-4 mt-4"
+            data-bs-ride="carousel"
+        >
             <div className="carousel-inner">
                 {banners.length > 0 ? (
                     banners.map((banner, index) => {
-                     
-                        const imageUrls = Array.isArray(banner.image_urls) ? banner.image_urls : JSON.parse(banner.image_urls);
+                        const imageUrls = Array.isArray(banner.image_urls)
+                            ? banner.image_urls
+                            : JSON.parse(banner.image_urls);
                         return imageUrls.map((url: string, imgIndex: number) => (
                             <div
                                 key={`${banner.id}-${imgIndex}`}
-                                className={`carousel-item ${index === 0 && imgIndex === 0 ? 'active' : ''}`} // A primeira imagem precisa ter a classe 'active'
+                                className={`carousel-item ${index === 0 && imgIndex === 0 ? 'active' : ''}`}
                             >
                                 <img
-                                    className="d-block w-100 rounded"
-                                    src={`http://localhost:8000/storage/${url}`} 
+                             
+                                    src={`http://localhost:8000/storage/${url}`}
                                     alt={`Banner ${imgIndex}`}
-                                    style={{ height: '700px', width: '500px' }}
                                 />
                             </div>
                         ));

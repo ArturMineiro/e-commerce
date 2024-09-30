@@ -1,4 +1,5 @@
-/* Estilos normais para desktop */
+
+
 .navbar .logo {
   width: 80px;
   height: 80px;
@@ -28,7 +29,7 @@
 
 .carousel-control-prev-icon::before,
 .carousel-control-next-icon::before {
-    color: grey; /* Altera a cor do ícone */
+    color: grey; 
 }
 
 
