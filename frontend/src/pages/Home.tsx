@@ -33,8 +33,7 @@ function Home() {
       <h1 className="text-center">Home Page</h1>
       
       <Carroussel  />
-      
-      <p className="lead text-center">Bem-vindo à página inicial!</p>
+  <h2 className="text-center mb-3">  Veja nossos produtos abaixo: </h2>
 
       {errorMessage && <p className="text-danger text-center">{errorMessage}</p>}
 
