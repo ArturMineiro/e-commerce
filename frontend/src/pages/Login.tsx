@@ -1,10 +1,9 @@
-// src/components/Login.tsx
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
 import jwtDecode from 'jwt-decode';
+import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importando os ícones
 
 interface Credentials {
   email: string;
@@ -29,6 +28,7 @@ interface DecodedToken {
 const Login: React.FC = () => {
   const [credentials, setCredentials] = useState<Credentials>({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false); // Estado para alternar a visualização da senha
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -37,6 +37,10 @@ const Login: React.FC = () => {
       ...credentials,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword); // Alterna entre mostrar e esconder a senha
   };
 
   const loginUser = async (credentials: Credentials) => {
@@ -51,9 +55,7 @@ const Login: React.FC = () => {
   
       login(access_token);
   
-      // Decodificar o token para obter a role
       const decoded = jwtDecode<DecodedToken>(access_token);
-      
       if (!decoded) {
         setError('Erro ao decodificar o token.');
         return;
@@ -61,10 +63,6 @@ const Login: React.FC = () => {
   
       const userRole = decoded.role;
   
-      // Log para verificar a role do usuário
-      // console.log('Role do usuário:', userRole);
-  
-      // Redirecionar com base no perfil do usuário
       if (userRole === 'admin') {
         navigate('/admin/dashboard');
       } else {
@@ -79,10 +77,8 @@ const Login: React.FC = () => {
         } else {
           setError('Erro no servidor. Tente novamente mais tarde.');
         }
-        // console.error('Erro ao fazer login:', error.response.data);
       } else {
         setError('Erro ao conectar com o servidor.');
-        //console.error('Erro ao fazer login:', error.message);
       }
     }
   };
@@ -97,11 +93,11 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5 w-25 shadow-lg p-3 mb-5 bg-white rounded">
       <h2>Login</h2>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
+        <div className="form-group ">
           <label>Email</label>
           <input
             type="email"
@@ -114,14 +110,25 @@ const Login: React.FC = () => {
         </div>
         <div className="form-group">
           <label>Senha</label>
-          <input
-            type="password"
-            className="form-control"
-            name="password"
-            value={credentials.password}
-            onChange={handleChange}
-            required
-          />
+          <div className="input-group">
+            <input
+              type={showPassword ? 'text' : 'password'} // Alterna entre tipo "text" e "password"
+              className="form-control"
+              name="password"
+              value={credentials.password}
+              onChange={handleChange}
+              required
+            />
+            <div className="input-group-append">
+              <button 
+                type="button" 
+                className="btn btn-outline-secondary" 
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Alterna ícones */}
+              </button>
+            </div>
+          </div>
         </div>
         <button type="submit" className="btn btn-primary mt-3 mb-3">Entrar</button>
       </form>
