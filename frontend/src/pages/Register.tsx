@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importando os ícones de olho
+import { Modal } from 'react-bootstrap'; // Importando o Modal do Bootstrap
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -13,8 +14,9 @@ const Register: React.FC = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [passwordValidationError, setPasswordValidationError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false); // Estado para controlar a visibilidade da senha
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para o campo de confirmar senha
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false); // Estado para controlar a exibição do modal de sucesso
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -57,11 +59,11 @@ const Register: React.FC = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/register', {
+      await axios.post('http://localhost:8000/api/register', {
         ...formData,
         role: 'customer',
       });
-      alert('Usuário registrado com sucesso!');
+
       setFormData({
         name: '',
         email: '',
@@ -70,6 +72,12 @@ const Register: React.FC = () => {
       });
       setError(null);
       setPasswordValidationError(null);
+      setShowSuccessModal(true); // Mostrar o modal de sucesso
+
+      // Fechar o modal automaticamente após 3 segundos
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 3000);
     } catch (error: any) {
       if (error.response) {
         if (error.response.status === 409) {
@@ -77,11 +85,7 @@ const Register: React.FC = () => {
         } else {
           setError('Erro ao registrar usuário. Verifique os dados e tente novamente.');
         }
-        console.error('Dados do erro:', error.response.data);
-        console.error('Status:', error.response.status);
-        console.error('Cabeçalhos:', error.response.headers);
       } else {
-        console.error('Erro:', error.message);
         setError('Erro ao registrar usuário. Tente novamente.');
       }
     }
@@ -89,7 +93,7 @@ const Register: React.FC = () => {
 
   return (
     <div className="d-flex justify-content-center align-items-center min-vh-100">
-      <div className="register-container w-75 w-md-50">
+      <div className="register-container w-50 w-md-50">
         <div className="register-form shadow p-4 mb-5 bg-white rounded">
           <h2 className="text-center">Registro</h2>
           <form onSubmit={handleSubmit}>
@@ -124,7 +128,7 @@ const Register: React.FC = () => {
                 <label htmlFor="password">Senha</label>
                 <div className="input-group">
                   <input
-                    type={showPassword ? 'text' : 'password'} // Alternando o tipo do input
+                    type={showPassword ? 'text' : 'password'}
                     className="form-control"
                     id="password"
                     name="password"
@@ -151,7 +155,7 @@ const Register: React.FC = () => {
                 <label htmlFor="confirmPassword">Confirmar Senha</label>
                 <div className="input-group">
                   <input
-                    type={showConfirmPassword ? 'text' : 'password'} // Alternando o tipo do input
+                    type={showConfirmPassword ? 'text' : 'password'}
                     className="form-control"
                     id="confirmPassword"
                     name="confirmPassword"
@@ -184,6 +188,15 @@ const Register: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de Sucesso */}
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
+        <Modal.Body>
+          <div className="text-center">
+            <h5>Cadastrado com sucesso!</h5>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
