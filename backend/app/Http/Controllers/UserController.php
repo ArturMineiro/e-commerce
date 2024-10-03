@@ -15,9 +15,18 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
-        return response()->json($users, 200);
+        \Log::info('Entrou no método index do UserController');
+        
+        try {
+            $users = User::all();
+            \Log::info('Usuários retornados: ', $users->toArray());
+            return response()->json($users, 200);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao buscar usuários: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro ao buscar usuários'], 500);
+        }
     }
+    
 
     public function register(Request $request)
     {

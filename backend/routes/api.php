@@ -40,10 +40,9 @@ Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 
 // Rotas Protegidas
-Route::middleware(['auth:api'])->group(function () {
-    Route::get('/user', [UserController::class, 'getUser']);
-});
-Route::middleware('auth:sanctum')->get('/usuarios', [UserController::class, 'index']);
+Route::middleware('auth:api')->get('/usuarios', [UserController::class, 'index']);
+
+
 
 
 // Route::get('/test', function () {
