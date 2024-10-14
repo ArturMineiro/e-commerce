@@ -22,6 +22,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/favoritos/{produtoId}', [FavoritoController::class, 'remover']);
     Route::get('/favoritos', [FavoritoController::class, 'listar']);
 });
+Route::post('/favoritos/adicionar', [FavoritoController::class, 'adicionar']);
+Route::post('/favoritos/remover', [FavoritoController::class, 'remover']);
+
 //Banners
 Route::post('/banners', [BannerController::class, 'cadastroBanner']);
 Route::get('/banners', [BannerController::class, 'mostrarBanners']);

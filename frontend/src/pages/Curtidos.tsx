@@ -27,21 +27,24 @@ const Curtidos = () => {
         return <p>Você precisa estar logado para ver seus produtos curtidos.</p>;
     }
 
-    return (
-        <div className="container mt-4">
-            <div className="row">
-                <h1>Favoritados</h1>
-                {produtosFavoritos.length > 0 ? (
-                    produtosFavoritos.map((produto) => (
-                        <div key={produto.id} className="col-md-3 mb-3">
-                            <Card produto={produto} />
-                        </div>
-                    ))
-                ) : (
-                    <p>Você ainda não favoritou nenhum produto.</p>
-                )}
+    
+        return (
+            <div className="container mt-4">
+                <div className="row">
+                    <h1>Favoritados</h1>
+                    {produtosFavoritos.length > 0 ? (
+                        produtosFavoritos.map((produto) => (
+                            <div key={produto.id} className="col-md-3 mb-3">
+                                <Card produto={produto} />
+                            </div>
+                        ))
+                    ) : (
+                        <p>Você ainda não favoritou nenhum produto.</p>
+                    )}
+                </div>
             </div>
-        </div>
+    
+        
     );
 };
 
