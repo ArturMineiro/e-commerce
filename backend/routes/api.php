@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\FavoritoController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -16,7 +17,11 @@ use App\Http\Controllers\BannerController;
 |
 */
 
-
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/favoritos/{produtoId}', [FavoritoController::class, 'adicionar']);
+    Route::delete('/favoritos/{produtoId}', [FavoritoController::class, 'remover']);
+    Route::get('/favoritos', [FavoritoController::class, 'listar']);
+});
 //Banners
 Route::post('/banners', [BannerController::class, 'cadastroBanner']);
 Route::get('/banners', [BannerController::class, 'mostrarBanners']);
@@ -43,7 +48,7 @@ Route::post('/login', [UserController::class, 'login']);
 Route::middleware('auth:api')->get('/usuarios', [UserController::class, 'index']);
 
 
-
+Route::get('/api/favoritos/{userId}', [ProdutoController::class, 'favoritos']);
 
 // Route::get('/test', function () {
 //     return response()->json(['message' => 'API está funcionando!']);

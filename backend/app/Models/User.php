@@ -37,4 +37,8 @@ class User extends Authenticatable implements JWTSubject
             'role' => $this->role,
         ];
     }
+    public function favoritos()
+{
+    return $this->belongsToMany(Produto::class, 'favoritos'); // Assumindo que você tem uma tabela "favoritos"
+}
 }

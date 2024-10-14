@@ -8,6 +8,18 @@ use Illuminate\Support\Facades\Storage;
 
 class ProdutoController extends Controller
 {
+
+    public function favoritos($userId)
+{
+    try {
+        // Busca os produtos favoritados pelo usuário (essa relação deve ser definida no modelo Produto ou User)
+        $favoritos = User::findOrFail($userId)->favoritos; // Assumindo que há uma relação "favoritos"
+        return response()->json($favoritos);
+    } catch (\Exception $e) {
+        \Log::error('Erro ao buscar produtos favoritados: ' . $e->getMessage());
+        return response()->json(['message' => 'Erro ao buscar favoritos'], 500);
+    }
+}
     public function index()
     {
         try {
