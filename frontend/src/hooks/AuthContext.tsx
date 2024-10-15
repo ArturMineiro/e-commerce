@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 
 interface DecodedToken {
+  id: number; 
   sub: number;
   name: string;
   email: string;

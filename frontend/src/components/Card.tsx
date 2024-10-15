@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/AuthContext';
 import axios from 'axios';
-
 
 interface CardProps {
   produto: {
@@ -22,30 +21,34 @@ const Card: React.FC<CardProps> = ({ produto }) => {
   // Função para alternar o estado do favorito
   const toggleFavorito = async () => {
     if (!user) {
-        console.error('Usuário não autenticado');
-        return; // Adicione um tratamento caso o usuário não esteja autenticado
+      console.error('Usuário não autenticado');
+      return; // Adicione um tratamento caso o usuário não esteja autenticado
     }
-
+  
+    const userId = user.id || user.sub; // Use 'sub' se 'id' não estiver disponível
+    const favoriteData = {
+      produto_id: produto.id,
+      user_id: userId,
+    };
+  
     try {
-        if (isFavorito) {
-            // Remover dos favoritos
-            await axios.delete(`http://localhost:8000/api/remover-favoritos/${produto.id}`);
-            setIsFavorito(false);
-            console.log('Produto removido dos favoritos');
-        } else {
-            // Adicionar aos favoritos
-            await axios.post('http://localhost:8000/api/favoritos', 
-                { produto_id: produto.id }
-            );
-            setIsFavorito(true); // Atualiza o estado local
-            console.log('Produto adicionado aos favoritos');
-        }
+      console.log('Dados enviados para o backend:', favoriteData); // Console log para depuração
+  
+      if (isFavorito) {
+        // Remover dos favoritos
+        await axios.delete(`http://localhost:8000/api/remover-favoritos/${produto.id}`, { data: { user_id: userId } });
+        setIsFavorito(false);
+        console.log('Produto removido dos favoritos');
+      } else {
+        // Adicionar aos favoritos
+        await axios.post('http://localhost:8000/api/favoritos', favoriteData);
+        setIsFavorito(true); // Atualiza o estado local
+        console.log('Produto adicionado aos favoritos');
+      }
     } catch (error) {
-        console.error('Erro ao alterar favoritos:', error.message);
+      console.error('Erro ao alterar favoritos:', error.response ? error.response.data : error.message);
     }
-};
-
-
+  };
   
 
   return (
