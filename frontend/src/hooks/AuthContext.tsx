@@ -8,6 +8,7 @@ interface DecodedToken {
   role: string;
   iat: number;
   exp: number;
+  token?: string; // Adicione a propriedade token como opcional
 }
 
 interface AuthContextProps {

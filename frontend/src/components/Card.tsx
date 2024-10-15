@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/AuthContext';
 import axios from 'axios';
 
+
 interface CardProps {
   produto: {
     id: number;
@@ -10,34 +11,41 @@ interface CardProps {
     preco: number;
     quantidade: number;
     imagens: string[];
-    isFavorito?: boolean; // Campo para verificar se é favorito
+    isFavorito?: boolean; // Permite que o estado inicial seja passado
   };
 }
 
 const Card: React.FC<CardProps> = ({ produto }) => {
-  console.log('Renderizando Card para produto:', produto.id);
   const { user } = useAuth();
   const [isFavorito, setIsFavorito] = useState(produto.isFavorito || false);
 
-  useEffect(() => {
-    // Verifica o usuário autenticado e seus detalhes
-    console.log("Usuário autenticado:", user);
-  }, [user]);
-
+  // Função para alternar o estado do favorito
   const toggleFavorito = async () => {
-    try {
-      if (isFavorito) {
-        // Remover dos favoritos
-        await axios.post('http://localhost:8000/api/favoritos/remover', { produto_id: produto.id });
-      } else {
-        // Adicionar aos favoritos
-        await axios.post('http://localhost:8000/api/favoritos/adicionar', { produto_id: produto.id });
-      }
-      setIsFavorito(!isFavorito); 
-    } catch (error) {
-      console.error('Erro ao alterar favoritos:', error);
+    if (!user) {
+        console.error('Usuário não autenticado');
+        return; // Adicione um tratamento caso o usuário não esteja autenticado
     }
-  };
+
+    try {
+        if (isFavorito) {
+            // Remover dos favoritos
+            await axios.delete(`http://localhost:8000/api/remover-favoritos/${produto.id}`);
+            setIsFavorito(false);
+            console.log('Produto removido dos favoritos');
+        } else {
+            // Adicionar aos favoritos
+            await axios.post('http://localhost:8000/api/favoritos', 
+                { produto_id: produto.id }
+            );
+            setIsFavorito(true); // Atualiza o estado local
+            console.log('Produto adicionado aos favoritos');
+        }
+    } catch (error) {
+        console.error('Erro ao alterar favoritos:', error.message);
+    }
+};
+
+
   
 
   return (
@@ -70,27 +78,25 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       )}
 
       <div className="card-body">
-        
         <h5 className="card-title">
           {produto.nome}
-          {user?.role === 'customer' && ( 
-   <button
-   className="btn"
-   onClick={toggleFavorito}
-   style={{ background: 'none', border: 'none', cursor: 'pointer' }}
->
-   {isFavorito ? (
-       <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="red" viewBox="0 0 16 16">
-           <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
-       </svg>
-   ) : (
-       <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="gray" viewBox="0 0 16 16">
-           <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
-       </svg>
-   )}
-</button>
-)}
-
+          {user?.role === 'customer' && (
+            <button
+              className="btn"
+              onClick={toggleFavorito} 
+              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              {isFavorito ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="red" viewBox="0 0 16 16">
+                  <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="gray" viewBox="0 0 16 16">
+                  <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
+                </svg>
+              )}
+            </button>
+          )}
         </h5>
         <p className="card-text">{produto.descricao}</p>
         <p className="card-text">R$ {Number(produto.preco).toFixed(2)}</p>

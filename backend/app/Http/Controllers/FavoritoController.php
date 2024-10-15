@@ -1,48 +1,61 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Favorito;
-use App\Models\Produto;
+use App\Models\Produto; 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class FavoritoController extends Controller
 {
-    // Adicionar produto aos favoritos
-   
-
     // Listar produtos favoritados
     public function listar()
     {
-        $user = Auth::user();
-        $favoritos = Favorito::where('user_id', $user->id)->with('produto')->get();
+        $favoritos = Favorito::with('produto')->get(); // Não precisa verificar usuário se não há autenticação
 
         return response()->json($favoritos);
     }
-    public function adicionar(Request $request)
+
+    // Adicionar produto aos favoritos
+  // Adicionar produto aos favoritos
+public function adicionar(Request $request)
 {
-    $produtoId = $request->produto_id;
-    $userId = $request->user()->id;
+    // Lógica para adicionar um favorito
+    $idProduto = $request->input('produto_id');
+    $userId = $request->input('user_id'); // Obtendo o user_id da requisição
 
-    // Adicionar aos favoritos
-    Favorito::create([
-        'user_id' => $userId,
-        'produto_id' => $produtoId,
-    ]);
+    // Verifica se o user_id foi fornecido
+    if (is_null($userId)) {
+        return response()->json(['error' => 'user_id é obrigatório.'], 400);
+    }
 
-    return response()->json(['success' => true]);
+    // Verifica se o produto existe
+    $produto = Produto::find($idProduto);
+    if (!$produto) {
+        return response()->json(['error' => 'Produto não encontrado.'], 404);
+    }
+
+    // Adiciona o favorito
+    $favorito = new Favorito();
+    $favorito->user_id = $userId; // Atribui o ID do usuário
+    $favorito->produto_id = $idProduto; // Atribui o ID do produto
+    $favorito->save();
+
+    return response()->json(['message' => 'Favorito adicionado com sucesso.'], 201);
 }
 
-public function remover(Request $request)
-{
-    $produtoId = $request->produto_id;
-    $userId = $request->user()->id;
+    // Remover produto dos favoritos
+    public function removerFavorito($id)
+    {
+        $favorito = Favorito::where('produto_id', $id)
+            ->where('user_id', $request->input('user_id')) // Atualizado para usar user_id
+            ->first();
 
-    // Remover dos favoritos
-    Favorito::where('user_id', $userId)->where('produto_id', $produtoId)->delete();
+        if (!$favorito) {
+            return response()->json(['error' => 'Favorito não encontrado'], 404);
+        }
 
-    return response()->json(['success' => true]);
-}
+        $favorito->delete();
 
+        return response()->json(['message' => 'Produto removido dos favoritos'], 200);
+    }
 }

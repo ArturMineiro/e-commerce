@@ -17,13 +17,9 @@ use App\Http\Controllers\FavoritoController;
 |
 */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/favoritos/{produtoId}', [FavoritoController::class, 'adicionar']);
-    Route::delete('/favoritos/{produtoId}', [FavoritoController::class, 'remover']);
-    Route::get('/favoritos', [FavoritoController::class, 'listar']);
-});
-Route::post('/favoritos/adicionar', [FavoritoController::class, 'adicionar']);
-Route::post('/favoritos/remover', [FavoritoController::class, 'remover']);
+    Route::post('/favoritos', [FavoritoController::class, 'adicionar']);
+    Route::delete('/remover-favoritos/{produtoId}', [FavoritoController::class, 'remover']);
+    Route::get('/listar-favoritos', [FavoritoController::class, 'listar']);
 
 //Banners
 Route::post('/banners', [BannerController::class, 'cadastroBanner']);
