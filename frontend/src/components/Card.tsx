@@ -32,7 +32,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
     };
   
     try {
-      console.log('Dados enviados para o backend:', favoriteData); // Console log para depuração
+      // console.log('Dados enviados para o backend:', favoriteData)
   
       if (isFavorito) {
         // Remover dos favoritos
@@ -43,7 +43,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
         // Adicionar aos favoritos
         await axios.post('http://localhost:8000/api/favoritos', favoriteData);
         setIsFavorito(true); // Atualiza o estado local
-        console.log('Produto adicionado aos favoritos');
+        // console.log('Produto adicionado aos favoritos');
       }
     } catch (error) {
       console.error('Erro ao alterar favoritos:', error.response ? error.response.data : error.message);
