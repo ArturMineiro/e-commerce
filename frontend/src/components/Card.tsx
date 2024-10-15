@@ -25,7 +25,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       return; // Adicione um tratamento caso o usuário não esteja autenticado
     }
   
-    const userId = user.id || user.sub; // Use 'sub' se 'id' não estiver disponível
+    const userId = user.sub; // Use 'sub' se 'id' não estiver disponível
     const favoriteData = {
       produto_id: produto.id,
       user_id: userId,
