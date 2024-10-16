@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/AuthContext';
 import axios from 'axios';
 
@@ -10,30 +10,48 @@ interface CardProps {
     preco: number;
     quantidade: number;
     imagens: string[];
-    isFavorito?: boolean; // Permite que o estado inicial seja passado
   };
 }
 
 const Card: React.FC<CardProps> = ({ produto }) => {
   const { user } = useAuth();
-  const [isFavorito, setIsFavorito] = useState(produto.isFavorito || false);
+  const [isFavorito, setIsFavorito] = useState(false); // Estado inicial como falso
+  const [loading, setLoading] = useState(true); // Estado para controlar o loading
+
+  useEffect(() => {
+    if (user) {
+      verificarFavorito(); // Verifica se o produto é favorito ao carregar a página
+    }
+  }, [user]);
+
+  // Função para verificar se o produto é favorito
+  const verificarFavorito = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/verificar-favorito/${produto.id}`, {
+        params: { user_id: user.sub }, // Envia o user_id como parâmetro
+      });
+      setIsFavorito(response.data.isFavorito); // Define o estado de favorito com base na resposta da API
+    } catch (error) {
+      console.error('Erro ao verificar favorito:', error.response ? error.response.data : error.message);
+    } finally {
+      setLoading(false); // Termina o carregamento
+    }
+  };
 
   // Função para alternar o estado do favorito
   const toggleFavorito = async () => {
     if (!user) {
       console.error('Usuário não autenticado');
-      return; // Adicione um tratamento caso o usuário não esteja autenticado
+      return;
     }
-  
+
     const userId = user.sub; // Use 'sub' se 'id' não estiver disponível
     const favoriteData = {
       produto_id: produto.id,
       user_id: userId,
     };
-  
+
     try {
-      // console.log('Dados enviados para o backend:', favoriteData)
-  
       if (isFavorito) {
         // Remover dos favoritos
         await axios.delete(`http://localhost:8000/api/remover-favoritos/${produto.id}`, { data: { user_id: userId } });
@@ -42,14 +60,13 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       } else {
         // Adicionar aos favoritos
         await axios.post('http://localhost:8000/api/favoritos', favoriteData);
-        setIsFavorito(true); // Atualiza o estado local
-        // console.log('Produto adicionado aos favoritos');
+        setIsFavorito(true);
+        console.log('Produto adicionado aos favoritos');
       }
     } catch (error) {
       console.error('Erro ao alterar favoritos:', error.response ? error.response.data : error.message);
     }
   };
-  
 
   return (
     <div className="card mb-4 md-3 p-3 mb-5 shadow-lg p-3 mb-5 bg-white rounded" style={{ width: '50rem' }}>
@@ -83,10 +100,10 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       <div className="card-body">
         <h5 className="card-title">
           {produto.nome}
-          {user?.role === 'customer' && (
+          {user?.role === 'customer' && !loading && ( // Certifique-se de que não esteja carregando
             <button
               className="btn"
-              onClick={toggleFavorito} 
+              onClick={toggleFavorito}
               style={{ background: 'none', border: 'none', cursor: 'pointer' }}
             >
               {isFavorito ? (
