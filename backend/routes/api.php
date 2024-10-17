@@ -18,7 +18,7 @@ use App\Http\Controllers\FavoritoController;
 */
 
     Route::post('/favoritos', [FavoritoController::class, 'adicionar']);
-    Route::delete('/remover-favoritos/{produtoId}', [FavoritoController::class, 'remover']);
+    Route::delete('/remover-favoritos/{produtoId}', [FavoritoController::class, 'removerFavorito']);
     Route::get('/listar-favoritos', [FavoritoController::class, 'listar']);
     Route::get('/verificar-favorito/{produtoId}', [FavoritoController::class, 'verificarFavorito']);
 

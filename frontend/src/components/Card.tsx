@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Importando o useNavigate
 import axios from 'axios';
 
 interface CardProps {
@@ -15,6 +16,7 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({ produto }) => {
   const { user } = useAuth();
+  const navigate = useNavigate(); // Inicializa o hook useNavigate
   const [isFavorito, setIsFavorito] = useState(false); // Estado inicial como falso
   const [loading, setLoading] = useState(true); // Estado para controlar o loading
 
@@ -42,6 +44,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
   const toggleFavorito = async () => {
     if (!user) {
       console.error('Usuário não autenticado');
+      navigate('/login'); // Redireciona para a página de login
       return;
     }
 
