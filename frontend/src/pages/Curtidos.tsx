@@ -42,7 +42,7 @@ const Curtidos: React.FC = () => {
                         ...favorito,
                         produto: {
                             ...favorito.produto,
-                            imagens: JSON.parse(favorito.produto.imagens) // Converte a string JSON em array
+                            imagens: JSON.parse(favorito.produto.imagens) 
                         }
                     };
                 });
@@ -75,20 +75,26 @@ const Curtidos: React.FC = () => {
 
     return (
         <div className="container mt-4">
-            <div className="row">
-                <h1>Favoritados</h1>
-                {produtosFavoritos.length > 0 ? (
-                    produtosFavoritos.map((favorito: Favorito) => (
-                        <div key={favorito.id} className="col-md-3 mb-3">
-                            <Card produto={favorito.produto} />
-                        </div>
-                    ))
-                ) : (
-                    <p>Você ainda não favoritou nenhum produto.</p>
-                )}
+        <h1 className="text-center">Favoritados</h1>
+        {produtosFavoritos.length > 0 ? (
+            <div className="row justify-content-center">
+                {produtosFavoritos.map((favorito: Favorito) => (
+                    <div key={favorito.id} className="col-lg-4 col-md-6 mb-4">
+                        <Card produto={favorito.produto} />
+                    </div>
+                ))}
             </div>
-        </div>
+        ) : (
+            <>
+                <p className="text-center">Você ainda não favoritou nenhum produto.</p>
+                {/* Centraliza a mensagem */}
+            </>
+        )}
+    </div>
+    
+    
     );
+    
 };
 
 export default Curtidos;
