@@ -8,13 +8,30 @@ use Illuminate\Http\Request;
 class FavoritoController extends Controller
 {
     // Listar produtos favoritados
-    public function listar()
-    {
-        $favoritos = Favorito::with('produto')->get(); // Não precisa verificar usuário se não há autenticação
+    // public function listar()
+    // {
+    //     $favoritos = Favorito::with('produto')->get(); // Não precisa verificar usuário se não há autenticação
 
+    //     return response()->json($favoritos);
+    // }
+    public function listarPorUsuario(Request $request)
+    {
+        $userId = $request->input('user_id'); 
+        
+        // Verifica se o user_id foi fornecido
+        if (is_null($userId)) {
+            return response()->json(['error' => 'user_id é obrigatório.'], 400);
+        }
+        
+        // Busca os favoritos do usuário específico
+        $favoritos = Favorito::with('produto')
+                             ->where('user_id', $userId)
+                             ->get();
+        
         return response()->json($favoritos);
     }
-
+    
+    
     // Adicionar produto aos favoritos
   // Adicionar produto aos favoritos
 public function adicionar(Request $request)

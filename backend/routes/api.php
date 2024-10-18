@@ -21,6 +21,7 @@ use App\Http\Controllers\FavoritoController;
     Route::delete('/remover-favoritos/{produtoId}', [FavoritoController::class, 'removerFavorito']);
     Route::get('/listar-favoritos', [FavoritoController::class, 'listar']);
     Route::get('/verificar-favorito/{produtoId}', [FavoritoController::class, 'verificarFavorito']);
+    Route::get('/listar-favoritos-usuario', [FavoritoController::class, 'listarPorUsuario']);
 
 //Banners
 Route::post('/banners', [BannerController::class, 'cadastroBanner']);
