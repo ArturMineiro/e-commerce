@@ -9,6 +9,7 @@ interface Produto {
   nome: string;
   descricao: string;
   preco: number;
+  imagens: string[]; // Adicionando imagens como um array
 }
 
 // Interface para o favorito
@@ -17,19 +18,36 @@ interface Favorito {
   produto: Produto;
 }
 
-const Curtidos = () => {
+const Curtidos: React.FC = () => {
     const { user } = useAuth(); // Pega o usuário autenticado
     const [produtosFavoritos, setProdutosFavoritos] = useState<Favorito[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        // Verifica se o usuário está disponível e loga o sub (user ID)
+        if (user) {
+            console.log("User Sub (ID):", user.sub);
+        }
+
         const fetchFavoritos = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/api/listar-favoritos-usuario', {
-                    params: { user_id: user?.id }
+                    params: { user_id: user?.sub } // Enviando sub (ID do usuário)
                 });
-                setProdutosFavoritos(response.data);
+
+                // Aqui, convertemos a string de imagens em um array
+                const favoritosComImagens = response.data.map((favorito: Favorito) => {
+                    return {
+                        ...favorito,
+                        produto: {
+                            ...favorito.produto,
+                            imagens: JSON.parse(favorito.produto.imagens) // Converte a string JSON em array
+                        }
+                    };
+                });
+
+                setProdutosFavoritos(favoritosComImagens);
             } catch (error) {
                 console.error('Erro ao buscar produtos favoritos:', error);
                 setError('Erro ao carregar os produtos favoritos.');
