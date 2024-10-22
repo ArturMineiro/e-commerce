@@ -23,6 +23,8 @@ const Card: React.FC<CardProps> = ({ produto }) => {
   useEffect(() => {
     if (user) {
       verificarFavorito(); // Verifica se o produto é favorito ao carregar a página
+    } else {
+      setLoading(false); // Para evitar loading indefinido quando o usuário não estiver logado
     }
   }, [user]);
 
@@ -43,7 +45,6 @@ const Card: React.FC<CardProps> = ({ produto }) => {
   // Função para alternar o estado do favorito
   const toggleFavorito = async () => {
     if (!user) {
-      console.error('Usuário não autenticado');
       navigate('/login'); // Redireciona para a página de login
       return;
     }
@@ -103,7 +104,8 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       <div className="card-body">
         <h5 className="card-title">
           {produto.nome}
-          {user?.role === 'customer' && !loading && ( // Certifique-se de que não esteja carregando
+          {/* O botão de favorito aparece para todos, mas só funciona com usuário autenticado */}
+          {!loading && (
             <button
               className="btn"
               onClick={toggleFavorito}
