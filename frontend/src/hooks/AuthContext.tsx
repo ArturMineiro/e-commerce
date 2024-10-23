@@ -71,12 +71,9 @@ const isLoggedIn = (): boolean => {
   if (!token) return false;
 
   const decoded: DecodedToken | null = decodeToken(token);
-  if (!decoded) return false;
-
-  const currentTime = Date.now() / 1000;
-
-  return decoded.exp > currentTime;
+  return !!decoded;  // Se o token for decodificado corretamente, o usuário está logado
 };
+
 
 const getUser = (): DecodedToken | null => {
   const token = localStorage.getItem('token');
