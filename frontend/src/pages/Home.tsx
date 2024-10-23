@@ -9,6 +9,7 @@ interface Produto {
   descricao: string;
   preco: number;
   imagens: string[];
+  quantidade: number;
 }
 
 function Home() {

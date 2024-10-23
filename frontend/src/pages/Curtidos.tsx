@@ -8,6 +8,7 @@ interface Produto {
   id: number;
   nome: string;
   descricao: string;
+  quantidade:number;
   preco: number;
   imagens: string[]; // Adicionando imagens como um array
 }

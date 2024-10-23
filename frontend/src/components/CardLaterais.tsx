@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+
 function CardLaterais() {
     return (
         <div className="card mb-4 md-3 shadow p-3 mb-5 bg-white rounded d-flex flex-row w-75 ">
