@@ -24,6 +24,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
     if (user) {
       verificarFavorito();
     } else {
+      setIsFavorito(false); 
       setLoading(false);
     }
   }, [user]);
