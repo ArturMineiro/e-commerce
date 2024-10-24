@@ -24,7 +24,7 @@ use App\Http\Controllers\FavoritoController;
     Route::get('/listar-favoritos-usuario', [FavoritoController::class, 'listarPorUsuario']);
 
 //Banners
-Route::post('/banners', [BannerController::class, 'cadastroBanner']);
+Route::post('/cadastrar-banners', [BannerController::class, 'cadastroBanner']);
 Route::get('/banners', [BannerController::class, 'mostrarBanners']);
 Route::delete('/banners/{id}', [BannerController::class, 'deletarBanner']);
 Route::post('/banners/{id}/delete-image', [BannerController::class, 'deletarImagem']);

@@ -10,6 +10,14 @@ function CadastrarBanners() {
     const [message, setMessage] = useState<string>('');
     const [banners, setBanners] = useState<any[]>([]); // Para armazenar banners existentes
 
+    // Função para exibir mensagens temporariamente
+    const showMessage = (msg: string) => {
+        setMessage(msg);
+        setTimeout(() => {
+            setMessage(''); // Limpa a mensagem após 3 segundos
+        }, 3000);
+    };
+
     // Carregar banners existentes
     useEffect(() => {
         const fetchBanners = async () => {
@@ -17,7 +25,7 @@ function CadastrarBanners() {
                 const response = await axios.get('http://localhost:8000/api/banners');
                 setBanners(response.data);
             } catch (error) {
-                setMessage('Erro ao carregar os banners.');
+                showMessage('Erro ao carregar os banners.');
             }
         };
 
@@ -36,33 +44,34 @@ function CadastrarBanners() {
         e.preventDefault();
 
         if (bannerImages.length === 0) {
-            setMessage('Selecione pelo menos uma imagem para o banner.');
+            showMessage('Selecione pelo menos uma imagem para o banner.');
             return;
         }
 
         const formData = new FormData();
         formData.append('bannerName', bannerName);
         bannerImages.forEach((image) => {
-            formData.append('bannerImages[]', image);
+            formData.append('bannerImages[]', image); 
         });
 
         try {
-            await axios.post('http://localhost:8000/api/banners', formData, {
+            await axios.post('http://localhost:8000/api/cadastrar-banners', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setMessage('Banners cadastrados com sucesso!');
+            showMessage('Banners cadastrados com sucesso!');
             setBannerName('');
             setBannerImages([]);
-            // Atualiza a lista de banners após cadastrar
-            const response = await axios.get('http://localhost:8000/api/banners');
-            setBanners(response.data);
         } catch (error) {
-            setMessage('Erro ao cadastrar os banners. Tente novamente.');
+            if (error.response) {
+                showMessage(`Erro ao cadastrar banners: ${error.response.data.message}`);
+            } else {
+                showMessage('Erro ao cadastrar banners.');
+            }
         }
-    };
-
+    }        
+    
     // Função para excluir uma imagem individualmente
     const handleDeleteImage = async (bannerId: number, imageUrl: string) => {
         try {
@@ -74,13 +83,12 @@ function CadastrarBanners() {
                 },
             });
 
-            setMessage('Imagem excluída com sucesso!');
+            showMessage('Imagem excluída com sucesso!');
             // Atualiza a lista de banners após excluir a imagem
             const response = await axios.get('http://localhost:8000/api/banners');
             setBanners(response.data);
         } catch (error) {
-            setMessage('Erro ao excluir a imagem. Tente novamente.');
-            // console.log(error);
+            showMessage('Erro ao excluir a imagem. Tente novamente.');
         }
     };
 
@@ -92,12 +100,11 @@ function CadastrarBanners() {
                     'Content-Type': 'application/json',
                 },
             });
-            setMessage('Banner excluído com sucesso!');
+            showMessage('Banner excluído com sucesso!');
             // Atualiza a lista de banners após excluir
             setBanners(banners.filter(banner => banner.id !== bannerId));
         } catch (error) {
-            setMessage('Erro ao excluir o banner. Tente novamente.');
-            // console.log(error);
+            showMessage('Erro ao excluir o banner. Tente novamente.');
         }
     };
 
@@ -119,15 +126,16 @@ function CadastrarBanners() {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="bannerImages" className="form-label">Imagens do Banner</label>
-                    <input
-                        type="file"
-                        className="form-control"
-                        id="bannerImages"
-                        multiple
-                        onChange={handleImageChange}
-                        required
-                    />
+            <label htmlFor="bannerImages" className="form-label">Imagens do Banner</label>
+            <input
+                type="file"
+                className="form-control"
+                id="bannerImages"
+                multiple
+                accept="image/*"  
+                onChange={handleImageChange}
+                required
+            />
                 </div>
 
                 <button type="submit" className="btn btn-primary">Cadastrar Banners</button>
@@ -138,47 +146,39 @@ function CadastrarBanners() {
                 <p>Nenhum banner cadastrado.</p>
             ) : (
                 <>
-                   
-                        {banners.map((banner) => {
-                            const imageUrls = JSON.parse(banner.image_urls);
-                            return (
-                                
-                                <div key={banner.id}>  
-
-                                    <div className="d-flex">
-                                        {imageUrls.map((url: string, index: number) => (
-                                            <div key={`${banner.id}-${index}`} className="m-2">
-                                                <img
-                                                    className="d-block w-100"
-                                                    src={`http://localhost:8000/storage/${url}`}
-                                                    alt={`Banner ${index}`}
-                                                    style={{ width: '200px', height:'200px' }}
-                                                />
-                                                <button
-                                                    className="btn btn-danger mt-2"
-                                                    onClick={() => handleDeleteImage(banner.id, url)}
-                                                >
-                                                    Excluir Imagem
-                                                </button>
-                                                <button
-                                        className="btn btn-danger mt-2"
-                                        onClick={() => handleDeleteBanner(banner.id)}
-                                    >
-                                        Excluir Banner completo
-                                    </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    
-                             
+                    {banners.map((banner) => {
+                        const imageUrls = JSON.parse(banner.image_urls);
+                        return (
+                            <div key={banner.id}>  
+                                <div className="d-flex">
+                                    {imageUrls.map((url: string, index: number) => (
+                                        <div key={`${banner.id}-${index}`} className="m-2">
+                                            <img
+                                                className="d-block w-100"
+                                                src={`http://localhost:8000/storage/${url}`}
+                                                alt={`Banner ${index}`}
+                                                style={{ width: '200px', height:'200px' }}
+                                            />
+                                            <button
+                                                className="btn btn-danger mt-2"
+                                                onClick={() => handleDeleteImage(banner.id, url)}
+                                            >
+                                                Excluir Imagem
+                                            </button>
+                                            <button
+                                                className="btn btn-danger mt-2"
+                                                onClick={() => handleDeleteBanner(banner.id)}
+                                            >
+                                                Excluir Banner completo
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
-                                
-                            );
-                        })}
-        
+                            </div>
+                        );
+                    })}
                 </>
             )}
-                   
         </div>
     );
 }

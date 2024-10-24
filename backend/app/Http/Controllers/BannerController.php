@@ -5,28 +5,36 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Banner;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class BannerController extends Controller
 {
     public function cadastroBanner(Request $request)
     {
+        Log::info('Requisição recebida', $request->all());
+        
         $request->validate([
             'bannerName' => 'required|string|max:255',
-            'bannerImages.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bannerImages' => 'required',
+            'bannerImages.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Valida cada imagem individualmente
         ]);
-
+    
+        Log::info('Validação passou');
+        
         $imagePaths = [];
         if ($request->hasFile('bannerImages')) {
             foreach ($request->file('bannerImages') as $image) {
                 $imagePaths[] = $image->store('banners', 'public');
             }
         }
-
+        
         $banner = Banner::create([
             'name' => $request->input('bannerName'),
-            'image_urls' => json_encode($imagePaths), // Correto para image_urls
+            'image_urls' => json_encode($imagePaths),
         ]);
-
+    
+        Log::info('Banner criado', ['banner' => $banner]);
+    
         return response()->json(['message' => 'Banners cadastrados com sucesso!', 'banner' => $banner], 201);
     }
 
