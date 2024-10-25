@@ -70,10 +70,8 @@ const Login: React.FC = () => {
       }
     } catch (error: any) {
       if (error.response) {
-        if (error.response.status === 401) {
+        if (error.response.status === 401 || error.response.status === 422) {
           setError('Credenciais inválidas. Por favor, tente novamente.');
-        } else if (error.response.status === 422) {
-          setError('Por favor, preencha todos os campos corretamente.');
         } else {
           setError('Erro no servidor. Tente novamente mais tarde.');
         }
