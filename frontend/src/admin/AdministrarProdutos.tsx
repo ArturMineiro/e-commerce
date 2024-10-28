@@ -130,21 +130,25 @@ const AdministrarProdutos: React.FC = () => {
           categoria: editedProduct.categoria,
         });
   
-        // Apenas exiba a mensagem de sucesso
         setSuccessMessage('Produto atualizado com sucesso!');
-        
+  
         // Atualize a lista de produtos com o produto editado
         const updatedProdutos = produtos.map((produto) =>
           produto.id === editedProduct.id ? editedProduct : produto
         );
         setProdutos(updatedProdutos);
   
-        // Fechar o modal após salvar
+ 
         setEditingProductId(null);
         setShowModal(false);
+  
+   
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
       } catch (error) {
         setErrorMessage('Erro ao atualizar o produto.');
-        // console.error('Erro ao atualizar produto:', error);
+        console.error('Erro ao atualizar produto:', error);
       }
     }
   };
