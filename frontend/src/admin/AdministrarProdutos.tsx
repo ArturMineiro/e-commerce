@@ -77,6 +77,10 @@ const AdministrarProdutos: React.FC = () => {
       setProdutos(updatedProdutos);
   
       setSuccessMessage('Produto removido com sucesso!');
+         
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
     } catch (error) {
       setErrorMessage('Erro ao remover o produto.');
      
