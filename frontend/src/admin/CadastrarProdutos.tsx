@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuccessMessage from '../hooks/SucessMenssage';
 import ErrorMessage from '../hooks/ErrorMenssage';
-
+import Button from '../hooks/Button';
 
 const CadastrarProdutos: React.FC = () => {
   const [produto, setProduto] = useState({
@@ -151,11 +151,9 @@ const CadastrarProdutos: React.FC = () => {
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary mt-3">Cadastrar</button>
+        <button type="submit" className="btn btn-primary mt-3 mb-2">Cadastrar</button>
       </form>
-      <div className="mt-3">
-        <a href="/admin/administraprodutos" className="btn btn-secondary">Ir para Administrar Produtos</a>
-      </div>
+      <Button label="Voltar para Dashboard" to="dashboard" />
     </div>
   );
 };
