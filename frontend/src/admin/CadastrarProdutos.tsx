@@ -153,7 +153,9 @@ const CadastrarProdutos: React.FC = () => {
         </div>
         <button type="submit" className="btn btn-primary mt-3 mb-2">Cadastrar</button>
       </form>
-      <Button label="Voltar para Dashboard" to="dashboard" />
+      <div> 
+      <Button label="Voltar para Dashboard" to="/admin/dashboard" />
+      </div>
     </div>
   );
 };
