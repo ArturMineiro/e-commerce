@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FavoritoController;
+use App\Http\Controllers\CategoriaController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -22,7 +23,12 @@ use App\Http\Controllers\FavoritoController;
     Route::get('/listar-favoritos', [FavoritoController::class, 'listar']);
     Route::get('/verificar-favorito/{produtoId}', [FavoritoController::class, 'verificarFavorito']);
     Route::get('/listar-favoritos-usuario', [FavoritoController::class, 'listarPorUsuario']);
-
+    //categoria 
+    Route::get('/categorias', [CategoriaController::class, 'index']);
+    Route::post('/categorias', [CategoriaController::class, 'store']);
+    Route::get('/categorias/{id}', [CategoriaController::class, 'show']);
+    Route::put('/categorias/{id}', [CategoriaController::class, 'update']);
+    Route::delete('/categorias/{id}', [CategoriaController::class, 'destroy']);
 //Banners
 Route::post('/cadastrar-banners', [BannerController::class, 'cadastroBanner']);
 Route::get('/banners', [BannerController::class, 'mostrarBanners']);
