@@ -31,7 +31,7 @@ const App: React.FC = () => {
             <Route path="/admin/cadastrar-banners" element={<ProtectedRoute element={<CadastrarBanners />} requiredRole="admin" />} />
             <Route path="/admin/controle-usuarios" element={<ProtectedRoute element={<ControleUsuario />} requiredRole="admin" />} />
             <Route path="/admin/historico-compras" element={<ProtectedRoute element={<HistoricoCompras />} requiredRole="admin" />} />
-            <Route path="/admin/administra-produtos" element={<ProtectedRoute element={<AdministrarProdutos />} requiredRole="admin" />} />
+            <Route path="/admin/administrar-produtos" element={<ProtectedRoute element={<AdministrarProdutos />} requiredRole="admin" />} />
             <Route path="/admin/cadastrar-categoria" element={<ProtectedRoute element={<CadastroCategoria />} requiredRole="admin" />} />
             {/* Rotas de Cliente */}
             <Route path="/home" element={<Home />} />

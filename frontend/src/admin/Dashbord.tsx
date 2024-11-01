@@ -59,11 +59,11 @@ function Dashboard() {
                             </p>
                             <div className="list-group">
                                
-                                <Link to="/admin/cadastrarprodutos" className="list-group-item list-group-item-action">Cadastrar Produtos</Link>
-                                <Link to="/admin/cadastrarbanners" className="list-group-item list-group-item-action">Cadastrar Banners</Link>
-                                <Link to="/admin/controleusuarios" className="list-group-item list-group-item-action">Controle de Usuários</Link>
-                                <Link to="/admin/historicocompras" className="list-group-item list-group-item-action">Histórico de Compras</Link>
-                                <Link to="/admin/administraprodutos" className="list-group-item list-group-item-action">Administrar Produtos</Link>
+                                <Link to="/admin/cadastrar-produtos" className="list-group-item list-group-item-action">Cadastrar Produtos</Link>
+                                <Link to="/admin/cadastrar-banners" className="list-group-item list-group-item-action">Cadastrar Banners</Link>
+                                <Link to="/admin/controle-usuarios" className="list-group-item list-group-item-action">Controle de Usuários</Link>
+                                <Link to="/admin/historico-compras" className="list-group-item list-group-item-action">Histórico de Compras</Link>
+                                <Link to="/admin/administrar-produtos" className="list-group-item list-group-item-action">Administrar Produtos</Link>
                             </div>
                         </div>
                     </div>
