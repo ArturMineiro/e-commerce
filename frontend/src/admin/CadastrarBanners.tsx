@@ -3,6 +3,7 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Carousel } from 'react-bootstrap';
 import './adminStyles.css';
+import Button from '../hooks/Button';
 
 function CadastrarBanners() {
     const [bannerName, setBannerName] = useState<string>('');
@@ -174,6 +175,9 @@ function CadastrarBanners() {
                                         </div>
                                     ))}
                                 </div>
+                                <div className="mr-4 mt-3 mb-3 d-flex justify-content-end"> 
+      <Button label="Voltar para Dashboard" to="/admin/dashboard" />
+      </div>
                             </div>
                         );
                     })}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Button from '../hooks/Button';
 
 interface Usuario {
     id: number;
@@ -69,6 +70,10 @@ function ControleUsuario() {
                     ))}
                 </tbody>
             </table>
+
+            <div className="mr-4 mt-3 mb-3 d-flex justify-content-end"> 
+      <Button label="Voltar para Dashboard" to="/admin/dashboard" />
+      </div>
         </div>
     );
 }
