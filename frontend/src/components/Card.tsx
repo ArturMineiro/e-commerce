@@ -10,6 +10,7 @@ interface CardProps {
     descricao: string;
     preco: number;
     quantidade: number;
+    categoria:string;
     imagens: string[];
   };
 }
@@ -120,6 +121,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
         <p className="card-text">{produto.descricao}</p>
         <p className="card-text">R$ {Number(produto.preco).toFixed(2)}</p>
         <p className="card-text">Quantidade disponível: {produto.quantidade}</p>
+        <p className="card-text">Categoria {produto.categoria}</p>
       </div>
     </div>
   );

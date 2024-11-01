@@ -16,6 +16,7 @@ import CadastrarBanners from './admin/CadastrarBanners';
 import ControleUsuario from './admin/ControleUsuarios';
 import HistoricoCompras from './admin/HistoricoCompras';
 import AdministrarProdutos from './admin/AdministrarProdutos';
+import CadastroCategoria from './admin/CadastroCategoria';
 
 const App: React.FC = () => {
   return (
@@ -26,12 +27,12 @@ const App: React.FC = () => {
           <Routes>
             {/* Rotas de Admin */}
             <Route path="/admin/dashboard" element={<ProtectedRoute element={<Dashboard />} requiredRole="admin" />} />
-            <Route path="/admin/cadastrarprodutos" element={<ProtectedRoute element={<CadastrarProdutos />} requiredRole="admin" />} />
-            <Route path="/admin/cadastrarbanners" element={<ProtectedRoute element={<CadastrarBanners />} requiredRole="admin" />} />
-            <Route path="/admin/controleusuarios" element={<ProtectedRoute element={<ControleUsuario />} requiredRole="admin" />} />
-            <Route path="/admin/historicocompras" element={<ProtectedRoute element={<HistoricoCompras />} requiredRole="admin" />} />
-            <Route path="/admin/administraprodutos" element={<ProtectedRoute element={<AdministrarProdutos />} requiredRole="admin" />} />
-
+            <Route path="/admin/cadastrar-produtos" element={<ProtectedRoute element={<CadastrarProdutos />} requiredRole="admin" />} />
+            <Route path="/admin/cadastrar-banners" element={<ProtectedRoute element={<CadastrarBanners />} requiredRole="admin" />} />
+            <Route path="/admin/controle-usuarios" element={<ProtectedRoute element={<ControleUsuario />} requiredRole="admin" />} />
+            <Route path="/admin/historico-compras" element={<ProtectedRoute element={<HistoricoCompras />} requiredRole="admin" />} />
+            <Route path="/admin/administra-produtos" element={<ProtectedRoute element={<AdministrarProdutos />} requiredRole="admin" />} />
+            <Route path="/admin/cadastrar-categoria" element={<ProtectedRoute element={<CadastroCategoria />} requiredRole="admin" />} />
             {/* Rotas de Cliente */}
             <Route path="/home" element={<Home />} />
             <Route path="/" element={<Home />} />
