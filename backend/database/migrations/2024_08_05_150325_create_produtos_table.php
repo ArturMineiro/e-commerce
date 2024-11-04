@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,9 +18,9 @@ class CreateProdutosTable extends Migration
             $table->string('nome');
             $table->text('descricao')->nullable();
             $table->decimal('preco', 10, 2);
+            $table->string('categoria');
             $table->integer('quantidade')->default(0);
-            $table->string('categoria')->nullable();
-            $table->json('imagens')->nullable();
+            $table->json('imagens')->nullable(); // Armazena as imagens em formato JSON
             $table->timestamps();
         });
     }
