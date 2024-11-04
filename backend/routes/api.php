@@ -24,11 +24,11 @@ use App\Http\Controllers\CategoriaController;
     Route::get('/verificar-favorito/{produtoId}', [FavoritoController::class, 'verificarFavorito']);
     Route::get('/listar-favoritos-usuario', [FavoritoController::class, 'listarPorUsuario']);
     //categoria 
-    Route::get('/categorias', [CategoriaController::class, 'index']);
-    Route::post('/categorias', [CategoriaController::class, 'store']);
-    Route::get('/categorias/{id}', [CategoriaController::class, 'show']);
-    Route::put('/categorias/{id}', [CategoriaController::class, 'update']);
-    Route::delete('/categorias/{id}', [CategoriaController::class, 'destroy']);
+    Route::get('/categorias', [CategoriaController::class, 'exibirCategoria']);
+    Route::post('/categorias', [CategoriaController::class, 'criarCategoria']);
+    Route::get('/categorias/{id}', [CategoriaController::class, 'mostrarCategoria']);
+    Route::put('/categorias/{id}', [CategoriaController::class, 'atualizarCategoria']);
+    Route::delete('/categorias/{id}', [CategoriaController::class, 'excluirCategoria']);
 //Banners
 Route::post('/cadastrar-banners', [BannerController::class, 'cadastroBanner']);
 Route::get('/banners', [BannerController::class, 'mostrarBanners']);

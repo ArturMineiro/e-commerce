@@ -8,14 +8,14 @@ use Illuminate\Http\Request;
 class CategoriaController extends Controller
 {
     // Exibir todas as categorias
-    public function index()
+    public function exibirCategoria()
     {
         $categorias = Categoria::all();
         return response()->json($categorias);
     }
 
     // Criar uma nova categoria
-    public function store(Request $request)
+    public function criarCategoria(Request $request)
     {
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
@@ -27,14 +27,14 @@ class CategoriaController extends Controller
     }
 
     // Mostrar uma categoria específica
-    public function show($id)
+    public function mostrarCategoria($id)
     {
         $categoria = Categoria::findOrFail($id);
         return response()->json($categoria);
     }
 
     // Atualizar uma categoria existente
-    public function update(Request $request, $id)
+    public function atualizarCategoria(Request $request, $id)
     {
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
@@ -47,7 +47,7 @@ class CategoriaController extends Controller
     }
 
     // Excluir uma categoria
-    public function destroy($id)
+    public function excluirCategoria($id)
     {
         $categoria = Categoria::findOrFail($id);
         $categoria->delete();
