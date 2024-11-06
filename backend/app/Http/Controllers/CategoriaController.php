@@ -50,10 +50,10 @@ class CategoriaController extends Controller
 
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
-            'descricao' => 'nullable|string',
-            'identificador_amigavel' => 'required|string|unique:categorias,identificador_amigavel,' . $id,
-            'imagem' => 'nullable|string',
-            'categoria_pai_id' => 'nullable|exists:categorias,id',
+            // 'descricao' => 'nullable|string',
+            // 'identificador_amigavel' => 'required|string|unique:categorias,identificador_amigavel,' . $id,
+            // 'imagem' => 'nullable|string',
+            // 'categoria_pai_id' => 'nullable|exists:categorias,id',
         ]);
 
         $categoria->update($validatedData);
