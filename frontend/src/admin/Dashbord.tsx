@@ -64,6 +64,7 @@ function Dashboard() {
                                 <Link to="/admin/controle-usuarios" className="list-group-item list-group-item-action">Controle de Usuários</Link>
                                 <Link to="/admin/historico-compras" className="list-group-item list-group-item-action">Histórico de Compras</Link>
                                 <Link to="/admin/administrar-produtos" className="list-group-item list-group-item-action">Administrar Produtos</Link>
+                                <Link to="/admin/cadastrar-categoria" className="list-group-item list-group-item-action">Cadastrar categoria</Link>
                             </div>
                         </div>
                     </div>

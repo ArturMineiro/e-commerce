@@ -61,9 +61,9 @@ const CadastrarProdutos: React.FC = () => {
       setMensagemSucesso('Produto cadastrado com sucesso!');
       setMensagemErro(null); // Limpar a mensagem de erro, se houver
       
-      // Redirecionar após 3 segundos
+ 
       setTimeout(() => {
-        navigate('/admin/administraprodutos');
+        navigate('/admin/administrar-produtos');
       }, 3000);
 
     } catch (error) {
