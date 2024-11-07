@@ -9,15 +9,17 @@ class Produto extends Model
 {
     use HasFactory;
 
-    protected $fillable =[
+    protected $fillable = [
         'nome',
         'descricao',
         'preco',
         'quantidade',
-        'categoria',
+        'categoria_id',
         'imagens',
     ];
-    protected $casts = [
-        'imagens' => 'array',
-    ];
+
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class);
+    }
 }

@@ -48,7 +48,7 @@ function Carroussel() {
     style={{
         width: '100%',
         height: 'auto', 
-        maxHeight: '800px',
+        maxHeight: '600px',
         objectFit: 'cover', 
     }}
 />

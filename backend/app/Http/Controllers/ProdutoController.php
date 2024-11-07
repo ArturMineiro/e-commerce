@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Produto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Categoria;
 
 class ProdutoController extends Controller
 {
@@ -46,31 +47,42 @@ class ProdutoController extends Controller
     
     public function criarProdutos(Request $request)
     {
+        // Validação dos dados do produto
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
             'descricao' => 'nullable|string',
             'preco' => 'required|numeric',
             'quantidade' => 'required|integer',
-            'categoria' => 'nullable|string|max:255',
+            'categoria_id' => 'nullable|exists:categorias,id', // Certifique-se que a categoria está no banco
             'imagens' => 'nullable|array',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // validação de imagem
+            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validação das imagens
         ]);
     
-        $imagePaths = [];
+        // Criação do produto
+        $produto = new Produto();
+        $produto->nome = $validatedData['nome'];
+        $produto->descricao = $validatedData['descricao'];
+        $produto->preco = $validatedData['preco'];
+        $produto->quantidade = $validatedData['quantidade'];
+        $produto->categoria_id = $validatedData['categoria_id'];
     
+        // Processando imagens, se houver
         if ($request->hasFile('imagens')) {
+            $imagens = [];
             foreach ($request->file('imagens') as $image) {
-                $path = $image->store('imagens', 'public'); // Ajustado para 'imagens'
-                $imagePaths[] = $path;
+                $path = $image->store('imagens', 'public');
+                $imagens[] = $path;
             }
+            // Salvando o caminho das imagens no banco de dados
+            $produto->imagens = json_encode($imagens);
         }
     
-        $validatedData['imagens'] = json_encode($imagePaths); // Salvar os caminhos das imagens como JSON
+        // Salvando o produto no banco de dados
+        $produto->save();
     
-        $produto = Produto::create($validatedData);
-    
-        return response()->json(['message' => 'Produto cadastrado com sucesso']);
+        return response()->json(['message' => 'Produto cadastrado com sucesso', 'produto' => $produto], 201);
     }
+    
     
     public function mostrarProdutos($id)
     {

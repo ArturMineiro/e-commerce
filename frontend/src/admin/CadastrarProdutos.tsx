@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuccessMessage from '../hooks/SucessMenssage';
@@ -11,15 +11,28 @@ const CadastrarProdutos: React.FC = () => {
     descricao: '',
     preco: '',
     quantidade: '',
-    categoria: '',
+    categoria_id: '', // Alterado para categoria_id
     imagens: [] as File[],
   });
-
-  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null); // Estado para mensagem de sucesso
-  const [mensagemErro, setMensagemErro] = useState<string | null>(null);       // Estado para mensagem de erro
+  const [categorias, setCategorias] = useState([]);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+  const [mensagemErro, setMensagemErro] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Buscar categorias ao carregar o componente
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/categorias');
+        setCategorias(response.data); // Supondo que a resposta seja um array de categorias
+      } catch (error) {
+        console.error('Erro ao buscar categorias:', error);
+      }
+    };
+    fetchCategorias();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setProduto({
       ...produto,
       [e.target.name]: e.target.value,
@@ -51,17 +64,15 @@ const CadastrarProdutos: React.FC = () => {
 
     try {
       const url = 'http://localhost:8000/api/produtos/store';
-      const response = await axios.post(url, formData, {
+      await axios.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      // Definir a mensagem de sucesso
       setMensagemSucesso('Produto cadastrado com sucesso!');
-      setMensagemErro(null); // Limpar a mensagem de erro, se houver
+      setMensagemErro(null);
       
- 
       setTimeout(() => {
         navigate('/admin/administrar-produtos');
       }, 3000);
@@ -69,7 +80,7 @@ const CadastrarProdutos: React.FC = () => {
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);
       setMensagemErro('Erro ao cadastrar o produto. Tente novamente.');
-      setMensagemSucesso(null); // Limpar a mensagem de sucesso, se houver
+      setMensagemSucesso(null);
     }
   };
 
@@ -77,7 +88,6 @@ const CadastrarProdutos: React.FC = () => {
     <div className="container mt-5 shadow p-3 mb-5 bg-body rounded">
       <h2>Cadastrar Produto</h2>
       
-      {/* Exibir a mensagem de sucesso ou erro */}
       {mensagemSucesso && (
         <SuccessMessage message={mensagemSucesso} onClose={() => setMensagemSucesso(null)} />
       )}
@@ -131,14 +141,20 @@ const CadastrarProdutos: React.FC = () => {
         </div>
         <div className="form-group">
           <label>Categoria</label>
-          <input
-            type="text"
+          <select
             className="form-control"
-            name="categoria"
-            value={produto.categoria}
+            name="categoria_id" // Alterado para categoria_id
+            value={produto.categoria_id} // Alterado para categoria_id
             onChange={handleChange}
             required
-          />
+          >
+            <option value="">Selecione uma categoria</option>
+            {categorias.map((categoria: any) => (
+              <option key={categoria.id} value={categoria.id}>
+                {categoria.nome}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="form-group">
           <label>Imagens</label>
@@ -153,12 +169,11 @@ const CadastrarProdutos: React.FC = () => {
         </div>
         <button type="submit" className="btn btn-primary mt-3 mb-2">Cadastrar</button>
       </form>
-      <div> 
-      <Button label="Voltar para Dashboard" to="/admin/dashboard" />
+      <div>
+        <Button label="Voltar para Dashboard" to="/admin/dashboard" />
       </div>
     </div>
   );
 };
 
 export default CadastrarProdutos;
-``
