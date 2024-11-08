@@ -166,15 +166,16 @@ function CadastrarBanners() {
                                             >
                                                 Excluir Imagem
                                             </button>
-                                            <button
+                                          
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
                                                 className="btn btn-danger mt-2"
                                                 onClick={() => handleDeleteBanner(banner.id)}
                                             >
                                                 Excluir Banner completo
                                             </button>
-                                        </div>
-                                    ))}
-                                </div>
                                 <div className="mr-4 mt-3 mb-3 d-flex justify-content-end"> 
       <Button label="Voltar para Dashboard" to="/admin/dashboard" />
       </div>
