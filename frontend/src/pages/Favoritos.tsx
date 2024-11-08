@@ -19,7 +19,7 @@ interface Favorito {
   produto: Produto;
 }
 
-const Curtidos: React.FC = () => {
+const Favoritos: React.FC = () => {
     const { user } = useAuth(); // Pega o usuário autenticado
     const [produtosFavoritos, setProdutosFavoritos] = useState<Favorito[]>([]);
     const [loading, setLoading] = useState(true);
@@ -98,4 +98,4 @@ const Curtidos: React.FC = () => {
     
 };
 
-export default Curtidos;
+export default Favoritos;

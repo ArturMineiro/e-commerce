@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Navbar from './components/Navbar';
 import Carrinho from './pages/Carrinho';
-import Curtidos from './pages/Curtidos';
 import Login from './pages/Login';
 import Footer from './components/Footer';
 import Meuspedidos from './pages/Meuspedidos';
@@ -17,6 +16,7 @@ import ControleUsuario from './admin/ControleUsuarios';
 import HistoricoCompras from './admin/HistoricoCompras';
 import AdministrarProdutos from './admin/AdministrarProdutos';
 import CadastroCategoria from './admin/CadastroCategoria';
+import Favoritos from './pages/Favoritos';
 
 const App: React.FC = () => {
   return (
@@ -37,7 +37,7 @@ const App: React.FC = () => {
             <Route path="/home" element={<Home />} />
             <Route path="/" element={<Home />} />
             <Route path="/carrinho" element={<Carrinho />} />
-            <Route path="/curtidos" element={<Curtidos />} />
+            <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/login" element={<Login />} />
             <Route path="/meuspedidos" element={<ProtectedRoute element={<Meuspedidos />} requiredRole="customer" />} />
             <Route path="/register" element={<Register />} />
