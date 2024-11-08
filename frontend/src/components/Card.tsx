@@ -54,11 +54,18 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       produto_id: produto.id,
       user_id: userId,
     };
-
+  
     try {
       if (isFavorito) {
+        // Mostra a confirmação para remover dos favoritos
+        const confirmar = window.confirm('Deseja remover este produto dos seus favoritos?');
+        if (!confirmar) return; // Se a pessoa não confirmar, sai da função
+  
         await axios.delete(`http://localhost:8000/api/remover-favoritos/${produto.id}`, { data: { user_id: userId } });
         setIsFavorito(false);
+  
+        // Emite um evento personalizado para notificar a página de favoritos
+        window.dispatchEvent(new CustomEvent('produtoRemovido', { detail: produto.id }));
       } else {
         await axios.post('http://localhost:8000/api/favoritos', favoriteData);
         setIsFavorito(true);
