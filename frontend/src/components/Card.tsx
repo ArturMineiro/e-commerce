@@ -10,7 +10,7 @@ interface CardProps {
     descricao: string;
     preco: number;
     quantidade: number;
-    categoria:string;
+    categoria_id: number; // Agora você recebe apenas o ID da categoria
     imagens: string[];
   };
 }
@@ -20,6 +20,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
   const navigate = useNavigate();
   const [isFavorito, setIsFavorito] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [categoria, setCategoria] = useState<string | null>(null); // Estado para armazenar a categoria
 
   useEffect(() => {
     if (user) {
@@ -28,12 +29,24 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       setIsFavorito(false); 
       setLoading(false);
     }
-  }, [user]);
+
+    // Buscar a categoria do produto com base no `categoria_id`
+    const fetchCategoria = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/api/categorias/buscar/${produto.categoria_id}`);
+        setCategoria(response.data.nome); // Armazena o nome da categoria
+      } catch (error) {
+        console.error('Erro ao buscar categoria:', error.response ? error.response.data : error.message);
+      }
+    };
+
+    fetchCategoria(); // Chama a função para buscar a categoria
+  }, [produto.categoria_id, user]); // Reexecuta se o `categoria_id` mudar
 
   const verificarFavorito = async () => {
     try {
       const response = await axios.get(`http://localhost:8000/api/verificar-favorito/${produto.id}`, {
-        params: { user_id: user?.sub }, // Verifica se o user existe
+        params: { user_id: user?.sub }, 
       });
       setIsFavorito(response.data.isFavorito);
     } catch (error) {
@@ -54,18 +67,11 @@ const Card: React.FC<CardProps> = ({ produto }) => {
       produto_id: produto.id,
       user_id: userId,
     };
-  
+
     try {
       if (isFavorito) {
-        // Mostra a confirmação para remover dos favoritos
-        const confirmar = window.confirm('Deseja remover este produto dos seus favoritos?');
-        if (!confirmar) return; // Se a pessoa não confirmar, sai da função
-  
         await axios.delete(`http://localhost:8000/api/remover-favoritos/${produto.id}`, { data: { user_id: userId } });
         setIsFavorito(false);
-  
-        // Emite um evento personalizado para notificar a página de favoritos
-        window.dispatchEvent(new CustomEvent('produtoRemovido', { detail: produto.id }));
       } else {
         await axios.post('http://localhost:8000/api/favoritos', favoriteData);
         setIsFavorito(true);
@@ -128,7 +134,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
         <p className="card-text">{produto.descricao}</p>
         <p className="card-text">R$ {Number(produto.preco).toFixed(2)}</p>
         <p className="card-text">Quantidade disponível: {produto.quantidade}</p>
-        <p className="card-text">Categoria {produto.categoria}</p>
+        <p className="card-text">Categoria: {categoria || 'Carregando...'}</p> {/* Exibe a categoria aqui */}
       </div>
     </div>
   );
