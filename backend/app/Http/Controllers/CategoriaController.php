@@ -46,20 +46,22 @@ class CategoriaController extends Controller
     // Atualizar uma categoria existente
     public function atualizarCategoria(Request $request, $id)
     {
+        // Encontre a categoria pelo ID
         $categoria = Categoria::findOrFail($id);
-
+    
+        // Validação dos dados recebidos
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
-            // 'descricao' => 'nullable|string',
-            // 'identificador_amigavel' => 'required|string|unique:categorias,identificador_amigavel,' . $id,
-            // 'imagem' => 'nullable|string',
-            // 'categoria_pai_id' => 'nullable|exists:categorias,id',
         ]);
-
-        $categoria->update($validatedData);
-
+    
+        // Atualiza a categoria
+        $categoria->update([
+            'nome' => $validatedData['nome'],
+        ]);
+    
         return response()->json($categoria);
     }
+    
 
     // Excluir uma categoria
     public function excluirCategoria($id)

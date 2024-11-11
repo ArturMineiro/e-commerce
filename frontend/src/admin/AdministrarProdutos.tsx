@@ -6,14 +6,20 @@ interface Produto {
   id: number;
   nome: string;
   descricao: string;
-  preco: number;
-  quantidade: number;
-  categoria: string;
-  imagens: string[]; 
+  preco: string;
+  quantidade: string;
+  categoria_id: number;
+  imagens: string[];
+}
+
+interface Categoria {
+  id: number;
+  nome: string;
 }
 
 const AdministrarProdutos: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]); // Estado para armazenar categorias
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editedProduct, setEditedProduct] = useState<Produto | null>(null);
   const [newImages, setNewImages] = useState<FileList | null>(null);
@@ -36,7 +42,18 @@ const AdministrarProdutos: React.FC = () => {
       }
     };
 
+    const fetchCategorias = async () => {
+      try {
+        const response = await axios.get<Categoria[]>('http://localhost:8000/api/categorias');
+        setCategorias(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar categorias:', error);
+        setErrorMessage('Erro ao buscar categorias.');
+      }
+    };
+
     fetchProdutos();
+    fetchCategorias();
   }, []);
 
   const handleDeleteImage = async (produtoId: number, index: number) => {
@@ -47,6 +64,7 @@ const AdministrarProdutos: React.FC = () => {
   
       // Atualize a lista de produtos após a exclusão
       const updatedProdutos = produtos.map((produto) => {
+        
         if (produto.id === produtoId) {
           const updatedImagens = produto.imagens.filter((_, i) => i !== index);
           return { ...produto, imagens: updatedImagens };
@@ -83,10 +101,8 @@ const AdministrarProdutos: React.FC = () => {
       }, 3000);
     } catch (error) {
       setErrorMessage('Erro ao remover o produto.');
-     
     }
   };
-  
 
   const handleAddImages = async () => {
     if (editedProduct && newImages) {
@@ -109,7 +125,7 @@ const AdministrarProdutos: React.FC = () => {
         setSuccessMessage('Imagens adicionadas com sucesso!');
       } catch (error) {
         setErrorMessage('Erro ao adicionar imagens.');
-        // console.error('Erro ao adicionar imagens:', error);
+        console.error('Erro ao adicionar imagens:', error);
       } finally {
         setNewImages(null); // Limpar o estado dos arquivos
       }
@@ -125,39 +141,36 @@ const AdministrarProdutos: React.FC = () => {
   const handleSaveChanges = async () => {
     if (editedProduct) {
       try {
-        // Atualizar os dados do produto sem lidar com imagens aqui
+        // Envia a requisição PUT para atualizar o produto
         await axios.put(`http://localhost:8000/api/produtos/update/${editedProduct.id}`, {
           nome: editedProduct.nome,
           descricao: editedProduct.descricao,
           preco: editedProduct.preco,
           quantidade: editedProduct.quantidade,
-          categoria: editedProduct.categoria,
+          categoria_id: editedProduct.categoria_id, // Categoria também é atualizada
         });
   
         setSuccessMessage('Produto atualizado com sucesso!');
   
-        // Atualize a lista de produtos com o produto editado
+        // Atualiza a lista de produtos com o produto editado
         const updatedProdutos = produtos.map((produto) =>
           produto.id === editedProduct.id ? editedProduct : produto
         );
         setProdutos(updatedProdutos);
   
- 
         setEditingProductId(null);
         setShowModal(false);
   
-   
         setTimeout(() => {
           setSuccessMessage(null);
         }, 3000);
       } catch (error) {
-        setErrorMessage('Erro ao atualizar o produto.');
+        setErrorMessage('Erro ao atualizar produto.');
         console.error('Erro ao atualizar produto:', error);
       }
     }
-  };
-  
-  
+};
+
 
   return (
     <Container>
@@ -185,11 +198,13 @@ const AdministrarProdutos: React.FC = () => {
                 <Card.Title>{produto.nome}</Card.Title>
                 <Card.Text>{produto.descricao}</Card.Text>
                 <Card.Text>
-                Preço: R$ {Number(produto.preco) ? Number(produto.preco).toFixed(2) : 'N/A'}
+                  Preço: R$ {Number(produto.preco) ? Number(produto.preco).toFixed(2) : 'N/A'}
                 </Card.Text>
-
                 <Card.Text>Quantidade: {produto.quantidade}</Card.Text>
-                <Card.Text>Categoria: {produto.categoria}</Card.Text>
+                <Card.Text>Categoria: {
+                categorias.find(categoria => categoria.id === produto.categoria_id)?.nome || 'Categoria desconhecida'
+              }</Card.Text>
+
                 <Button variant="primary" onClick={() => handleEditProduct(produto)}>Editar</Button>
                 <Button variant="danger" className="ms-2" onClick={() => handleDeleteProduct(produto.id)}>Remover Produto</Button>
               </Card.Body>
@@ -227,9 +242,8 @@ const AdministrarProdutos: React.FC = () => {
                 <Form.Label>Preço</Form.Label>
                 <Form.Control
                   type="number"
-                  step="0.01"
                   value={editedProduct.preco}
-                  onChange={(e) => setEditedProduct({ ...editedProduct, preco: parseFloat(e.target.value) })}
+                  onChange={(e) => setEditedProduct({ ...editedProduct, preco: e.target.value })}
                 />
               </Form.Group>
               <Form.Group controlId="formProductQuantity">
@@ -237,41 +251,34 @@ const AdministrarProdutos: React.FC = () => {
                 <Form.Control
                   type="number"
                   value={editedProduct.quantidade}
-                  onChange={(e) => setEditedProduct({ ...editedProduct, quantidade: parseInt(e.target.value, 10) })}
+                  onChange={(e) => setEditedProduct({ ...editedProduct, quantidade: e.target.value })}
                 />
               </Form.Group>
               <Form.Group controlId="formProductCategory">
                 <Form.Label>Categoria</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={editedProduct.categoria}
-                  onChange={(e) => setEditedProduct({ ...editedProduct, categoria: e.target.value })}
-                />
+                        <Form.Control
+                          as="select"
+                          value={editedProduct.categoria_id}
+                          onChange={(e) => setEditedProduct({ ...editedProduct, categoria_id: parseInt(e.target.value) })}
+                        >
+                          <option value="">Selecione uma categoria</option>
+                          {categorias.map((categoria) => (
+                            <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+                          ))}
+              </Form.Control>
               </Form.Group>
               <Form.Group controlId="formProductImages">
-              <Form.Label>Adicionar Imagens</Form.Label>
-              <Form.Control
-                type="file"
-                multiple
-                onChange={(e) => setNewImages(e.target.files)}
-              />
-            </Form.Group>
-            <div className="mb-3">
-              {editedProduct && editedProduct.imagens.map((imagem, index) => (
-                <div key={index} className="d-flex align-items-center mb-2">
-                  <img
-                    src={`http://localhost:8000/storage/${imagem}`}
-                    alt={`Imagem ${index + 1}`}
-                    className="img-thumbnail me-2"
-                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                  />
-                  <Button variant="danger" onClick={() => handleDeleteImage(editedProduct.id, index)}>Remover Imagem</Button>
-                </div>
-              ))}
-            </div>
-
-              <Button variant="secondary" type="button" onClick={handleAddImages} className="me-2">Adicionar Imagens</Button>
-              <Button variant="primary" type="submit">Salvar Alterações</Button>
+                <Form.Label>Adicionar Imagens</Form.Label>
+                <Form.Control
+                  type="file"
+                  multiple
+                  onChange={(e) => setNewImages(e.target.files)}
+                />
+                <Button variant="secondary" onClick={handleAddImages}>Adicionar Imagens</Button>
+              </Form.Group>
+              <Button variant="primary" type="submit" className="mt-3">
+                Salvar alterações
+              </Button>
             </Form>
           )}
         </Modal.Body>
