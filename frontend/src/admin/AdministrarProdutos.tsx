@@ -215,74 +215,102 @@ const AdministrarProdutos: React.FC = () => {
 
       {/* Modal de Edição */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Editar Produto</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {editedProduct && (
-            <Form onSubmit={(e) => { e.preventDefault(); handleSaveChanges(); }}>
-              <Form.Group controlId="formProductName">
-                <Form.Label>Nome</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={editedProduct.nome}
-                  onChange={(e) => setEditedProduct({ ...editedProduct, nome: e.target.value })}
+  <Modal.Header closeButton>
+    <Modal.Title>Editar Produto</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    {editedProduct && (
+      <>
+        {/* Carrossel de imagens do produto */}
+        {editedProduct.imagens.length > 0 ? (
+          <Carousel>
+            {editedProduct.imagens.map((imagem, index) => (
+              <Carousel.Item key={index}>
+                <img
+                  className="d-block w-100"
+                  src={`http://localhost:8000/storage/${imagem}`}
+                  alt={`Imagem ${index + 1}`}
                 />
-              </Form.Group>
-              <Form.Group controlId="formProductDescription">
-                <Form.Label>Descrição</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={editedProduct.descricao}
-                  onChange={(e) => setEditedProduct({ ...editedProduct, descricao: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group controlId="formProductPrice">
-                <Form.Label>Preço</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={editedProduct.preco}
-                  onChange={(e) => setEditedProduct({ ...editedProduct, preco: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group controlId="formProductQuantity">
-                <Form.Label>Quantidade</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={editedProduct.quantidade}
-                  onChange={(e) => setEditedProduct({ ...editedProduct, quantidade: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group controlId="formProductCategory">
-                <Form.Label>Categoria</Form.Label>
-                        <Form.Control
-                          as="select"
-                          value={editedProduct.categoria_id}
-                          onChange={(e) => setEditedProduct({ ...editedProduct, categoria_id: parseInt(e.target.value) })}
-                        >
-                          <option value="">Selecione uma categoria</option>
-                          {categorias.map((categoria) => (
-                            <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
-                          ))}
-              </Form.Control>
-              </Form.Group>
-              <Form.Group controlId="formProductImages">
-                <Form.Label>Adicionar Imagens</Form.Label>
-                <Form.Control
-                  type="file"
-                  multiple
-                  onChange={(e) => setNewImages(e.target.files)}
-                />
-                <Button variant="secondary" onClick={handleAddImages}>Adicionar Imagens</Button>
-              </Form.Group>
-              <Button variant="primary" type="submit" className="mt-3">
-                Salvar alterações
-              </Button>
-            </Form>
-          )}
-        </Modal.Body>
-      </Modal>
+                <Button
+                  variant="danger"
+                  className="mt-2"
+                  onClick={() => handleDeleteImage(editedProduct.id, index)}
+                >
+                  Remover Imagem
+                </Button>
+              </Carousel.Item>
+            ))}
+          </Carousel>
+        ) : (
+          <p>Sem imagens disponíveis</p>
+        )}
+
+        {/* Formulário de edição */}
+        <Form onSubmit={(e) => { e.preventDefault(); handleSaveChanges(); }}>
+          <Form.Group controlId="formProductName">
+            <Form.Label>Nome</Form.Label>
+            <Form.Control
+              type="text"
+              value={editedProduct.nome}
+              onChange={(e) => setEditedProduct({ ...editedProduct, nome: e.target.value })}
+            />
+          </Form.Group>
+          <Form.Group controlId="formProductDescription">
+            <Form.Label>Descrição</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={editedProduct.descricao}
+              onChange={(e) => setEditedProduct({ ...editedProduct, descricao: e.target.value })}
+            />
+          </Form.Group>
+          <Form.Group controlId="formProductPrice">
+            <Form.Label>Preço</Form.Label>
+            <Form.Control
+              type="number"
+              value={editedProduct.preco}
+              onChange={(e) => setEditedProduct({ ...editedProduct, preco: e.target.value })}
+            />
+          </Form.Group>
+          <Form.Group controlId="formProductQuantity">
+            <Form.Label>Quantidade</Form.Label>
+            <Form.Control
+              type="number"
+              value={editedProduct.quantidade}
+              onChange={(e) => setEditedProduct({ ...editedProduct, quantidade: e.target.value })}
+            />
+          </Form.Group>
+          <Form.Group controlId="formProductCategory">
+            <Form.Label>Categoria</Form.Label>
+            <Form.Control
+              as="select"
+              value={editedProduct.categoria_id}
+              onChange={(e) => setEditedProduct({ ...editedProduct, categoria_id: parseInt(e.target.value) })}
+            >
+              <option value="">Selecione uma categoria</option>
+              {categorias.map((categoria) => (
+                <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+          <Form.Group controlId="formProductImages">
+            <Form.Label>Adicionar Imagens</Form.Label>
+            <Form.Control
+              type="file"
+              multiple
+              onChange={(e) => setNewImages(e.target.files)}
+            />
+            <Button variant="secondary" onClick={handleAddImages} className="mt-3">Adicionar Imagens</Button>
+          </Form.Group>
+          <Button variant="primary" type="submit" className="mt-3">
+            Salvar alterações
+          </Button>
+        </Form>
+      </>
+    )}
+  </Modal.Body>
+</Modal>
+
     </Container>
   );
 };
