@@ -222,30 +222,7 @@ const AdministrarProdutos: React.FC = () => {
     {editedProduct && (
       <>
         {/* Carrossel de imagens do produto */}
-        {editedProduct.imagens.length > 0 ? (
-          <Carousel>
-            {editedProduct.imagens.map((imagem, index) => (
-              <Carousel.Item key={index}>
-                <img
-                  className="d-block w-100"
-                  src={`http://localhost:8000/storage/${imagem}`}
-                  alt={`Imagem ${index + 1}`}
-                />
-            <Card className="border-0 mb-3">  <Button
-                  variant="danger"
-                  className="mt-4 mb-3"
-                  onClick={() => handleDeleteImage(editedProduct.id, index)}
-                >
-                  Remover Imagem
-                </Button></Card>    
-              </Carousel.Item>
-            ))}
-          
-          </Carousel>
-        ) : (
-          <p>Sem imagens disponíveis</p>
-        )}
-
+      
         {/* Formulário de edição */}
         <Form onSubmit={(e) => { e.preventDefault(); handleSaveChanges(); }}>
           <Form.Group controlId="formProductName">
@@ -303,10 +280,35 @@ const AdministrarProdutos: React.FC = () => {
             />
             <Button variant="secondary" onClick={handleAddImages} className="mt-3">Adicionar Imagens</Button>
           </Form.Group>
-          <Button variant="primary" type="submit" className="mt-3">
+          <Button variant="primary" type="submit" className="mt-3 mb-4">
             Salvar alterações
           </Button>
         </Form>
+
+        {editedProduct.imagens.length > 0 ? (
+  <div className="d-flex flex-wrap mt-3">
+    {editedProduct.imagens.map((imagem, index) => (
+      <div key={index} className="position-relative mb-2" style={{ width: '100px', height: '100px' }}>
+        <img
+          className="d-block w-100 h-100 object-fit-cover"
+          src={`http://localhost:8000/storage/${imagem}`}
+          alt={`Imagem ${index + 1}`}
+          style={{ borderRadius: '5px' }}
+        />
+        <Button
+          variant="danger"
+          className="position-absolute top-0 end-0 m-1"
+          onClick={() => handleDeleteImage(editedProduct.id, index)}
+        >
+          <span aria-hidden="true">&times;</span>
+        </Button>
+      </div>
+    ))}
+  </div>
+) : (
+  <p>Sem imagens disponíveis</p>
+)}
+
       </>
     )}
   </Modal.Body>
