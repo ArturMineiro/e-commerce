@@ -231,15 +231,16 @@ const AdministrarProdutos: React.FC = () => {
                   src={`http://localhost:8000/storage/${imagem}`}
                   alt={`Imagem ${index + 1}`}
                 />
-                <Button
+            <Card className="border-0 mb-3">  <Button
                   variant="danger"
-                  className="mt-2"
+                  className="mt-4 mb-3"
                   onClick={() => handleDeleteImage(editedProduct.id, index)}
                 >
                   Remover Imagem
-                </Button>
+                </Button></Card>    
               </Carousel.Item>
             ))}
+          
           </Carousel>
         ) : (
           <p>Sem imagens disponíveis</p>
