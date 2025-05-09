@@ -7,6 +7,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\CarrinhoController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -54,6 +55,12 @@ Route::post('/login', [UserController::class, 'login']);
 // Rotas Protegidas
 Route::middleware('auth:api')->get('/usuarios', [UserController::class, 'index']);
 
+Route::middleware('auth:api')->group(function () {
+    Route::post('/adicionar-carrinho', [CarrinhoController::class, 'adicionarCarrinho']);
+    Route::get('/listar-carrinho', [CarrinhoController::class, 'listarCarrinho']);
+    Route::delete('/remover-carrinho/{produto_id}', [CarrinhoController::class, 'removerCarrinho']);
+    Route::delete('/limpar-carrinho', [CarrinhoController::class, 'limparCarrinho']);
+});
 
 Route::get('/api/favoritos/{userId}', [ProdutoController::class, 'favoritos']);
 
