@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Carousel, Alert, Button, Card, Form, Container, Row, Col, Modal } from 'react-bootstrap';
-
+import api from '../config/axiosConfig';
 interface Produto {
   id: number;
   nome: string;
@@ -34,7 +34,7 @@ const AdministrarProdutos: React.FC = () => {
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
-        const response = await axios.get<Produto[]>('http://localhost:8000/api/produtos');
+        const response = await api.get<Produto[]>('/produtos');
         setProdutos(response.data);
       } catch (error) {
         console.error('Erro ao buscar produtos:', error);
@@ -44,7 +44,7 @@ const AdministrarProdutos: React.FC = () => {
 
     const fetchCategorias = async () => {
       try {
-        const response = await axios.get<Categoria[]>('http://localhost:8000/api/categorias');
+        const response = await api.get<Categoria[]>('/categorias');
         setCategorias(response.data);
       } catch (error) {
         console.error('Erro ao buscar categorias:', error);
@@ -58,7 +58,7 @@ const AdministrarProdutos: React.FC = () => {
 
   const handleDeleteImage = async (produtoId: number, index: number) => {
     try {
-      await axios.delete(`http://localhost:8000/api/produtos/${produtoId}/imagem`, {
+      await api.delete(`/produtos/${produtoId}/imagem`, {
         data: { imagem_index: index },
       });
   
@@ -88,7 +88,7 @@ const AdministrarProdutos: React.FC = () => {
   
   const handleDeleteProduct = async (produtoId: number) => {
     try {
-      await axios.delete(`http://localhost:8000/api/produtos/delete/${produtoId}`);
+      await api.delete(`/produtos/delete/${produtoId}`);
       
       // Atualize a lista de produtos após a exclusão
       const updatedProdutos = produtos.filter((produto) => produto.id !== produtoId);
@@ -112,7 +112,7 @@ const AdministrarProdutos: React.FC = () => {
       }
 
       try {
-        await axios.post(`http://localhost:8000/api/produtos/${editedProduct.id}/imagens`, formData, {
+        await api.post(`/produtos/${editedProduct.id}/imagens`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -142,7 +142,7 @@ const AdministrarProdutos: React.FC = () => {
     if (editedProduct) {
       try {
         // Envia a requisição PUT para atualizar o produto
-        await axios.put(`http://localhost:8000/api/produtos/update/${editedProduct.id}`, {
+        await api.put(`/produtos/update/${editedProduct.id}`, {
           nome: editedProduct.nome,
           descricao: editedProduct.descricao,
           preco: editedProduct.preco,

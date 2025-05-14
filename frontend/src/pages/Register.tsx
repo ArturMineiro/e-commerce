@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importando os ícones de olho
 import { Modal } from 'react-bootstrap'; // Importando o Modal do Bootstrap
+import api from '../config/axiosConfig';
+
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -59,7 +61,7 @@ const Register: React.FC = () => {
     }
 
     try {
-      await axios.post('http://localhost:8000/api/register', {
+      await api.post('/register', {
         ...formData,
         role: 'customer',
       });

@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
 import jwtDecode from 'jwt-decode';
 import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importando os ícones
-
+import api from '../config/axiosConfig';
 interface Credentials {
   email: string;
   password: string;
@@ -45,7 +45,7 @@ const Login: React.FC = () => {
 
   const loginUser = async (credentials: Credentials) => {
     try {
-      const response = await axios.post<APIResponse>('http://localhost:8000/api/login', credentials, {
+      const response = await api.post<APIResponse>('/login', credentials, {
         headers: {
           'Content-Type': 'application/json'
         }

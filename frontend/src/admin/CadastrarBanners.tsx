@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Carousel } from 'react-bootstrap';
 import './adminStyles.css';
 import Button from '../hooks/Button';
+import api from '../config/axiosConfig';
 
 function CadastrarBanners() {
     const [bannerName, setBannerName] = useState<string>('');
@@ -23,7 +24,7 @@ function CadastrarBanners() {
     useEffect(() => {
         const fetchBanners = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/banners');
+                const response = await api.get('/banners');
                 setBanners(response.data);
             } catch (error) {
                 showMessage('Erro ao carregar os banners.');
@@ -56,7 +57,7 @@ function CadastrarBanners() {
         });
 
         try {
-            await axios.post('http://localhost:8000/api/cadastrar-banners', formData, {
+            await api.post('/cadastrar-banners', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -76,7 +77,7 @@ function CadastrarBanners() {
     // Função para excluir uma imagem individualmente
     const handleDeleteImage = async (bannerId: number, imageUrl: string) => {
         try {
-            await axios.post(`http://localhost:8000/api/banners/${bannerId}/delete-image`, {
+            await api.post(`/banners/${bannerId}/delete-image`, {
                 imageUrl,
             }, {
                 headers: {
@@ -86,7 +87,7 @@ function CadastrarBanners() {
 
             showMessage('Imagem excluída com sucesso!');
             // Atualiza a lista de banners após excluir a imagem
-            const response = await axios.get('http://localhost:8000/api/banners');
+            const response = await api.get('/banners');
             setBanners(response.data);
         } catch (error) {
             showMessage('Erro ao excluir a imagem. Tente novamente.');
@@ -96,7 +97,7 @@ function CadastrarBanners() {
     // Função para excluir um banner inteiro
     const handleDeleteBanner = async (bannerId: number) => {
         try {
-            await axios.delete(`http://localhost:8000/api/banners/${bannerId}`, {
+            await api.delete(`/banners/${bannerId}`, {
                 headers: {
                     'Content-Type': 'application/json',
                 },

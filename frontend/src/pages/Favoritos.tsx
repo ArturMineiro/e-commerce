@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from "../components/Card";
 import { useAuth } from '../hooks/AuthContext';
-import axios from 'axios';
+import api from '../config/axiosConfig'; // Usando configuração global de axios
 
 // Interface para os dados do produto
 interface Produto {
@@ -9,9 +9,9 @@ interface Produto {
   nome: string;
   descricao: string;
   quantidade: number;
-  categoria:string;
+  categoria: string;
   preco: number;
-  imagens: string[]; 
+  imagens: string[];
 }
 
 // Interface para o favorito
@@ -21,19 +21,17 @@ interface Favorito {
 }
 
 const Favoritos: React.FC = () => {
-  const { user } = useAuth(); // Pega o usuário autenticado
+  const { user } = useAuth();
   const [produtosFavoritos, setProdutosFavoritos] = useState<Favorito[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Função fetchFavoritos deve estar antes do uso
   const fetchFavoritos = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/listar-favoritos-usuario', {
-        params: { user_id: user?.sub } // Enviando sub (ID do usuário)
+      const response = await api.get('/listar-favoritos-usuario', {
+        params: { user_id: user?.sub }
       });
 
-      // Aqui, convertemos a string de imagens em um array
       const favoritosComImagens = response.data.map((favorito: Favorito) => {
         return {
           ...favorito,
@@ -55,11 +53,11 @@ const Favoritos: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      fetchFavoritos(); // Carregar favoritos inicialmente
+      fetchFavoritos();
     }
 
     const handleProdutoRemovido = (event: Event) => {
-      const customEvent = event as CustomEvent<number>; // Informando que é um CustomEvent com detalhe do tipo número
+      const customEvent = event as CustomEvent<number>;
       const produtoIdRemovido = customEvent.detail;
       setProdutosFavoritos(prevFavoritos =>
         prevFavoritos.filter(favorito => favorito.produto.id !== produtoIdRemovido)
@@ -84,7 +82,6 @@ const Favoritos: React.FC = () => {
   if (error) {
     return <p>{error}</p>;
   }
-
   return (
     <div className="container mt-4">
       <h1 className="text-center">Favoritados</h1>
@@ -97,12 +94,11 @@ const Favoritos: React.FC = () => {
           ))}
         </div>
       ) : (
-        <>
-          <p className="text-center">Você ainda não favoritou nenhum produto.</p>
-        </>
+        <p className="text-center">Você ainda não favoritou nenhum produto.</p>
       )}
     </div>
   );
 };
+
 
 export default Favoritos;

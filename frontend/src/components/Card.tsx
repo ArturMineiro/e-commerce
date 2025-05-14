@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../config/axiosConfig'; // Importando a instância do axios
 
 interface CardProps {
   produto: {
@@ -10,7 +10,7 @@ interface CardProps {
     descricao: string;
     preco: number;
     quantidade: number;
-    categoria_id: number; // Agora você recebe apenas o ID da categoria
+    categoria_id: number;
     imagens: string[];
   };
 }
@@ -20,7 +20,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
   const navigate = useNavigate();
   const [isFavorito, setIsFavorito] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [categoria, setCategoria] = useState<string | null>(null); // Estado para armazenar a categoria
+  const [categoria, setCategoria] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -33,20 +33,20 @@ const Card: React.FC<CardProps> = ({ produto }) => {
     // Buscar a categoria do produto com base no `categoria_id`
     const fetchCategoria = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/categorias/buscar/${produto.categoria_id}`);
-        setCategoria(response.data.nome); // Armazena o nome da categoria
+        const response = await api.get(`/categorias/buscar/${produto.categoria_id}`); // Usando a instância do axios configurada
+        setCategoria(response.data.nome); 
       } catch (error) {
         console.error('Erro ao buscar categoria:', error.response ? error.response.data : error.message);
       }
     };
 
-    fetchCategoria(); // Chama a função para buscar a categoria
-  }, [produto.categoria_id, user]); // Reexecuta se o `categoria_id` mudar
+    fetchCategoria();
+  }, [produto.categoria_id, user]);
 
   const verificarFavorito = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/verificar-favorito/${produto.id}`, {
-        params: { user_id: user?.sub }, 
+      const response = await api.get(`/verificar-favorito/${produto.id}`, {
+        params: { user_id: user?.sub },
       });
       setIsFavorito(response.data.isFavorito);
     } catch (error) {
@@ -58,7 +58,7 @@ const Card: React.FC<CardProps> = ({ produto }) => {
 
   const toggleFavorito = async () => {
     if (!user) {
-      navigate('/login'); // Redireciona para login se não autenticado
+      navigate('/login');
       return;
     }
 
@@ -70,17 +70,16 @@ const Card: React.FC<CardProps> = ({ produto }) => {
 
     try {
       if (isFavorito) {
-        await axios.delete(`http://localhost:8000/api/remover-favoritos/${produto.id}`, { data: { user_id: userId } });
+        await api.delete(`/remover-favoritos/${produto.id}`, { data: { user_id: userId } });
         setIsFavorito(false);
       } else {
-        await axios.post('http://localhost:8000/api/favoritos', favoriteData);
+        await api.post('/favoritos', favoriteData);
         setIsFavorito(true);
       }
     } catch (error) {
       console.error('Erro ao alterar favoritos:', error.response ? error.response.data : error.message);
     }
   };
-
   return (
     <div className="card mb-4 md-3 p-3 mb-5 shadow-lg p-3 mb-5 bg-white rounded" style={{ width: '25rem' }}>
       {produto.imagens.length > 0 ? (

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import SuccessMessage from '../hooks/SucessMenssage';
 import ErrorMessage from '../hooks/ErrorMenssage';
 import Button from '../hooks/Button';
+import api from '../config/axiosConfig';
+
 
 const CadastrarProdutos: React.FC = () => {
   const [produto, setProduto] = useState({
@@ -23,7 +25,7 @@ const CadastrarProdutos: React.FC = () => {
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/categorias');
+        const response = await api.get('/categorias');
         setCategorias(response.data); // Supondo que a resposta seja um array de categorias
       } catch (error) {
         console.error('Erro ao buscar categorias:', error);
@@ -63,8 +65,8 @@ const CadastrarProdutos: React.FC = () => {
     });
 
     try {
-      const url = 'http://localhost:8000/api/produtos/store';
-      await axios.post(url, formData, {
+      const url = '/produtos/store';
+      await api.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

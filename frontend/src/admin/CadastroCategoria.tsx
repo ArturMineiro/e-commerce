@@ -1,96 +1,80 @@
-import React, {useState, useEffect} from 'react';
-
+import React, { useState, useEffect } from 'react';
+import api from '../config/axiosConfig';
 
 type Category = {
     id: number;
-    nome:string;
-}
+    nome: string;
+};
 
 function CadastroCategoria() {
-    const [categoryName, setCategoryName] = useState ('');
+    const [categoryName, setCategoryName] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
-    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
-    const [editingCategoryName, setEditingCategoryName] = useState<string>('');
+    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+    const [editingCategoryName, setEditingCategoryName] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
 
     useEffect(() => {
         fetchCategories();
     }, []);
+
     const fetchCategories = async () => {
-        try{
-            const response = await fetch('http://localhost:8000/api/categorias');
-            const data = await response.json();
-            setCategories(data);
-        }catch(error) {
-            console.error('Erro ao buscar categorias:',error);
+        try {
+            const response = await api.get('/categorias');
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Erro ao buscar categorias:', error);
         }
     };
 
-    const handleInputChange = (e) =>{
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCategoryName(e.target.value);
-    }
-    const handleEditInputChange = (e) => {
+    };
+
+    const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEditingCategoryName(e.target.value);
-    }
-    const handleSubmit = async (e) => {
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:8000/api/categorias', {
-                method: 'POST',
-                headers: { 'Content-Type' : 'application/json'},
-                body: JSON.stringify ({nome:categoryName}),
-            });
-
-            if(!response.ok){
-                throw new Error('Erro ao cadastrar a categoria, Verifique os campos e tente novamente.');
-
-            }
+            await api.post('/categorias', { nome: categoryName });
             setCategoryName('');
             setErrorMessage(null);
             fetchCategories();
-        }catch (error) {
-            setErrorMessage('Erro ao cadastrar a categoria.Verifique os campos e tente novamente');
+        } catch (error) {
+            setErrorMessage('Erro ao cadastrar a categoria. Verifique os campos e tente novamente.');
             console.error('Erro:', error);
         }
     };
-    const handleEdit = (category) =>{
+
+    const handleEdit = (category: Category) => {
         setEditingCategoryId(category.id);
-        setEditingCategoryName(category.nome)
+        setEditingCategoryName(category.nome);
     };
+
     const handleUpdate = async () => {
-        try{ 
-        const response = await fetch(`http://localhost:8000/api/categorias/atualizar/${editingCategoryId}`,{
-        method: 'PUT',
-        headers:{'Content-Type': 'application/json'},
-        body: JSON.stringify({nome: editingCategoryName}),
-
-    });
-
-    if(!response.ok) {
-        throw new Error('Erro ao atualizar a categoria.');
-    }
-
-    setEditingCategoryId(null);
-    setEditingCategoryName('');
-    setErrorMessage(null);
-    fetchCategories();
-} catch (error) {
-    setErrorMessage('Erro ao atualizar a categoria')
-    console.error('Erro:', error);
-}
-};
-
-    const handleDelete = async (id) =>{
-        try{
-            await fetch(`http://localhost:8000/api/categorias/excluir/${id}`,{
-                method: 'DELETE',
+        try {
+            await api.put(`/categorias/atualizar/${editingCategoryId}`, {
+                nome: editingCategoryName,
             });
+            setEditingCategoryId(null);
+            setEditingCategoryName('');
+            setErrorMessage(null);
             fetchCategories();
-        }catch(error){
+        } catch (error) {
+            setErrorMessage('Erro ao atualizar a categoria.');
+            console.error('Erro:', error);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            await api.delete(`/categorias/excluir/${id}`);
+            fetchCategories();
+        } catch (error) {
             console.error('Erro ao excluir categoria:', error);
-        } 
-   };
+        }
+    };
    return(
     <div className="container mt-5 shadow p-3 mb-5 bg-body rounded">
         <h1 className="mb-4">Cadastro de categoria</h1>

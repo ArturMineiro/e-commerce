@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import api from '../config/axiosConfig';
 // Tipagem dos banners
 interface Banner {
     id: number;
@@ -14,7 +14,7 @@ function Carroussel() {
     useEffect(() => {
         const fetchBanners = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/banners');
+                const response = await api.get('/banners');
                 setBanners(response.data);
             } catch (error) {
                 setMessage('Erro ao carregar os banners.');

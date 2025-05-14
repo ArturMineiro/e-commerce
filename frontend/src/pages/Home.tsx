@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from "../components/Card";
 import Carroussel from "../components/Carroussel";
 import axios from 'axios';
+import api from '../config/axiosConfig';
 
 interface Produto {
   id: number;
@@ -19,7 +20,7 @@ function Home() {
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
-        const response = await axios.get<Produto[]>('http://localhost:8000/api/produtos');
+        const response = await api.get<Produto[]>('/produtos');
         setProdutos(response.data);
       } catch (error) {
         setErrorMessage('Erro ao buscar produtos.');
