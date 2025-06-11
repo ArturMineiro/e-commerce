@@ -8,6 +8,10 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CarrinhoController;
+use App\Http\Controllers\CorController;
+use App\Http\Controllers\ModeloController;
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -60,8 +64,27 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/listar-carrinho', [CarrinhoController::class, 'listarCarrinho']);
     Route::delete('/remover-carrinho/{produto_id}', [CarrinhoController::class, 'removerCarrinho']);
     Route::delete('/limpar-carrinho', [CarrinhoController::class, 'limparCarrinho']);
+    Route::put('/atualizar-quantidade', [CarrinhoController::class, 'atualizarQuantidade']);
+
 });
 
+// Rotas para Modelo
+Route::prefix('modelos')->group(function () {
+    Route::get('/', [ModeloController::class, 'index']);           // Listar todos os modelos
+    Route::post('/criar-modelo', [ModeloController::class, 'criarModelo']);    // Criar modelo
+    Route::get('/mostrar-modelo/{id}', [ModeloController::class, 'mostrarModelo']); // Mostrar um modelo
+    Route::put('/atualizar-modelo/{id}', [ModeloController::class, 'atualizarModelo']);
+    Route::delete('/deletar-modelo/{id}', [ModeloController::class, 'deletarModelo']); // Deletar modelo
+});
+
+// Rotas para Cor
+Route::prefix('cores')->group(function () {
+    Route::get('/', [CorController::class, 'index']);              // Listar todas as cores
+    Route::post('/cadastrar-cor', [CorController::class, 'cadastrarCor']);      // Criar cor
+    Route::get('/mostrar-cor/{id}', [CorController::class, 'mostrarCor']);     // Mostrar cor específica
+    Route::put('/atualizar-cor/{id}', [CorController::class, 'atualizarCor']);   // Atualizar cor
+    Route::delete('/apagar-cor/{id}', [CorController::class, 'apagarCor']);   // Deletar cor
+});
 Route::get('/api/favoritos/{userId}', [ProdutoController::class, 'favoritos']);
 
 // Route::get('/test', function () {

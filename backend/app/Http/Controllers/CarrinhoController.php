@@ -64,5 +64,29 @@ class CarrinhoController extends Controller
         return response()->json(['message' => 'Carrinho esvaziado']);
     }
 
+    public function atualizarQuantidade(Request $request)
+{
+    $request->validate([
+        'produto_id' => 'required|exists:produtos,id',
+        'quantidade' => 'required|integer|min:1',
+    ]);
+
+    $userId = auth()->id();
+
+    $carrinho = Carrinho::where('user_id', $userId)
+        ->where('produto_id', $request->produto_id)
+        ->first();
+
+    if (!$carrinho) {
+        return response()->json(['message' => 'Produto não encontrado no carrinho.'], 404);
+    }
+
+    $carrinho->quantidade = $request->quantidade;
+    $carrinho->save();
+
+    return response()->json(['message' => 'Quantidade atualizada com sucesso.', 'carrinho' => $carrinho]);
+}
+
+
 }
 
