@@ -36,7 +36,12 @@ class ModeloController extends Controller
         $modelo = Modelo::with(['produto', 'cor'])->findOrFail($id);
         return response()->json($modelo);
     }
-
+    public function listarModelosPorProduto($produtoId)
+    {
+        $modelos = Modelo::where('produto_id', $produtoId)->get();
+        return response()->json($modelos);
+    }
+    
     // Atualizar modelo
     public function atualizarModelo(Request $request, $id)
     {

@@ -71,6 +71,8 @@ Route::middleware('auth:api')->group(function () {
 // Rotas para Modelo
 Route::prefix('modelos')->group(function () {
     Route::get('/', [ModeloController::class, 'index']);           // Listar todos os modelos
+    Route::get('/produtos/{produtoId}/modelos', [ModeloController::class, 'listarModelosPorProduto']);
+
     Route::post('/criar-modelo', [ModeloController::class, 'criarModelo']);    // Criar modelo
     Route::get('/mostrar-modelo/{id}', [ModeloController::class, 'mostrarModelo']); // Mostrar um modelo
     Route::put('/atualizar-modelo/{id}', [ModeloController::class, 'atualizarModelo']);
