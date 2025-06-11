@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Card from "../components/Card";
+import Card from "../components/Card"; // seu Card já tem add to cart
 import { useAuth } from '../hooks/AuthContext';
-import api from '../config/axiosConfig'; // Usando configuração global de axios
+import api from '../config/axiosConfig';
 
-// Interface para os dados do produto
 interface Produto {
   id: number;
   nome: string;
@@ -14,7 +13,6 @@ interface Produto {
   imagens: string[];
 }
 
-// Interface para o favorito
 interface Favorito {
   id: number;
   produto: Produto;
@@ -37,7 +35,7 @@ const Favoritos: React.FC = () => {
           ...favorito,
           produto: {
             ...favorito.produto,
-            imagens: JSON.parse(favorito.produto.imagens)
+            imagens: typeof favorito.produto.imagens === 'string' ? JSON.parse(favorito.produto.imagens) : favorito.produto.imagens
           }
         };
       });
@@ -55,20 +53,6 @@ const Favoritos: React.FC = () => {
     if (user) {
       fetchFavoritos();
     }
-
-    const handleProdutoRemovido = (event: Event) => {
-      const customEvent = event as CustomEvent<number>;
-      const produtoIdRemovido = customEvent.detail;
-      setProdutosFavoritos(prevFavoritos =>
-        prevFavoritos.filter(favorito => favorito.produto.id !== produtoIdRemovido)
-      );
-    };
-
-    window.addEventListener('produtoRemovido', handleProdutoRemovido as EventListener);
-
-    return () => {
-      window.removeEventListener('produtoRemovido', handleProdutoRemovido as EventListener);
-    };
   }, [user]);
 
   if (!user) {
@@ -82,6 +66,7 @@ const Favoritos: React.FC = () => {
   if (error) {
     return <p>{error}</p>;
   }
+
   return (
     <div className="container mt-4">
       <h1 className="text-center">Favoritados</h1>
@@ -99,6 +84,5 @@ const Favoritos: React.FC = () => {
     </div>
   );
 };
-
 
 export default Favoritos;

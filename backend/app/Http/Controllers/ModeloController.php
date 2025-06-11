@@ -43,6 +43,7 @@ class ModeloController extends Controller
         $modelo = Modelo::findOrFail($id);
 
         $validatedData = $request->validate([
+            
             'produto_id' => 'required|exists:produtos,id',
             'cor_id' => 'nullable|exists:cores,id',
             'tamanho' => 'nullable|string|max:50',
