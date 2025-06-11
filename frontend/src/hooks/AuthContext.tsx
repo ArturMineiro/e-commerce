@@ -2,14 +2,14 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 
 interface DecodedToken {
-  id: number; 
+  id: number;
   sub: number;
   name: string;
   email: string;
   role: string;
   iat: number;
   exp: number;
-  token?: string; // Adicione a propriedade token como opcional
+  token?: string;
 }
 
 interface AuthContextProps {
@@ -24,6 +24,30 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loggedIn, setLoggedIn] = useState<boolean>(isLoggedIn());
   const [user, setUser] = useState<DecodedToken | null>(getUser());
+
+  // ✅ Verifica se o token expirou periodicamente
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const decoded = decodeToken(token);
+      if (decoded) {
+        const currentTime = Math.floor(Date.now() / 1000); // em segundos
+        if (decoded.exp < currentTime) {
+          logout(); // Token expirou
+        }
+      }
+    };
+
+    checkTokenExpiration(); // Verifica ao montar
+
+    const interval = setInterval(() => {
+      checkTokenExpiration();
+    }, 60 * 1000); // Verifica a cada 60 segundos
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -71,15 +95,20 @@ const isLoggedIn = (): boolean => {
   if (!token) return false;
 
   const decoded: DecodedToken | null = decodeToken(token);
-  return !!decoded;  // Se o token for decodificado corretamente, o usuário está logado
-};
+  if (!decoded) return false;
 
+  const currentTime = Math.floor(Date.now() / 1000);
+  return decoded.exp > currentTime;
+};
 
 const getUser = (): DecodedToken | null => {
   const token = localStorage.getItem('token');
   if (!token) return null;
 
-  return decodeToken(token);
+  const decoded = decodeToken(token);
+  const currentTime = Math.floor(Date.now() / 1000);
+
+  return decoded && decoded.exp > currentTime ? decoded : null;
 };
 
 const decodeToken = (token: string): DecodedToken | null => {

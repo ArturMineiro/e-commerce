@@ -17,6 +17,8 @@ import HistoricoCompras from './admin/HistoricoCompras';
 import AdministrarProdutos from './admin/AdministrarProdutos';
 import CadastroCategoria from './admin/CadastroCategoria';
 import Favoritos from './pages/Favoritos';
+import CadastrarModelos from './admin/CadastrarModelo';
+import CadastrarCor from './admin/CadastrarCor';
 
 const App: React.FC = () => {
   return (
@@ -33,6 +35,8 @@ const App: React.FC = () => {
             <Route path="/admin/historico-compras" element={<ProtectedRoute element={<HistoricoCompras />} requiredRole="admin" />} />
             <Route path="/admin/administrar-produtos" element={<ProtectedRoute element={<AdministrarProdutos />} requiredRole="admin" />} />
             <Route path="/admin/cadastrar-categoria" element={<ProtectedRoute element={<CadastroCategoria />} requiredRole="admin" />} />
+            <Route path="/admin/cadastrar-modelos" element={<ProtectedRoute element={<CadastrarModelos />} requiredRole="admin" />} />
+            <Route path="/admin/cadastrar-cores" element={<ProtectedRoute element={<CadastrarCor />} requiredRole="admin" />} />
             {/* Rotas de Cliente */}
             <Route path="/home" element={<Home />} />
             <Route path="/" element={<Home />} />

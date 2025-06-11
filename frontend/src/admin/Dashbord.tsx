@@ -60,6 +60,8 @@ function Dashboard() {
                             <div className="list-group">
                                
                                 <Link to="/admin/cadastrar-produtos" className="list-group-item list-group-item-action">Cadastrar Produtos</Link>
+                                {/* <Link to="/admin/cadastrar-modelos" className="list-group-item list-group-item-action">Cadastrar Modelo</Link> */}
+                                <Link to="/admin/cadastrar-cores" className="list-group-item list-group-item-action">Cadastrar cor</Link>
                                 <Link to="/admin/cadastrar-banners" className="list-group-item list-group-item-action">Cadastrar Banners</Link>
                                 <Link to="/admin/controle-usuarios" className="list-group-item list-group-item-action">Controle de Usuários</Link>
                                 <Link to="/admin/historico-compras" className="list-group-item list-group-item-action">Histórico de Compras</Link>
