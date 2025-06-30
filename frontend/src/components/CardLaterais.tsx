@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import api from '../config/axiosConfig';
+import ConfirmDialog from '../hooks/ConfirmDialog';
+
 
 interface CardLateraisProps {
   produto: {
@@ -16,9 +18,14 @@ interface CardLateraisProps {
 }
 
 function CardLaterais({ produto, quantidade, onRemover }: CardLateraisProps) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const [qtd, setQtd] = useState<number>(quantidade);
   const [atualizando, setAtualizando] = useState(false);
-
+  const handleRemover = () => {
+    onRemover(produto.id);
+    setShowConfirm(false);
+  };
   const imagens = typeof produto.imagens === 'string'
     ? JSON.parse(produto.imagens)
     : Array.isArray(produto.imagens)
@@ -116,9 +123,18 @@ function CardLaterais({ produto, quantidade, onRemover }: CardLateraisProps) {
         {/* Cálculo do total */}
         <p><strong>Total:</strong> R$ {(Number(produto.preco) * qtd).toFixed(2)}</p>
 
-        <button className="btn btn-danger" onClick={() => onRemover(produto.id)}>
-          Remover do Carrinho
-        </button>
+ 
+        <button className="btn btn-danger" onClick={() => setShowConfirm(true)}>
+        Remover do Carrinho
+      </button>
+
+      <ConfirmDialog
+        show={showConfirm}
+        title="Remover Produto"
+        message={`Tem certeza que deseja remover "${produto.nome}" do carrinho?`}
+        onConfirm={handleRemover}
+        onCancel={() => setShowConfirm(false)}
+      />
       </div>
     </div>
   );
