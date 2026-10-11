@@ -211,6 +211,21 @@ class LojaTest extends TestCase
         $this->actingAs($b, 'api')->getJson('/api/favoritos/ids')->assertExactJson([]);
     }
 
+    public function test_seed_cria_admin_e_cliente_sem_duplicar()
+    {
+        $this->seed();
+        $this->seed(); // rodar de novo não duplica
+
+        $this->assertSame(2, User::count());
+        $this->assertSame('admin', User::where('email', 'admin@loja.com')->value('role'));
+        $this->assertSame('customer', User::where('email', 'cliente@loja.com')->value('role'));
+
+        $this->postJson('/api/login', ['email' => 'admin@loja.com', 'password' => 'Senha1234'])
+            ->assertOk()->assertJsonPath('user.role', 'admin');
+        $this->postJson('/api/login', ['email' => 'cliente@loja.com', 'password' => 'Senha1234'])
+            ->assertOk()->assertJsonPath('user.role', 'customer');
+    }
+
     public function test_access_token_nunca_e_exposto()
     {
         $admin = $this->usuario('admin');

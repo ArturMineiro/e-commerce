@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Alert, Badge, Breadcrumb, Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { FaHeart, FaRegHeart, FaWhatsapp } from "react-icons/fa6";
+import { FaHeart, FaRegHeart, FaShieldHalved, FaTruckFast, FaWhatsapp } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import {
   useAdicionarCarrinho,
@@ -12,7 +12,7 @@ import {
 } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import { Carregando, Preco } from "../components/Ui";
-import { imagemUrl, mensagemErro } from "../lib/api";
+import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { linkWhatsapp } from "../lib/utils";
 import type { Produto } from "../types";
 
@@ -117,7 +117,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
         <Breadcrumb.Item active>{produto.nome}</Breadcrumb.Item>
       </Breadcrumb>
 
-      <Row className="g-4 bg-white rounded shadow-sm p-3 p-md-4">
+      <Row className="g-4 painel-produto p-3 p-md-4 mx-0">
         <Col md={6}>
           <img src={imagemUrl(imagens[fotoAtual])} alt={produto.nome} className="galeria-principal mb-2" />
           {imagens.length > 1 && (
@@ -158,9 +158,15 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
             </Badge>
           )}
 
-          <p className="fs-3 mb-3">
+          <p className="preco-destaque mb-1">
             <Preco base={precoBase} final={precoFinal} promocao={produto.em_promocao} />
           </p>
+          {produto.em_promocao && precoBase !== null && precoFinal !== null && (
+            <p className="text-success small fw-semibold mb-3">
+              Você economiza {formatarPreco(precoBase - precoFinal)}
+            </p>
+          )}
+          {!produto.em_promocao && <div className="mb-3" />}
 
           {cores.length > 0 && (
             <fieldset className="mb-3">
@@ -234,7 +240,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                 )}
               </Form.Group>
 
-              <div className="d-grid d-sm-flex gap-2 mb-4">
+              <div className="d-grid d-sm-flex gap-2 mb-3">
                 <Button className="btn-loja px-4" size="lg" onClick={() => adicionarAoCarrinho(true)} disabled={adicionar.isPending}>
                   Comprar
                 </Button>
@@ -242,6 +248,20 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                   Adicionar ao carrinho
                 </Button>
               </div>
+              <ul className="list-unstyled seguranca-compra mb-4">
+                <li>
+                  <FaShieldHalved className="me-2" aria-hidden />
+                  {config?.pagamento_online ? "Pagamento seguro via Mercado Pago (Pix, cartão ou boleto)" : "Compra segura"}
+                </li>
+                <li>
+                  <FaTruckFast className="me-2" aria-hidden />
+                  {config && config.frete_gratis_acima > 0
+                    ? `Frete grátis acima de ${formatarPreco(config.frete_gratis_acima)}`
+                    : config && config.frete_fixo > 0
+                    ? `Frete fixo de ${formatarPreco(config.frete_fixo)}`
+                    : "Frete grátis"}
+                </li>
+              </ul>
             </>
           )}
 

@@ -3,6 +3,7 @@ import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { Container } from "react-bootstrap";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import WhatsappFlutuante from "./components/WhatsappFlutuante";
 import TemaLoja from "./components/TemaLoja";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Carregando } from "./components/Ui";
@@ -88,6 +89,7 @@ function App() {
         </Suspense>
       </main>
       <Footer />
+      <WhatsappFlutuante />
     </>
   );
 }

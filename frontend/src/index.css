@@ -243,3 +243,407 @@ main {
     border-bottom: 1px solid #e5e7eb;
   }
 }
+
+
+/* =====================================================================
+   Design da vitrine (cliente)
+   ===================================================================== */
+:root {
+  --raio: 14px;
+  --sombra-suave: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --sombra-media: 0 10px 30px rgba(16, 24, 40, 0.12);
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #1f2937;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .h1, .h2, .h3, .h4, .h5 {
+  letter-spacing: -0.01em;
+}
+
+.btn {
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.form-control,
+.form-select {
+  border-radius: 10px;
+}
+
+.card {
+  border-radius: var(--raio);
+}
+
+/* Barra de aviso acima do menu */
+.barra-aviso {
+  background: var(--cor-secundaria);
+  color: var(--cor-secundaria-texto);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 0.4rem 1rem;
+}
+
+/* Menu */
+.navbar-loja .busca-topo .form-control {
+  border-radius: 999px 0 0 999px;
+  border: none;
+  padding-left: 1.1rem;
+}
+
+.navbar-loja .busca-topo .btn {
+  border-radius: 0 999px 999px 0;
+  padding-inline: 1rem;
+}
+
+.navbar-loja .nav-link {
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.navbar-loja .nav-link:hover,
+.navbar-loja .nav-link.active {
+  opacity: 1;
+}
+
+.navbar-loja .icone-nav {
+  font-size: 1.25rem;
+}
+
+.nome-loja-texto {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Hero quando não há banners */
+.hero-loja {
+  background:
+    radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.18), transparent 45%),
+    linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+  color: var(--cor-primaria-texto);
+  border-radius: calc(var(--raio) + 6px);
+  padding: clamp(2.5rem, 7vw, 5rem) clamp(1.5rem, 5vw, 4rem);
+}
+
+.hero-loja h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+}
+
+.hero-loja .lead {
+  opacity: 0.9;
+  max-width: 560px;
+}
+
+/* Carrossel de banners */
+.carousel-loja {
+  border-radius: calc(var(--raio) + 6px);
+  overflow: hidden;
+  box-shadow: var(--sombra-suave);
+}
+
+/* Faixa de benefícios */
+.beneficios {
+  background: #fff;
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-suave);
+}
+
+.beneficio {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+}
+
+.beneficio .icone {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  color: var(--cor-secundaria);
+  background: color-mix(in srgb, var(--cor-secundaria) 12%, white);
+}
+
+.beneficio strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.beneficio span {
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+/* Títulos de seção */
+.titulo-secao {
+  font-weight: 800;
+  position: relative;
+  padding-bottom: 0.4rem;
+}
+
+.titulo-secao::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 42px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--cor-secundaria);
+}
+
+.link-ver-todos {
+  color: var(--cor-secundaria);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.link-ver-todos:hover {
+  text-decoration: underline;
+}
+
+/* Categorias em blocos */
+.categoria-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: #fff;
+  border-radius: var(--raio);
+  padding: 1rem 1.15rem;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--sombra-suave);
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  height: 100%;
+}
+
+.categoria-tile:hover {
+  border-color: var(--cor-secundaria);
+  transform: translateY(-2px);
+  color: var(--cor-secundaria);
+}
+
+.categoria-tile small {
+  display: block;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+/* Card de produto */
+.produto-card {
+  border-radius: var(--raio);
+  overflow: hidden;
+  box-shadow: var(--sombra-suave) !important;
+}
+
+.produto-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-media) !important;
+}
+
+.produto-card .area-imagem {
+  position: relative;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.produto-card .imagem {
+  transition: transform 0.35s ease, opacity 0.25s ease;
+}
+
+.produto-card:hover .imagem {
+  transform: scale(1.04);
+}
+
+.produto-card .imagem-hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.produto-card:hover .imagem-hover {
+  opacity: 1;
+}
+
+.produto-card .esgotado-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.55);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #374151;
+}
+
+.produto-card .acao-rapida {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.produto-card:hover .acao-rapida,
+.produto-card:focus-within .acao-rapida {
+  opacity: 1;
+  transform: none;
+}
+
+.produto-card .categoria-card {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+}
+
+.produto-card .nome-card {
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+.produto-card .bolinhas {
+  display: flex;
+  gap: 4px;
+}
+
+.produto-card .bolinhas .bolinha-cor {
+  width: 12px;
+  height: 12px;
+}
+
+@media (hover: none) {
+  .produto-card .acao-rapida {
+    display: none;
+  }
+}
+
+/* Esqueleto de carregamento */
+.esqueleto {
+  background: linear-gradient(90deg, #eceef1 25%, #f5f6f8 37%, #eceef1 63%);
+  background-size: 400% 100%;
+  animation: esqueleto 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+@keyframes esqueleto {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto { animation: none; }
+  .produto-card, .produto-card .imagem, .categoria-tile { transition: none; }
+}
+
+/* Chamada final da home */
+.cta-loja {
+  background: #fff;
+  border-radius: calc(var(--raio) + 6px);
+  box-shadow: var(--sombra-suave);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+/* Botão flutuante do WhatsApp */
+.whatsapp-flutuante {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1030;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1.75rem;
+  box-shadow: var(--sombra-media);
+  transition: transform 0.15s ease;
+}
+
+.whatsapp-flutuante:hover {
+  color: #fff;
+  transform: scale(1.07);
+}
+
+/* Rodapé */
+.rodape-loja a {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.rodape-loja a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.rodape-loja h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  margin-bottom: 1rem;
+}
+
+.rodape-loja li {
+  margin-bottom: 0.4rem;
+}
+
+.selo-pagamento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+/* Página de produto */
+.painel-produto {
+  background: #fff;
+  border-radius: calc(var(--raio) + 6px);
+  box-shadow: var(--sombra-suave);
+}
+
+.preco-destaque {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.galeria-principal {
+  border-radius: var(--raio);
+  background: #f3f4f6;
+}
+
+.opcao-variacao {
+  min-width: 48px;
+  border-radius: 10px !important;
+}
+
+.seguranca-compra {
+  font-size: 0.85rem;
+  color: #6b7280;
+}

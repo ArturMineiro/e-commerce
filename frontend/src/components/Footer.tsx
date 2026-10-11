@@ -1,6 +1,6 @@
 import { Col, Container, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { FaFacebook, FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa6";
+import { FaBarcode, FaCreditCard, FaFacebook, FaInstagram, FaPix, FaTiktok, FaWhatsapp } from "react-icons/fa6";
 import { useCategorias, useConfigLoja } from "../hooks/useLoja";
 import { formatarPreco } from "../lib/api";
 import { linkRede, linkWhatsapp } from "../lib/utils";
@@ -18,19 +18,26 @@ function Footer() {
   ].filter((r) => r.valor);
 
   return (
-    <footer className="bg-loja pt-5 pb-3 mt-5">
+    <footer className="bg-loja rodape-loja pt-5 pb-3 mt-5">
       <Container>
         <Row className="gy-4">
           <Col md={4}>
-            <h2 className="h5">{config.nome_loja}</h2>
+            <p className="nome-loja-texto mb-2">{config.nome_loja}</p>
             {config.descricao && <p className="mb-2 opacity-75">{config.descricao}</p>}
             {config.frete_gratis_acima > 0 && (
-              <p className="small mb-0">Frete grátis acima de {formatarPreco(config.frete_gratis_acima)}</p>
+              <p className="small mb-3">Frete grátis acima de {formatarPreco(config.frete_gratis_acima)}</p>
+            )}
+            {config.pagamento_online && (
+              <div className="d-flex flex-wrap gap-2" aria-label="Formas de pagamento">
+                <span className="selo-pagamento"><FaPix aria-hidden /> Pix</span>
+                <span className="selo-pagamento"><FaCreditCard aria-hidden /> Cartão</span>
+                <span className="selo-pagamento"><FaBarcode aria-hidden /> Boleto</span>
+              </div>
             )}
           </Col>
 
           <Col md={4}>
-            <h2 className="h5">Navegue</h2>
+            <h2>Navegue</h2>
             <ul className="list-unstyled mb-0">
               <li>
                 <Link to="/produtos">Todos os produtos</Link>
@@ -47,7 +54,7 @@ function Footer() {
           </Col>
 
           <Col md={4}>
-            <h2 className="h5">Atendimento</h2>
+            <h2>Atendimento</h2>
             <ul className="list-unstyled mb-3">
               {config.email && (
                 <li>

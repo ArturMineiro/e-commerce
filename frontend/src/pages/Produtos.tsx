@@ -1,7 +1,7 @@
 import { Alert, Col, Container, Form, Row } from "react-bootstrap";
 import { useSearchParams } from "react-router-dom";
 import ProdutoCard from "../components/ProdutoCard";
-import { Carregando } from "../components/Ui";
+import { GradeEsqueleto } from "../components/Ui";
 import { useCategorias, useProdutos } from "../hooks/useLoja";
 
 /** Catálogo com filtros na URL (?busca=, ?categoria_id=, ?promocao=1, ?destaque=1, ?ordenar=). */
@@ -33,11 +33,11 @@ function Produtos() {
 
   return (
     <Container className="py-4">
-      <h1 className="h3 mb-4">{titulo}</h1>
+      <h1 className="h3 fw-bold titulo-secao mb-4">{titulo}</h1>
 
       <Row className="g-4">
         <Col lg={3}>
-          <div className="bg-white rounded shadow-sm p-3">
+          <div className="bg-white rounded-4 shadow-sm p-3 position-sticky" style={{ top: 120 }}>
             <Form.Group className="mb-3" controlId="filtro-categoria">
               <Form.Label className="fw-semibold">Categoria</Form.Label>
               <Form.Select value={filtros.categoria_id} onChange={(e) => alterar("categoria_id", e.target.value)}>
@@ -85,7 +85,7 @@ function Produtos() {
 
         <Col lg={9}>
           {isLoading ? (
-            <Carregando />
+            <GradeEsqueleto quantidade={6} />
           ) : isError ? (
             <Alert variant="danger">Não foi possível carregar os produtos.</Alert>
           ) : produtos.length === 0 ? (
