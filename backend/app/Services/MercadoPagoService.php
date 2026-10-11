@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Configuracao;
 use App\Models\Pedido;
+use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -25,17 +26,43 @@ class MercadoPagoService
 {
     public function accessToken(): ?string
     {
-        return Configuracao::obter('mp_access_token') ?: config('services.mercadopago.access_token');
+        return Configuracao::obter('mp_access_token') ?: $this->doEnv('access_token');
     }
 
     public function webhookSecret(): ?string
     {
-        return Configuracao::obter('mp_webhook_secret') ?: config('services.mercadopago.webhook_secret');
+        return Configuracao::obter('mp_webhook_secret') ?: $this->doEnv('webhook_secret');
+    }
+
+    /**
+     * O token do .env só vale em instalação de loja única. Com várias lojas, cada dono
+     * precisa informar o próprio token no painel; senão o dinheiro de todas as lojas
+     * cairia na mesma conta.
+     */
+    private function doEnv(string $chave): ?string
+    {
+        return \App\Models\Loja::count() <= 1 ? config("services.mercadopago.{$chave}") : null;
     }
 
     public function configurado(): bool
     {
         return !empty($this->accessToken());
+    }
+
+    /** URL do webhook desta loja (o slug na URL diz ao backend de qual loja é a notificação). */
+    public function webhookUrl(): string
+    {
+        $loja = app(LojaAtual::class)->get();
+
+        return url('/api/pagamentos/webhook' . ($loja ? '/' . $loja->slug : ''));
+    }
+
+    /** Endereço do front da loja atual (domínio próprio, subdomínio ou ?loja=slug). */
+    private function urlFrontend(string $caminho): string
+    {
+        $loja = app(LojaAtual::class)->get();
+
+        return $loja ? $loja->urlFrontend($caminho) : rtrim(config('services.frontend_url'), '/') . $caminho;
     }
 
     private function cliente()
@@ -92,7 +119,7 @@ class MercadoPagoService
             ];
         }
 
-        $retorno = rtrim(config('services.frontend_url'), '/') . '/pagamento/retorno?pedido=' . $pedido->id;
+        $retorno = $this->urlFrontend('/pagamento/retorno?pedido=' . $pedido->id);
 
         $payer = [
             'name' => $pedido->nome,
@@ -120,7 +147,7 @@ class MercadoPagoService
             $corpo['auto_return'] = 'approved';
         }
 
-        $webhook = url('/api/pagamentos/webhook');
+        $webhook = $this->webhookUrl();
         if (Str::startsWith($webhook, 'https://')) {
             $corpo['notification_url'] = $webhook;
         }

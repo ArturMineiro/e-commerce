@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Configuracao;
 use App\Services\FreteService;
 use App\Services\MercadoPagoService;
+use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -33,7 +34,7 @@ class ConfiguracaoController extends Controller
             'mp_webhook_secret_definido' => (bool) Configuracao::obter('mp_webhook_secret'),
             'melhor_envio_token_definido' => (bool) Configuracao::obter('melhor_envio_token'),
             'melhor_envio_ativo' => $this->frete->modo() === 'melhor_envio',
-            'webhook_url' => url('/api/pagamentos/webhook'),
+            'webhook_url' => $this->mercadoPago->webhookUrl(),
         ]);
     }
 
@@ -102,7 +103,7 @@ class ConfiguracaoController extends Controller
             if ($logoAtual) {
                 Storage::disk('public')->delete($logoAtual);
             }
-            Configuracao::definir('logo', $request->hasFile('logo') ? $request->file('logo')->store('loja', 'public') : null);
+            Configuracao::definir('logo', $request->hasFile('logo') ? $request->file('logo')->store(LojaAtual::pasta('logo'), 'public') : null);
         }
 
         return $this->admin();

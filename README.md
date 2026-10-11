@@ -69,14 +69,15 @@ Acesse http://localhost:5173 e entre com um dos usuários abaixo.
 O `php artisan db:seed` pode ser rodado quantas vezes quiser. Se o e-mail já existir, ele **não
 duplica**: atualiza o nome e o papel e redefine a senha para a do `.env`.
 
-| Tipo                 | E-mail             | Senha       | Acesso                                     |
-| -------------------- | ------------------ | ----------- | ------------------------------------------ |
-| Master (dono/admin)  | `admin@loja.com`   | `Senha1234` | Painel `/admin` e loja                     |
-| Cliente comum        | `cliente@loja.com` | `Senha1234` | Loja, carrinho, pedidos, favoritos         |
+| Tipo                 | E-mail                | Senha       | Acesso                                     |
+| -------------------- | --------------------- | ----------- | ------------------------------------------ |
+| Plataforma (superadmin) | `plataforma@loja.com` | `Senha1234` | Painel `/plataforma`: cria e gerencia as lojas |
+| Dono da loja (admin) | `admin@loja.com`      | `Senha1234` | Painel `/admin` e loja (loja padrão `loja`) |
+| Cliente comum        | `cliente@loja.com`    | `Senha1234` | Loja, carrinho, pedidos, favoritos         |
 
-Para trocar os dados, use as variáveis `SEED_ADMIN_*` e `SEED_CLIENTE_*` no `.env`. Em
+Para trocar os dados, use as variáveis `SEED_ADMIN_*`, `SEED_CLIENTE_*` e `SEED_PLATAFORMA_*` no `.env`. Em
 `APP_ENV=production` o seed se recusa a rodar com a senha padrão: defina
-`SEED_ADMIN_PASSWORD` e `SEED_CLIENTE_PASSWORD` antes.
+`SEED_ADMIN_PASSWORD`, `SEED_CLIENTE_PASSWORD` e `SEED_PLATAFORMA_PASSWORD` antes.
 
 Comandos úteis:
 
@@ -87,9 +88,43 @@ php artisan migrate:fresh --seed             # APAGA o banco inteiro, recria e p
 
 Outras regras de acesso:
 
-- Pelo cadastro do site, o **primeiro usuário** de uma instalação vazia vira admin; os demais
+- Pelo cadastro do site, o **primeiro usuário** de uma loja vazia vira admin; os demais
   são sempre clientes (não dá para se cadastrar como admin pela API).
 - O admin promove ou rebaixa outros usuários em Painel → Clientes.
+
+## Várias lojas (multi-loja)
+
+Uma instalação pode hospedar várias lojas. Cada uma tem os próprios produtos, categorias, cores,
+banners, cupons, pedidos, clientes, configurações (nome, logo, cores, frete) e conta do Mercado Pago.
+Com uma loja só, nada muda: tudo funciona sem configurar nada.
+
+**Criar uma loja**: entre em `/plataforma` com o usuário superadmin, clique em "Nova loja" e informe
+nome, identificador (slug) e o dono (nome, e-mail e senha inicial). O dono entra no `/admin` da
+loja dele e personaliza tudo. Desativar uma loja tira a vitrine e o painel do ar, sem apagar dados.
+
+**Como o sistema sabe qual loja mostrar** (nesta ordem):
+
+| Forma                 | Exemplo                                    | Configuração                                                  |
+| --------------------- | ------------------------------------------ | ------------------------------------------------------------- |
+| Parâmetro na URL      | `http://localhost:5173/?loja=ana`          | Nenhuma. Fica salvo no navegador; `?loja=` vazio volta ao padrão. Ideal em desenvolvimento. |
+| Domínio próprio       | `https://www.lojadaana.com.br`             | Informe o domínio na loja (painel da plataforma) e aponte o DNS para o front. |
+| Subdomínio            | `https://ana.minhaplataforma.com`          | `PLATAFORMA_DOMINIO=minhaplataforma.com` no backend e DNS curinga `*.minhaplataforma.com`. |
+| Loja fixa no front    | `VITE_LOJA=ana` no `frontend/.env`         | Um build do front por loja.                                   |
+| Padrão                | —                                          | `LOJA_PADRAO=slug` no backend, ou a única loja cadastrada.     |
+
+Regras importantes:
+
+- **Contas são por loja**: o mesmo e-mail pode ter conta (e senha) diferente em cada loja, e o
+  login de uma loja não vale em outra.
+- **Mercado Pago**: cada dono cola o próprio Access Token no painel. O `MERCADOPAGO_ACCESS_TOKEN`
+  do `.env` só é usado quando existe uma loja só (senão o dinheiro de todas cairia na mesma conta).
+- **Webhook**: cada loja tem a sua URL, `{APP_URL}/api/pagamentos/webhook/{slug}`, exibida em
+  Configurações da loja e no painel da plataforma.
+- **E-mails e retorno do pagamento** usam o endereço da loja: domínio próprio, `FRONTEND_URL` com
+  `{loja}` (ex.: `FRONTEND_URL=https://{loja}.minhaplataforma.com`) ou `FRONTEND_URL?loja=slug`.
+- **CORS**: libere os endereços das lojas em `CORS_ALLOWED_ORIGINS` (domínios próprios) e/ou
+  `CORS_ALLOWED_ORIGINS_PATTERNS` (ex.: `#^https://[a-z0-9-]+\.minhaplataforma\.com$#`).
+- Os uploads ficam separados em `storage/app/public/lojas/{id}/`.
 
 ## Variáveis do backend
 
@@ -103,7 +138,10 @@ Outras regras de acesso:
 | `JWT_TTL`                    | `1440`                        | Validade do login em minutos (1440 = 24 h). O padrão do pacote é 60.                        |
 | `FRONTEND_URL`               | `http://localhost:5173`       | Para onde o Mercado Pago devolve o cliente após pagar.                                       |
 | `CORS_ALLOWED_ORIGINS`       | `http://localhost:5173`       | Endereços do front que podem chamar a API (separe vários por vírgula).                      |
-| `MERCADOPAGO_ACCESS_TOKEN`   | vazio                         | Opcional. O ideal é o dono informar pelo painel; o valor do painel tem prioridade.          |
+| `CORS_ALLOWED_ORIGINS_PATTERNS` | vazio                      | Regex de origens liberadas (lojas em subdomínios).                                          |
+| `PLATAFORMA_DOMINIO`         | vazio                         | Domínio base dos subdomínios das lojas (`{slug}.dominio`).                                  |
+| `LOJA_PADRAO`                | vazio                         | Slug da loja usada quando a requisição não indica nenhuma.                                  |
+| `MERCADOPAGO_ACCESS_TOKEN`   | vazio                         | Opcional, só com uma loja. O ideal é o dono informar pelo painel; o valor do painel tem prioridade. |
 | `MERCADOPAGO_WEBHOOK_SECRET` | vazio                         | Opcional, idem. Valida a assinatura das notificações.                                       |
 | `SEED_ADMIN_*`, `SEED_CLIENTE_*` | ver `.env.example`        | Nome, e-mail e senha dos usuários criados pelo seed.                                         |
 | `MAIL_MAILER`                | `log` (dev) / `smtp` (produção) | Como os e-mails saem. `log` grava em `storage/logs/laravel.log`, sem enviar de verdade.   |
@@ -196,7 +234,7 @@ Depois rode `php artisan config:clear`.
      [contas/cartões de teste](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/additional-content/your-integrations/test/cards)
      do Mercado Pago.
 3. Em **Webhooks** na aplicação do Mercado Pago, cadastre a URL exibida no painel
-   (`{APP_URL}/api/pagamentos/webhook`) com o evento **Pagamentos**. Copie a assinatura
+   (`{APP_URL}/api/pagamentos/webhook/{slug-da-loja}`) com o evento **Pagamentos**. Copie a assinatura
    secreta e cole no painel (opcional, mas recomendado).
 
 ### Fluxo
@@ -269,8 +307,11 @@ desenvolvimento não é tocado. As chamadas ao Mercado Pago são simuladas.
 ```
 backend/
   app/Http/Controllers/    Endpoints da API (loja, carrinho, pedidos, painel)
-  app/Http/Middleware/     AdminMiddleware: protege as rotas /api/admin/*
-  app/Models/              Produto, Modelo (variação), Pedido, Configuracao...
+  app/Http/Middleware/     LojaMiddleware (descobre a loja), AdminMiddleware (/api/admin/*),
+                           PlataformaMiddleware/SuperadminMiddleware (/api/plataforma/*)
+  app/Models/              Loja, Produto, Modelo (variação), Pedido, Configuracao...
+  app/Models/Concerns/     PertenceALoja: filtra e grava loja_id automaticamente
+  app/Support/LojaAtual.php  Loja da requisição atual
   app/Services/            PedidoService (estoque, frete, status), MercadoPagoService
   database/seeders/        UsuariosSeeder (admin + cliente)
   routes/api.php           Todas as rotas (públicas, cliente, admin)
@@ -278,7 +319,8 @@ backend/
 frontend/src/
   pages/                   Telas da loja (home, produto, carrinho, checkout, pedidos...)
   admin/                   Telas do painel
+  plataforma/              Painel da plataforma (/plataforma): lista, cria e desativa lojas
   components/              Navbar, rodapé, card de produto, tema da loja...
   hooks/                   useLoja.ts e useAdmin.ts (React Query), AuthContext
-  lib/                     Cliente HTTP (api.ts) e utilitários
+  lib/                     Cliente HTTP (api.ts), loja atual (loja.ts) e utilitários
 ```

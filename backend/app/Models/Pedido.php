@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pedido extends Model
 {
+    use Concerns\PertenceALoja;
     use HasFactory;
 
     public const STATUS = [

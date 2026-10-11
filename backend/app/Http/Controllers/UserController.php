@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
@@ -48,8 +47,11 @@ class UserController extends Controller
             'password' => 'required|string',
         ]);
 
+        $guard = auth('api');
+
         try {
-            if (!$token = JWTAuth::attempt($credentials)) {
+            // Filtrado pela loja atual: só entra quem tem conta nesta loja.
+            if (!$token = $guard->attempt($credentials)) {
                 return response()->json(['message' => 'Credenciais inválidas'], 401);
             }
         } catch (JWTException $e) {
@@ -57,12 +59,12 @@ class UserController extends Controller
             return response()->json(['message' => 'Não foi possível criar o token'], 500);
         }
 
-        $user = auth('api')->user();
+        $user = $guard->user();
 
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'expires_in' => $guard->factory()->getTTL() * 60,
             'user' => new UserResource($user),
         ]);
     }

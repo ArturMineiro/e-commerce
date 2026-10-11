@@ -21,7 +21,10 @@ return [
 
     'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:5173')))),
 
-    'allowed_origins_patterns' => [],
+    // Lojas em subdomínios: CORS_ALLOWED_ORIGINS_PATTERNS=#^https://[a-z0-9-]+\.minhaplataforma\.com$#
+    // (vários separados por vírgula). Para domínios próprios das lojas, inclua-os em
+    // CORS_ALLOWED_ORIGINS ou use "*" (a API usa token Bearer, não cookies).
+    'allowed_origins_patterns' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS_PATTERNS', '')))),
 
     'allowed_headers' => ['*'],
 

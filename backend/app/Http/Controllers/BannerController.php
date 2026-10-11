@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Banner;
+use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,7 +31,7 @@ class BannerController extends Controller
 
         $caminhos = [];
         foreach ($request->file('bannerImages') as $imagem) {
-            $caminhos[] = $imagem->store('banners', 'public');
+            $caminhos[] = $imagem->store(LojaAtual::pasta('banners'), 'public');
         }
 
         $banner = Banner::create([

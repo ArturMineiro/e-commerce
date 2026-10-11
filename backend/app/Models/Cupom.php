@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cupom extends Model
 {
+    use Concerns\PertenceALoja;
     protected $table = 'cupons';
 
     protected $fillable = [

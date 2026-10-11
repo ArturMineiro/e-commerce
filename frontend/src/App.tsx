@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import axios from "axios";
 import { Container } from "react-bootstrap";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -19,6 +20,11 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
+import { useConfigLoja } from "./hooks/useLoja";
+import { LOJA_SLUG } from "./lib/loja";
+
+// Painel da plataforma (gerencia as lojas): fora do layout da loja
+const Plataforma = lazy(() => import("./plataforma/Plataforma"));
 
 // O painel só é baixado por quem acessa /admin
 const AdminLayout = lazy(() => import("./admin/AdminLayout"));
@@ -44,7 +50,40 @@ function NaoEncontrado() {
   );
 }
 
+/** Loja inexistente ou desativada pela plataforma. */
+function LojaIndisponivel({ inativa }: { inativa: boolean }) {
+  return (
+    <Container className="py-5 text-center" as="main">
+      <h1 className="h3">{inativa ? "Loja temporariamente indisponível" : "Loja não encontrada"}</h1>
+      <p className="text-muted">
+        {inativa ? "Volte mais tarde." : "Confira o endereço digitado."}
+      </p>
+      {LOJA_SLUG && (
+        <a href="/?loja=" className="btn btn-outline-secondary">
+          Voltar para a loja padrão
+        </a>
+      )}
+    </Container>
+  );
+}
+
 function App() {
+  const { pathname } = useLocation();
+  const { error } = useConfigLoja();
+
+  if (pathname.startsWith("/plataforma")) {
+    return (
+      <Suspense fallback={<Carregando />}>
+        <Plataforma />
+      </Suspense>
+    );
+  }
+
+  const codigo = axios.isAxiosError(error) ? (error.response?.data as { codigo?: string } | undefined)?.codigo : undefined;
+  if (codigo === "loja_nao_encontrada" || codigo === "loja_inativa") {
+    return <LojaIndisponivel inativa={codigo === "loja_inativa"} />;
+  }
+
   return (
     <>
       <TemaLoja />

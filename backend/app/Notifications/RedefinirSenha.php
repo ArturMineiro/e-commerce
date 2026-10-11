@@ -11,9 +11,10 @@ class RedefinirSenha extends ResetPassword
 {
     public function toMail($notifiable)
     {
-        $url = rtrim(config('services.frontend_url'), '/')
-            . '/redefinir-senha?token=' . urlencode($this->token)
-            . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
+        // getEmailForPasswordReset() inclui a loja (chave interna); no link vai só o e-mail.
+        $url = Configuracao::urlFrontend(
+            '/redefinir-senha?token=' . urlencode($this->token) . '&email=' . urlencode($notifiable->email)
+        );
 
         $minutos = config('auth.passwords.' . config('auth.defaults.passwords') . '.expire', 60);
         $loja = Configuracao::obter('nome_loja', config('app.name'));

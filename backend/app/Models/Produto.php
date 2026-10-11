@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Produto extends Model
 {
+    use Concerns\PertenceALoja;
     use HasFactory;
 
     protected $fillable = [

@@ -27,7 +27,7 @@ class PedidoAtualizado extends Notification
         $p = $this->pedido;
         $loja = Configuracao::obter('nome_loja', config('app.name'));
         $primeiroNome = explode(' ', trim($p->nome))[0];
-        $link = rtrim(config('services.frontend_url'), '/') . '/meus-pedidos?pedido=' . $p->id;
+        $link = Configuracao::urlFrontend('/meus-pedidos?pedido=' . $p->id);
 
         [$assunto, $intro] = match ($this->evento) {
             'recebido' => ["Recebemos seu pedido #{$p->id}", 'Recebemos seu pedido! Assim que o pagamento for confirmado, começamos a preparar o envio.'],

@@ -7,6 +7,7 @@ use App\Models\Modelo;
 use App\Models\Produto;
 use App\Services\FreteService;
 use App\Services\PedidoService;
+use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 
 class CarrinhoController extends Controller
@@ -54,8 +55,8 @@ class CarrinhoController extends Controller
     public function store(Request $request)
     {
         $dados = $request->validate([
-            'produto_id' => 'required|exists:produtos,id',
-            'modelo_id' => 'nullable|exists:modelos,id',
+            'produto_id' => ['required', LojaAtual::existe('produtos')],
+            'modelo_id' => ['nullable', LojaAtual::existe('modelos')],
             'quantidade' => 'required|integer|min:1|max:999',
         ]);
 

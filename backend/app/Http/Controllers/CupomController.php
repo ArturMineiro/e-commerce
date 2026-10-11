@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cupom;
 use App\Services\PedidoService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use App\Support\LojaAtual;
 
 class CupomController extends Controller
 {
@@ -35,7 +35,7 @@ class CupomController extends Controller
     private function regras(?int $id = null): array
     {
         return [
-            'codigo' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/', Rule::unique('cupons', 'codigo')->ignore($id)],
+            'codigo' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/', LojaAtual::unico('cupons', 'codigo')->ignore($id)],
             'tipo' => 'required|in:percentual,fixo',
             'valor' => ['required', 'numeric', 'gt:0', function ($attr, $valor, $falhar) {
                 if (request('tipo') === 'percentual' && $valor > 100) {

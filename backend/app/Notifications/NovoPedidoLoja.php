@@ -26,7 +26,7 @@ class NovoPedidoLoja extends Notification
     {
         $p = $this->pedido;
         $total = 'R$ ' . number_format($p->total, 2, ',', '.');
-        $link = rtrim(config('services.frontend_url'), '/') . '/admin/pedidos';
+        $link = Configuracao::urlFrontend('/admin/pedidos');
 
         $mensagem = (new MailMessage())
             ->from(...Configuracao::remetente())

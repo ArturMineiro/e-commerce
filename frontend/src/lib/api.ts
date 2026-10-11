@@ -1,12 +1,13 @@
 import axios, { AxiosError } from "axios";
+import { LOJA_SLUG, TOKEN_KEY } from "./loja";
 
-const API_URL: string = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
+export const API_URL: string = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
 /** Base pública dos arquivos enviados (php artisan storage:link). */
 const STORAGE_URL: string =
   import.meta.env.VITE_STORAGE_URL ?? API_URL.replace(/\/api\/?$/, "") + "/storage";
 
-export const TOKEN_KEY = "token";
+export { TOKEN_KEY };
 
 const api = axios.create({
   baseURL: API_URL,
@@ -14,6 +15,10 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  // Diz ao backend de qual loja são os dados (sem isso ele usa o domínio/padrão).
+  if (LOJA_SLUG) {
+    config.headers["X-Loja"] = LOJA_SLUG;
+  }
   const token = localStorage.getItem(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

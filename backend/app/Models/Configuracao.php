@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Crypt;
  */
 class Configuracao extends Model
 {
+    use Concerns\PertenceALoja;
     protected $table = 'configuracoes';
 
     protected $fillable = ['chave', 'valor'];
@@ -62,10 +63,14 @@ class Configuracao extends Model
         });
     }
 
-    /** Inclui o nome do banco para que bancos diferentes (ex.: testes) não compartilhem o cache. */
+    /**
+     * Cache separado por banco (ex.: testes) e por loja.
+     * Inclui o nome do banco para que bancos diferentes não compartilhem o cache.
+     */
     private static function chaveCache(): string
     {
-        return self::CACHE_KEY . '_' . (new static())->getConnection()->getDatabaseName();
+        return self::CACHE_KEY . '_' . (new static())->getConnection()->getDatabaseName()
+            . '_' . (app(\App\Support\LojaAtual::class)->id() ?? 'sem_loja');
     }
 
     public static function obter(string $chave, $padrao = null)
@@ -119,7 +124,7 @@ class Configuracao extends Model
      */
     public static function remetente(): array
     {
-        $nome = static::obter('nome_loja', config('app.name'));
+        $nome = static::obter('nome_loja', optional(app(\App\Support\LojaAtual::class)->get())->nome ?? config('app.name'));
         // O rodapé padrão dos e-mails do Laravel usa app.name: troca pelo nome da loja.
         config(['app.name' => $nome]);
 
@@ -127,6 +132,16 @@ class Configuracao extends Model
         $endereco = config('mail.from.address') ?: (static::obter('email') ?: "nao-responda@{$host}");
 
         return [$endereco, $nome];
+    }
+
+    /** Endereço do front da loja atual (domínio próprio, subdomínio ou ?loja=slug). */
+    public static function urlFrontend(string $caminho = '/'): string
+    {
+        $loja = app(\App\Support\LojaAtual::class)->get();
+
+        return $loja
+            ? $loja->urlFrontend($caminho)
+            : rtrim(config('services.frontend_url'), '/') . '/' . ltrim($caminho, '/');
     }
 
     /** Configurações exclusivas do painel (sem segredos). */

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produto;
+use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -92,7 +93,7 @@ class ProdutoController extends Controller
             'comprimento' => 'nullable|numeric|min:0|max:1000',
             'desconto_percentual' => 'nullable|numeric|min:0|max:100',
             'promocao_ate' => 'nullable|date',
-            'categoria_id' => 'nullable|exists:categorias,id',
+            'categoria_id' => ['nullable', LojaAtual::existe('categorias')],
             'ativo' => 'nullable|boolean',
             'destaque' => 'nullable|boolean',
         ];
@@ -104,7 +105,7 @@ class ProdutoController extends Controller
             'imagens' => 'nullable|array',
             'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
             'modelos' => 'nullable|array',
-            'modelos.*.cor_id' => 'nullable|exists:cores,id',
+            'modelos.*.cor_id' => ['nullable', LojaAtual::existe('cores')],
             'modelos.*.tamanho' => 'nullable|string|max:50',
             'modelos.*.preco' => 'nullable|numeric|min:0',
             'modelos.*.quantidade' => 'required_with:modelos|integer|min:0',
@@ -197,7 +198,7 @@ class ProdutoController extends Controller
     {
         $caminhos = [];
         foreach ((array) $request->file('imagens', []) as $imagem) {
-            $caminhos[] = $imagem->store('imagens', 'public');
+            $caminhos[] = $imagem->store(LojaAtual::pasta('produtos'), 'public');
         }
 
         return $caminhos;

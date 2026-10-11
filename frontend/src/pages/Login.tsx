@@ -4,6 +4,8 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import api, { mensagemErro } from "../lib/api";
+import apiPlataforma, { TOKEN_PLATAFORMA } from "../lib/plataforma";
+import axios from "axios";
 
 function Login() {
   const { login, loggedIn, isAdmin } = useAuth();
@@ -28,6 +30,17 @@ function Login() {
       const usuario = login(data.access_token);
       navigate(destino ?? (usuario?.role === "admin" ? "/admin" : "/"), { replace: true });
     } catch (err) {
+      // Não é conta da loja: pode ser o administrador da plataforma.
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        try {
+          const { data } = await apiPlataforma.post<{ access_token: string }>("/login", { email, password: senha });
+          localStorage.setItem(TOKEN_PLATAFORMA, data.access_token);
+          navigate("/plataforma", { replace: true });
+          return;
+        } catch {
+          // segue para a mensagem de erro normal
+        }
+      }
       setErro(mensagemErro(err, "E-mail ou senha inválidos."));
     } finally {
       setEnviando(false);

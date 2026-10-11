@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Modelo extends Model
 {
+    use Concerns\PertenceALoja;
     use HasFactory;
 
     protected $fillable = [

@@ -1,4 +1,4 @@
-export type Role = "admin" | "customer";
+export type Role = "admin" | "customer" | "superadmin";
 
 export interface Usuario {
   id: number;
@@ -229,4 +229,32 @@ export interface Paginado<T> {
   current_page: number;
   last_page: number;
   total: number;
+}
+
+/* ---------- Plataforma (várias lojas) ---------- */
+
+export interface LojaPlataforma {
+  id: number;
+  nome: string;
+  slug: string;
+  dominio: string | null;
+  ativo: boolean;
+  url: string;
+  url_admin: string;
+  webhook_url: string;
+  created_at: string;
+  produtos_count: number;
+  pedidos_count: number;
+  clientes_count: number;
+  total_vendas: number;
+  admins: { id: number; name: string; email: string }[];
+}
+
+export interface NovaLoja {
+  nome: string;
+  slug: string;
+  dominio: string;
+  dono_nome: string;
+  dono_email: string;
+  dono_senha: string;
 }

@@ -13,7 +13,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Uma instância por requisição/aplicação: guarda a loja atual.
+        $this->app->singleton(\App\Support\LojaAtual::class);
     }
 
     /**

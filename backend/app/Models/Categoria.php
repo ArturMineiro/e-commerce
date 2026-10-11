@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Categoria extends Model
 {
+    use Concerns\PertenceALoja;
     use HasFactory;
 
     protected $fillable = [

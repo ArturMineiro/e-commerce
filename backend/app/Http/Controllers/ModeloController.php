@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Modelo;
+use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 
 /**
@@ -14,7 +15,7 @@ class ModeloController extends Controller
     private function regras(): array
     {
         return [
-            'cor_id' => 'nullable|exists:cores,id',
+            'cor_id' => ['nullable', LojaAtual::existe('cores')],
             'tamanho' => 'nullable|string|max:50',
             'preco' => 'nullable|numeric|min:0',
             'quantidade' => 'required|integer|min:0',
@@ -28,7 +29,7 @@ class ModeloController extends Controller
 
     public function store(Request $request)
     {
-        $dados = $request->validate(['produto_id' => 'required|exists:produtos,id'] + $this->regras());
+        $dados = $request->validate(['produto_id' => ['required', LojaAtual::existe('produtos')]] + $this->regras());
 
         $modelo = Modelo::create($dados);
 
