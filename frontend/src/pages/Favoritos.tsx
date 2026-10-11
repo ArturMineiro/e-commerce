@@ -1,88 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import Card from "../components/Card"; // seu Card já tem add to cart
-import { useAuth } from '../hooks/AuthContext';
-import api from '../config/axiosConfig';
+import { Alert, Col, Container, Row } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import ProdutoCard from "../components/ProdutoCard";
+import { Carregando } from "../components/Ui";
+import { useFavoritos } from "../hooks/useLoja";
 
-interface Produto {
-  id: number;
-  nome: string;
-  descricao: string;
-  quantidade: number;
-  categoria: string;
-  preco: number;
-  imagens: string[];
-}
+function Favoritos() {
+  const { data: produtos = [], isLoading, isError } = useFavoritos();
 
-interface Favorito {
-  id: number;
-  produto: Produto;
-}
-
-const Favoritos: React.FC = () => {
-  const { user } = useAuth();
-  const [produtosFavoritos, setProdutosFavoritos] = useState<Favorito[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchFavoritos = async () => {
-    try {
-      const response = await api.get('/listar-favoritos-usuario', {
-        params: { user_id: user?.sub }
-      });
-
-      const favoritosComImagens = response.data.map((favorito: Favorito) => {
-        return {
-          ...favorito,
-          produto: {
-            ...favorito.produto,
-            imagens: typeof favorito.produto.imagens === 'string' ? JSON.parse(favorito.produto.imagens) : favorito.produto.imagens
-          }
-        };
-      });
-
-      setProdutosFavoritos(favoritosComImagens);
-    } catch (error) {
-      console.error('Erro ao buscar produtos favoritos:', error);
-      setError('Erro ao carregar os produtos favoritos.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchFavoritos();
-    }
-  }, [user]);
-
-  if (!user) {
-    return <p>Você precisa estar logado para ver seus produtos curtidos.</p>;
-  }
-
-  if (loading) {
-    return <p>Carregando produtos favoritos...</p>;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
+  if (isLoading) return <Carregando />;
 
   return (
-    <div className="container mt-4">
-      <h1 className="text-center">Favoritados</h1>
-      {produtosFavoritos.length > 0 ? (
-        <div className="row justify-content-center">
-          {produtosFavoritos.map((favorito: Favorito) => (
-            <div key={favorito.id} className="col-lg-4 col-md-6 mb-4">
-              <Card produto={favorito.produto} />
-            </div>
-          ))}
-        </div>
+    <Container className="py-4">
+      <h1 className="h3 mb-4">Favoritos</h1>
+      {isError && <Alert variant="danger">Não foi possível carregar seus favoritos.</Alert>}
+      {produtos.length === 0 && !isError ? (
+        <Alert variant="light" className="border text-center">
+          Você ainda não favoritou nenhum produto. <Link to="/produtos">Explorar produtos</Link>
+        </Alert>
       ) : (
-        <p className="text-center">Você ainda não favoritou nenhum produto.</p>
+        <Row xs={2} md={3} lg={4} className="g-3 g-md-4">
+          {produtos.map((p) => (
+            <Col key={p.id}>
+              <ProdutoCard produto={p} />
+            </Col>
+          ))}
+        </Row>
       )}
-    </div>
+    </Container>
   );
-};
+}
 
 export default Favoritos;

@@ -5,68 +5,48 @@ namespace App\Http\Controllers;
 use App\Models\Modelo;
 use Illuminate\Http\Request;
 
+/**
+ * Variações do produto (cor/tamanho), cada uma com estoque e preço opcional
+ * (sem preço, usa o preço do produto).
+ */
 class ModeloController extends Controller
 {
-    // Listar todos os modelos
-    public function index()
+    private function regras(): array
     {
-        $modelos = Modelo::with(['produto', 'cor'])->get();
-        return response()->json($modelos);
-    }
-
-    // Criar um novo modelo
-    public function criarModelo(Request $request)
-    {
-        $validatedData = $request->validate([
-            'produto_id' => 'required|exists:produtos,id',
+        return [
             'cor_id' => 'nullable|exists:cores,id',
             'tamanho' => 'nullable|string|max:50',
-            'preco' => 'nullable|numeric',
+            'preco' => 'nullable|numeric|min:0',
             'quantidade' => 'required|integer|min:0',
-        ]);
-
-        $modelo = Modelo::create($validatedData);
-
-        return response()->json(['message' => 'Modelo criado com sucesso', 'modelo' => $modelo], 201);
+        ];
     }
 
-    // Mostrar um modelo específico
-    public function mostrarModelo($id)
+    public function listarPorProduto($produtoId)
     {
-        $modelo = Modelo::with(['produto', 'cor'])->findOrFail($id);
-        return response()->json($modelo);
+        return response()->json(Modelo::with('cor')->where('produto_id', $produtoId)->get());
     }
-    public function listarModelosPorProduto($produtoId)
+
+    public function store(Request $request)
     {
-        $modelos = Modelo::where('produto_id', $produtoId)->get();
-        return response()->json($modelos);
+        $dados = $request->validate(['produto_id' => 'required|exists:produtos,id'] + $this->regras());
+
+        $modelo = Modelo::create($dados);
+
+        return response()->json($modelo->load('cor'), 201);
     }
-    
-    // Atualizar modelo
-    public function atualizarModelo(Request $request, $id)
+
+    public function update(Request $request, $id)
     {
         $modelo = Modelo::findOrFail($id);
+        $modelo->update($request->validate($this->regras()));
 
-        $validatedData = $request->validate([
-            
-            'produto_id' => 'required|exists:produtos,id',
-            'cor_id' => 'nullable|exists:cores,id',
-            'tamanho' => 'nullable|string|max:50',
-            'preco' => 'nullable|numeric',
-            'quantidade' => 'required|integer|min:0',
-        ]);
-
-        $modelo->update($validatedData);
-
-        return response()->json(['message' => 'Modelo atualizado com sucesso', 'modelo' => $modelo]);
+        return response()->json($modelo->load('cor'));
     }
 
-    // Deletar modelo
-    public function deletarModelo($id)
+    public function destroy($id)
     {
-        $modelo = Modelo::findOrFail($id);
-        $modelo->delete();
+        Modelo::findOrFail($id)->delete();
 
-        return response()->json(['message' => 'Modelo deletado com sucesso'], 204);
+        return response()->json(['message' => 'Modelo removido']);
     }
 }

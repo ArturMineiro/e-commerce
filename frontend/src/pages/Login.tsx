@@ -1,141 +1,83 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/AuthContext';
-import jwtDecode from 'jwt-decode';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importando os ícones
-import api from '../config/axiosConfig';
-interface Credentials {
-  email: string;
-  password: string;
-}
+import { useState } from "react";
+import { Alert, Button, Card, Container, Form, InputGroup } from "react-bootstrap";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import { useAuth } from "../hooks/AuthContext";
+import api, { mensagemErro } from "../lib/api";
 
-interface APIResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-}
-
-interface DecodedToken {
-  sub: number;
-  name: string;
-  email: string;
-  role: string;
-  iat: number;
-  exp: number;
-}
-
-const Login: React.FC = () => {
-  const [credentials, setCredentials] = useState<Credentials>({ email: '', password: '' });
-  const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false); // Estado para alternar a visualização da senha
+function Login() {
+  const { login, loggedIn, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const destino = (location.state as { from?: string } | null)?.from;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCredentials({
-      ...credentials,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword); // Alterna entre mostrar e esconder a senha
-  };
+  if (loggedIn) return <Navigate to={destino ?? (isAdmin ? "/admin" : "/")} replace />;
 
-  const loginUser = async (credentials: Credentials) => {
-    try {
-      const response = await api.post<APIResponse>('/login', credentials, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const { access_token } = response.data;
-  
-      login(access_token);
-  
-      const decoded = jwtDecode<DecodedToken>(access_token);
-      if (!decoded) {
-        setError('Erro ao decodificar o token.');
-        return;
-      }
-  
-      const userRole = decoded.role;
-  
-      if (userRole === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/home');
-      }
-    } catch (error: any) {
-      if (error.response) {
-        if (error.response.status === 401 || error.response.status === 422) {
-          setError('Credenciais inválidas. Por favor, tente novamente.');
-        } else {
-          setError('Erro no servidor. Tente novamente mais tarde.');
-        }
-      } else {
-        setError('Erro ao conectar com o servidor.');
-      }
-    }
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (credentials.email === '' || credentials.password === '') {
-      setError('Por favor, preencha todos os campos.');
-      return;
+    setErro(null);
+    setEnviando(true);
+    try {
+      const { data } = await api.post<{ access_token: string }>("/login", { email, password: senha });
+      const usuario = login(data.access_token);
+      navigate(destino ?? (usuario?.role === "admin" ? "/admin" : "/"), { replace: true });
+    } catch (err) {
+      setErro(mensagemErro(err, "E-mail ou senha inválidos."));
+    } finally {
+      setEnviando(false);
     }
-    loginUser(credentials);
   };
 
   return (
-    <div className="container mt-5 w-25 shadow-lg p-3 mb-5 bg-white rounded">
-      <h2>Login</h2>
-
-      <form onSubmit={handleSubmit}>
-        <div className="form-group ">
-          <label>Email</label>
-          <input
-            type="email"
-            className="form-control"
-            name="email"
-            value={credentials.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Senha</label>
-          <div className="input-group">
-            <input
-              type={showPassword ? 'text' : 'password'} // Alterna entre tipo "text" e "password"
-              className="form-control"
-              name="password"
-              value={credentials.password}
-              onChange={handleChange}
-              required
-            />
-            <div className="input-group-append">
-              <button 
-                type="button" 
-                className="btn btn-outline-secondary" 
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Alterna ícones */}
-              </button>
-            </div>
-          </div>
-        </div>
-        <button type="submit" className="btn btn-primary mt-3 mb-3">Entrar</button>
-      </form>
-      {error && <div className="alert alert-danger">{error}</div>}
-      <div className="mt-3">
-        <Link to="/register">Não tem uma conta? Registre-se aqui.</Link>
-      </div>
-    </div>
+    <Container className="py-5" style={{ maxWidth: 440 }}>
+      <Card className="shadow-sm border-0">
+        <Card.Body className="p-4">
+          <h1 className="h3 mb-4 text-center">Entrar</h1>
+          <Form onSubmit={enviar}>
+            <Form.Group className="mb-3" controlId="login-email">
+              <Form.Label>E-mail</Form.Label>
+              <Form.Control type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="login-senha">
+              <Form.Label>Senha</Form.Label>
+              <InputGroup>
+                <Form.Control
+                  type={mostrarSenha ? "text" : "password"}
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+                <Button
+                  variant="outline-secondary"
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                  aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {mostrarSenha ? <FaEyeSlash /> : <FaEye />}
+                </Button>
+              </InputGroup>
+            </Form.Group>
+            {erro && <Alert variant="danger">{erro}</Alert>}
+            <Button type="submit" className="btn-loja w-100" size="lg" disabled={enviando}>
+              {enviando ? "Entrando..." : "Entrar"}
+            </Button>
+          </Form>
+          <p className="text-center mt-3 mb-0">
+            Não tem conta?{" "}
+            <Link to="/register" state={location.state}>
+              Cadastre-se
+            </Link>
+          </p>
+        </Card.Body>
+      </Card>
+    </Container>
   );
-};
+}
 
 export default Login;

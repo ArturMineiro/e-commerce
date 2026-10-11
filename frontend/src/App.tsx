@@ -1,148 +1,95 @@
-import React from "react";
-import { Route, Routes } from "react-router-dom";
-import Home from "./pages/Home";
+import { lazy, Suspense } from "react";
+import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Container } from "react-bootstrap";
 import Navbar from "./components/Navbar";
-import Carrinho from "./pages/Carrinho";
-import Login from "./pages/Login";
 import Footer from "./components/Footer";
-import Meuspedidos from "./pages/Meuspedidos";
-import Register from "./pages/Register";
-import CadastrarProdutos from "./admin/CadastrarProdutos";
+import TemaLoja from "./components/TemaLoja";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./hooks/AuthContext";
-import Dashboard from "./admin/Dashbord";
-import CadastrarBanners from "./admin/CadastrarBanners";
-import ControleUsuario from "./admin/ControleUsuarios";
-import HistoricoCompras from "./admin/HistoricoCompras";
-import AdministrarProdutos from "./admin/AdministrarProdutos";
-import CadastroCategoria from "./admin/CadastroCategoria";
+import { Carregando } from "./components/Ui";
+import Home from "./pages/Home";
+import Produtos from "./pages/Produtos";
+import ProdutoDetalhe from "./pages/ProdutoDetalhe";
+import Carrinho from "./pages/Carrinho";
+import Checkout from "./pages/Checkout";
+import PagamentoRetorno from "./pages/PagamentoRetorno";
+import MeusPedidos from "./pages/MeusPedidos";
 import Favoritos from "./pages/Favoritos";
-import CadastrarModelos from "./admin/CadastrarModelo";
-import CadastrarCor from "./admin/CadastrarCor";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
-// 🧩 Importa o React Query
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+// O painel só é baixado por quem acessa /admin
+const AdminLayout = lazy(() => import("./admin/AdminLayout"));
+const Dashboard = lazy(() => import("./admin/Dashboard"));
+const Configuracoes = lazy(() => import("./admin/Configuracoes"));
+const ProdutosAdmin = lazy(() => import("./admin/ProdutosAdmin"));
+const ProdutoForm = lazy(() => import("./admin/ProdutoForm"));
+const Categorias = lazy(() => import("./admin/Categorias"));
+const Cores = lazy(() => import("./admin/Cores"));
+const Banners = lazy(() => import("./admin/Banners"));
+const PedidosAdmin = lazy(() => import("./admin/PedidosAdmin"));
+const Usuarios = lazy(() => import("./admin/Usuarios"));
 
-// 🧠 Cria o cliente do React Query
-const queryClient = new QueryClient();
-
-const App: React.FC = () => {
+function NaoEncontrado() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <div>
-          <Navbar />
-          <div className="conteudo">
-            <Routes>
-              {/* Rotas de Admin */}
-              <Route
-                path="/admin/dashboard"
-                element={
-                  <ProtectedRoute
-                    element={<Dashboard />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/cadastrar-produtos"
-                element={
-                  <ProtectedRoute
-                    element={<CadastrarProdutos />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/cadastrar-banners"
-                element={
-                  <ProtectedRoute
-                    element={<CadastrarBanners />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/controle-usuarios"
-                element={
-                  <ProtectedRoute
-                    element={<ControleUsuario />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/historico-compras"
-                element={
-                  <ProtectedRoute
-                    element={<HistoricoCompras />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/administrar-produtos"
-                element={
-                  <ProtectedRoute
-                    element={<AdministrarProdutos />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/cadastrar-categoria"
-                element={
-                  <ProtectedRoute
-                    element={<CadastroCategoria />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/cadastrar-modelos"
-                element={
-                  <ProtectedRoute
-                    element={<CadastrarModelos />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              <Route
-                path="/admin/cadastrar-cores"
-                element={
-                  <ProtectedRoute
-                    element={<CadastrarCor />}
-                    requiredRole="admin"
-                  />
-                }
-              />
-              {/* Rotas de Cliente */}
-              <Route path="/home" element={<Home />} />
-              <Route path="/" element={<Home />} />
-              <Route path="/carrinho" element={<Carrinho />} />
-              <Route path="/favoritos" element={<Favoritos />} />
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/meuspedidos"
-                element={
-                  <ProtectedRoute
-                    element={<Meuspedidos />}
-                    requiredRole="customer"
-                  />
-                }
-              />
-              <Route path="/register" element={<Register />} />
-            </Routes>
-          </div>
-          <Footer />
-        </div>
-      </AuthProvider>
-
-      {/* 🔧 Ferramenta de debug do React Query */}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <Container className="py-5 text-center">
+      <h1 className="h3">Página não encontrada</h1>
+      <Link to="/" className="btn btn-loja mt-3">
+        Voltar para a loja
+      </Link>
+    </Container>
   );
-};
+}
+
+function App() {
+  return (
+    <>
+      <TemaLoja />
+      <a href="#conteudo" className="visually-hidden-focusable position-absolute p-2 bg-white">
+        Pular para o conteúdo
+      </a>
+      <Navbar />
+      <main id="conteudo">
+        <Suspense fallback={<Carregando />}>
+          <Routes>
+            {/* Loja */}
+            <Route path="/" element={<Home />} />
+            <Route path="/produtos" element={<Produtos />} />
+            <Route path="/produto/:id" element={<ProdutoDetalhe />} />
+            <Route path="/carrinho" element={<Carrinho />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+            <Route path="/pagamento/retorno" element={<ProtectedRoute><PagamentoRetorno /></ProtectedRoute>} />
+            <Route path="/meus-pedidos" element={<ProtectedRoute><MeusPedidos /></ProtectedRoute>} />
+            <Route path="/favoritos" element={<ProtectedRoute><Favoritos /></ProtectedRoute>} />
+
+            {/* Painel do dono da loja */}
+            <Route path="/admin" element={<ProtectedRoute admin><AdminLayout /></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="pedidos" element={<PedidosAdmin />} />
+              <Route path="produtos" element={<ProdutosAdmin />} />
+              <Route path="produtos/novo" element={<ProdutoForm />} />
+              <Route path="produtos/:id" element={<ProdutoForm />} />
+              <Route path="categorias" element={<Categorias />} />
+              <Route path="cores" element={<Cores />} />
+              <Route path="banners" element={<Banners />} />
+              <Route path="usuarios" element={<Usuarios />} />
+              <Route path="configuracoes" element={<Configuracoes />} />
+            </Route>
+
+            {/* Endereços antigos */}
+            <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
+            <Route path="/meuspedidos" element={<Navigate to="/meus-pedidos" replace />} />
+
+            <Route path="*" element={<NaoEncontrado />} />
+          </Routes>
+        </Suspense>
+      </main>
+      <Footer />
+    </>
+  );
+}
 
 export default App;

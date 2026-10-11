@@ -4,242 +4,198 @@ namespace App\Http\Controllers;
 
 use App\Models\Produto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User;
 
 class ProdutoController extends Controller
 {
-    public function favoritos($userId)
+    private const RELACOES = ['modelos.cor', 'categoria:id,nome'];
+
+    /**
+     * Vitrine pública. Filtros opcionais:
+     * ?categoria_id=1 &busca=camisa &promocao=1 &destaque=1 &ordenar=menor_preco|maior_preco|recentes|nome
+     */
+    public function index(Request $request)
     {
-        try {
-            // Buscar produtos favoritados pelo usuário (assumindo relação 'favoritos' em User)
-            $favoritos = User::findOrFail($userId)->favoritos;
-            return response()->json($favoritos);
-        } catch (\Exception $e) {
-            \Log::error('Erro ao buscar produtos favoritados: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro ao buscar favoritos'], 500);
-        }
+        $query = Produto::with(self::RELACOES)->ativos();
+
+        return response()->json($this->filtrar($query, $request));
     }
 
-    public function index()
+    /** Listagem do painel (inclui inativos). */
+    public function adminIndex(Request $request)
     {
-        try {
-            $produtos = Produto::with('modelos.cor')->get();
+        $query = Produto::with(self::RELACOES);
 
-            $produtos->map(function ($produto) {
-                if (is_string($produto->imagens)) {
-                    $produto->imagens = json_decode($produto->imagens, true);
-                } else {
-                    \Log::error('O campo imagens não é uma string JSON válida.');
-                    $produto->imagens = [];
-                }
-                return $produto;
+        return response()->json($this->filtrar($query, $request));
+    }
+
+    private function filtrar($query, Request $request)
+    {
+        if ($categoria = $request->query('categoria_id')) {
+            $query->where('categoria_id', $categoria);
+        }
+
+        if ($busca = trim((string) $request->query('busca', ''))) {
+            $query->where(function ($q) use ($busca) {
+                $q->where('nome', 'like', "%{$busca}%")->orWhere('descricao', 'like', "%{$busca}%");
             });
-
-            return response()->json($produtos);
-        } catch (\Exception $e) {
-            \Log::error('Erro ao buscar produtos: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro interno do servidor'], 500);
         }
+
+        if ($request->boolean('destaque')) {
+            $query->where('destaque', true);
+        }
+
+        $produtos = $query->orderByDesc('id')->get();
+
+        if ($request->boolean('promocao')) {
+            $produtos = $produtos->filter(fn (Produto $p) => $p->em_promocao)->values();
+        }
+
+        switch ($request->query('ordenar')) {
+            case 'menor_preco':
+                $produtos = $produtos->sortBy(fn ($p) => $p->preco_final ?? PHP_INT_MAX)->values();
+                break;
+            case 'maior_preco':
+                $produtos = $produtos->sortByDesc(fn ($p) => $p->preco_final ?? 0)->values();
+                break;
+            case 'nome':
+                $produtos = $produtos->sortBy('nome', SORT_NATURAL | SORT_FLAG_CASE)->values();
+                break;
+        }
+
+        return $produtos;
     }
 
-    public function criarProdutos(Request $request)
+    public function show($id)
     {
-        $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
-            'descricao' => 'nullable|string',
-            'preco' => 'nullable|numeric', // Preço agora fica por modelo
-            'quantidade' => 'nullable|integer', // Quantidade por modelo
-            'categoria_id' => 'nullable|exists:categorias,id',
-            'imagens' => 'nullable|array',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'modelos' => 'required|array',
-            'modelos.*.cor_id' => 'required|exists:cores,id',
-            'modelos.*.tamanho' => 'required|string',
-            'modelos.*.preco' => 'required|numeric',
-            'modelos.*.quantidade' => 'required|integer',
-        ]);
+        $produto = Produto::with(self::RELACOES)->findOrFail($id);
 
-        $produto = new Produto();
-        $produto->nome = $validatedData['nome'];
-        $produto->descricao = $validatedData['descricao'] ?? null;
-        $produto->categoria_id = $validatedData['categoria_id'] ?? null;
-
-        // Processar imagens
-        if ($request->hasFile('imagens')) {
-            $imagens = [];
-            foreach ($request->file('imagens') as $image) {
-                $path = $image->store('imagens', 'public');
-                $imagens[] = $path;
-            }
-            $produto->imagens = json_encode($imagens);
-        }
-
-        $produto->save();
-
-        // Criar os modelos associados
-        foreach ($validatedData['modelos'] as $modeloData) {
-            $produto->modelos()->create([
-                'cor_id' => $modeloData['cor_id'],
-                'tamanho' => $modeloData['tamanho'],
-                'preco' => $modeloData['preco'],
-                'quantidade' => $modeloData['quantidade'],
-            ]);
-        }
-
-        return response()->json([
-            'message' => 'Produto e modelos criados com sucesso',
-            'produto' => $produto->load('modelos.cor'),
-        ], 201);
-    }
-
-    public function mostrarProdutos($id)
-    {
-        $produto = Produto::with('modelos.cor')->findOrFail($id);
-
-        if (is_string($produto->imagens)) {
-            $produto->imagens = json_decode($produto->imagens, true);
-        } else {
-            $produto->imagens = [];
+        $user = auth('api')->user();
+        if (!$produto->ativo && !($user && $user->isAdmin())) {
+            abort(404);
         }
 
         return response()->json($produto);
     }
 
-    public function atualizarProduto(Request $request, $id)
+    private function regras(bool $criando): array
     {
-        $produto = Produto::findOrFail($id);
-
-        $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
-            'descricao' => 'nullable|string',
+        return [
+            'nome' => ($criando ? 'required' : 'sometimes') . '|string|max:255',
+            'descricao' => 'nullable|string|max:5000',
+            'preco' => 'nullable|numeric|min:0',
+            'quantidade' => 'nullable|integer|min:0',
+            'desconto_percentual' => 'nullable|numeric|min:0|max:100',
+            'promocao_ate' => 'nullable|date',
             'categoria_id' => 'nullable|exists:categorias,id',
+            'ativo' => 'nullable|boolean',
+            'destaque' => 'nullable|boolean',
+        ];
+    }
+
+    public function store(Request $request)
+    {
+        $dados = $request->validate($this->regras(true) + [
             'imagens' => 'nullable|array',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
             'modelos' => 'nullable|array',
-            'modelos.*.id' => 'nullable|exists:modelos,id', // Para atualizar modelos existentes
-            'modelos.*.cor_id' => 'required_with:modelos|exists:cores,id',
-            'modelos.*.tamanho' => 'required_with:modelos|string',
-            'modelos.*.preco' => 'required_with:modelos|numeric',
-            'modelos.*.quantidade' => 'required_with:modelos|integer',
+            'modelos.*.cor_id' => 'nullable|exists:cores,id',
+            'modelos.*.tamanho' => 'nullable|string|max:50',
+            'modelos.*.preco' => 'nullable|numeric|min:0',
+            'modelos.*.quantidade' => 'required_with:modelos|integer|min:0',
         ]);
 
-        // Atualiza dados básicos do produto
-        $produto->update([
-            'nome' => $validatedData['nome'],
-            'descricao' => $validatedData['descricao'] ?? $produto->descricao,
-            'categoria_id' => $validatedData['categoria_id'] ?? $produto->categoria_id,
-        ]);
-
-        // Atualizar imagens (adiciona imagens novas se fornecidas)
-        if ($request->hasFile('imagens')) {
-            $imagensExistentes = json_decode($produto->imagens, true) ?? [];
-            foreach ($request->file('imagens') as $image) {
-                $path = $image->store('imagens', 'public');
-                $imagensExistentes[] = $path;
-            }
-            $produto->imagens = json_encode($imagensExistentes);
+        $produto = DB::transaction(function () use ($request, $dados) {
+            $produto = new Produto(collect($dados)->except(['imagens', 'modelos'])->all());
+            $produto->quantidade = $dados['quantidade'] ?? 0;
+            $produto->desconto_percentual = $dados['desconto_percentual'] ?? 0;
+            $produto->imagens = $this->salvarImagens($request);
             $produto->save();
-        }
 
-        // Atualizar modelos (se enviados)
-        if (!empty($validatedData['modelos'])) {
-            foreach ($validatedData['modelos'] as $modeloData) {
-                if (!empty($modeloData['id'])) {
-                    // Atualiza modelo existente
-                    $modelo = $produto->modelos()->find($modeloData['id']);
-                    if ($modelo) {
-                        $modelo->update([
-                            'cor_id' => $modeloData['cor_id'],
-                            'tamanho' => $modeloData['tamanho'],
-                            'preco' => $modeloData['preco'],
-                            'quantidade' => $modeloData['quantidade'],
-                        ]);
-                    }
-                } else {
-                    // Cria novo modelo
-                    $produto->modelos()->create([
-                        'cor_id' => $modeloData['cor_id'],
-                        'tamanho' => $modeloData['tamanho'],
-                        'preco' => $modeloData['preco'],
-                        'quantidade' => $modeloData['quantidade'],
-                    ]);
-                }
+            foreach ($dados['modelos'] ?? [] as $modelo) {
+                $produto->modelos()->create($modelo);
             }
-        }
 
-        return response()->json($produto->load('modelos.cor'));
+            return $produto;
+        });
+
+        return response()->json($produto->load(self::RELACOES), 201);
     }
 
-    public function deletarProduto($id)
+    public function update(Request $request, $id)
+    {
+        $produto = Produto::findOrFail($id);
+        $dados = $request->validate($this->regras(false));
+
+        if (array_key_exists('desconto_percentual', $dados) && $dados['desconto_percentual'] === null) {
+            $dados['desconto_percentual'] = 0;
+        }
+        if (array_key_exists('quantidade', $dados) && $dados['quantidade'] === null) {
+            $dados['quantidade'] = 0;
+        }
+
+        $produto->update($dados);
+
+        return response()->json($produto->fresh(self::RELACOES));
+    }
+
+    public function destroy($id)
     {
         $produto = Produto::findOrFail($id);
 
-        if (!empty($produto->imagens)) {
-            $imagens = json_decode($produto->imagens, true);
-
-            foreach ($imagens as $imagem) {
-                Storage::delete('public/' . $imagem);
-            }
+        foreach ($produto->imagens ?? [] as $imagem) {
+            Storage::disk('public')->delete($imagem);
         }
 
-        // Deletar todos os modelos relacionados primeiro (se quiser)
-        $produto->modelos()->delete();
+        $produto->delete(); // modelos, favoritos e carrinho caem em cascata
 
-        $produto->delete();
-
-        return response()->json(['message' => 'Produto e imagens deletados com sucesso'], 204);
-    }
-
-    public function deletarImagem(Request $request, $id)
-    {
-        $produto = Produto::findOrFail($id);
-
-        $validatedData = $request->validate([
-            'imagem_index' => 'required|integer',
-        ]);
-
-        $imagens = json_decode($produto->imagens, true) ?? [];
-
-        if (!isset($imagens[$validatedData['imagem_index']])) {
-            return response()->json(['message' => 'Índice da imagem inválido'], 400);
-        }
-
-        $imagemRemovida = $imagens[$validatedData['imagem_index']];
-        unset($imagens[$validatedData['imagem_index']]);
-
-        $produto->imagens = json_encode(array_values($imagens));
-        $produto->save();
-
-        Storage::delete('public/' . $imagemRemovida);
-
-        return response()->json(['message' => 'Imagem removida com sucesso']);
+        return response()->json(['message' => 'Produto removido']);
     }
 
     public function adicionarImagens(Request $request, $id)
     {
         $produto = Produto::findOrFail($id);
 
-        $validatedData = $request->validate([
+        $request->validate([
             'imagens' => 'required|array',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
-        $imagePaths = [];
-
-        if ($request->hasFile('imagens')) {
-            foreach ($request->file('imagens') as $image) {
-                $path = $image->store('imagens', 'public');
-                $imagePaths[] = $path;
-            }
-        }
-
-        $imagensExistentes = json_decode($produto->imagens, true) ?? [];
-        $imagensAtualizadas = array_merge($imagensExistentes, $imagePaths);
-
-        $produto->imagens = json_encode($imagensAtualizadas);
+        $produto->imagens = array_merge($produto->imagens ?? [], $this->salvarImagens($request));
         $produto->save();
 
-        return response()->json(['message' => 'Imagens adicionadas com sucesso']);
+        return response()->json($produto->load(self::RELACOES));
+    }
+
+    public function removerImagem(Request $request, $id)
+    {
+        $produto = Produto::findOrFail($id);
+        $dados = $request->validate(['imagem_index' => 'required|integer|min:0']);
+
+        $imagens = $produto->imagens ?? [];
+        $indice = $dados['imagem_index'];
+
+        if (!isset($imagens[$indice])) {
+            return response()->json(['message' => 'Índice da imagem inválido'], 422);
+        }
+
+        Storage::disk('public')->delete($imagens[$indice]);
+        unset($imagens[$indice]);
+
+        $produto->imagens = array_values($imagens);
+        $produto->save();
+
+        return response()->json($produto->load(self::RELACOES));
+    }
+
+    private function salvarImagens(Request $request): array
+    {
+        $caminhos = [];
+        foreach ((array) $request->file('imagens', []) as $imagem) {
+            $caminhos[] = $imagem->store('imagens', 'public');
+        }
+
+        return $caminhos;
     }
 }

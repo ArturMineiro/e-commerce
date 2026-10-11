@@ -38,4 +38,12 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    /**
+     * Rotas /api sempre recebem JSON (inclusive 401/404/422), mesmo sem header Accept.
+     */
+    protected function shouldReturnJson($request, Throwable $e)
+    {
+        return $request->is('api/*') || parent::shouldReturnJson($request, $e);
+    }
 }

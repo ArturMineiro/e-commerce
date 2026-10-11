@@ -7,47 +7,36 @@ use Illuminate\Http\Request;
 
 class CorController extends Controller
 {
+    private function regras(): array
+    {
+        return [
+            'nome' => 'required|string|max:50',
+            'codigo_hex' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+        ];
+    }
+
     public function index()
     {
-        $cores = Cor::all();
-        return response()->json($cores);
+        return response()->json(Cor::orderBy('nome')->get());
     }
 
-    public function cadastrarCor(Request $request)
+    public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nome' => 'required|string|max:50',
-            'codigo_hex' => 'nullable|string|max:7',
-        ]);
-
-        $cor = Cor::create($validated);
-        return response()->json($cor, 201);
+        return response()->json(Cor::create($request->validate($this->regras())), 201);
     }
 
-    public function mostrarCor($id)
+    public function update(Request $request, $id)
     {
         $cor = Cor::findOrFail($id);
+        $cor->update($request->validate($this->regras()));
+
         return response()->json($cor);
     }
 
-    public function atualizarCor(Request $request, $id)
+    public function destroy($id)
     {
-        $cor = Cor::findOrFail($id);
+        Cor::findOrFail($id)->delete();
 
-        $validated = $request->validate([
-            'nome' => 'required|string|max:50',
-            'codigo_hex' => 'nullable|string|max:7',
-        ]);
-
-        $cor->update($validated);
-        return response()->json($cor);
-    }
-
-    public function apagarCor($id)
-    {
-        $cor = Cor::findOrFail($id);
-        $cor->delete();
-
-        return response()->json(['message' => 'Cor deletada com sucesso']);
+        return response()->json(['message' => 'Cor removida']);
     }
 }

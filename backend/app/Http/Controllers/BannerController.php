@@ -2,92 +2,89 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Banner;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 
 class BannerController extends Controller
 {
-    public function cadastroBanner(Request $request)
+    /** Banners ativos para a home. */
+    public function index()
     {
-        Log::info('Requisição recebida', $request->all());
-        
+        return response()->json(Banner::where('ativo', true)->orderBy('id')->get());
+    }
+
+    public function adminIndex()
+    {
+        return response()->json(Banner::orderBy('id')->get());
+    }
+
+    public function store(Request $request)
+    {
         $request->validate([
             'bannerName' => 'required|string|max:255',
-            'bannerImages' => 'required',
-            'bannerImages.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Valida cada imagem individualmente
+            'link' => 'nullable|string|max:500',
+            'bannerImages' => 'required|array|min:1',
+            'bannerImages.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
-    
-        Log::info('Validação passou');
-        
-        $imagePaths = [];
-        if ($request->hasFile('bannerImages')) {
-            foreach ($request->file('bannerImages') as $image) {
-                $imagePaths[] = $image->store('banners', 'public');
-            }
+
+        $caminhos = [];
+        foreach ($request->file('bannerImages') as $imagem) {
+            $caminhos[] = $imagem->store('banners', 'public');
         }
-        
+
         $banner = Banner::create([
             'name' => $request->input('bannerName'),
-            'image_urls' => json_encode($imagePaths),
+            'link' => $request->input('link'),
+            'image_urls' => $caminhos,
+            'ativo' => true,
         ]);
-    
-        Log::info('Banner criado', ['banner' => $banner]);
-    
-        return response()->json(['message' => 'Banners cadastrados com sucesso!', 'banner' => $banner], 201);
+
+        return response()->json($banner, 201);
     }
 
-    public function mostrarBanners()
-    {
-        $banners = Banner::all();
-        return response()->json($banners);
-    }
-
-    public function deletarBanner($id)
+    public function update(Request $request, $id)
     {
         $banner = Banner::findOrFail($id);
-    
-        $imagePaths = json_decode($banner->image_urls, true);
-        
-        foreach ($imagePaths as $imagePath) {
-            if (Storage::disk('public')->exists($imagePath)) {
-                Storage::disk('public')->delete($imagePath); // Corrigido para "exists"
-            }
+        $banner->update($request->validate([
+            'name' => 'sometimes|string|max:255',
+            'link' => 'nullable|string|max:500',
+            'ativo' => 'sometimes|boolean',
+        ]));
+
+        return response()->json($banner);
+    }
+
+    public function destroy($id)
+    {
+        $banner = Banner::findOrFail($id);
+
+        foreach ($banner->image_urls ?? [] as $caminho) {
+            Storage::disk('public')->delete($caminho);
         }
-        
+
         $banner->delete();
-    
+
         return response()->json(['message' => 'Banner excluído com sucesso!']);
     }
-    
-    public function deletarImagem(Request $request, $id)
-{
-    $banner = Banner::findOrFail($id);
-    $imagePaths = json_decode($banner->image_urls, true);
 
-    // Caminho da imagem a ser excluída
-    $imageUrl = $request->input('imageUrl');
+    public function removerImagem(Request $request, $id)
+    {
+        $banner = Banner::findOrFail($id);
+        $imageUrl = (string) $request->input('imageUrl');
+        $imagens = $banner->image_urls ?? [];
 
-    // Verifica se a imagem existe na lista de URLs
-    if (($key = array_search($imageUrl, $imagePaths)) !== false) {
-        // Remove a imagem do array
-        unset($imagePaths[$key]);
-
-        // Exclui a imagem do disco
-        if (Storage::disk('public')->exists($imageUrl)) {
-            Storage::disk('public')->delete($imageUrl);
+        $indice = array_search($imageUrl, $imagens, true);
+        if ($indice === false) {
+            return response()->json(['message' => 'Imagem não encontrada.'], 404);
         }
 
-        // Atualiza o campo 'image_urls' do banner
-        $banner->image_urls = json_encode(array_values($imagePaths)); // Reindexa o array
+        Storage::disk('public')->delete($imageUrl);
+        unset($imagens[$indice]);
+
+        $banner->image_urls = array_values($imagens);
         $banner->save();
 
-        return response()->json(['message' => 'Imagem excluída com sucesso!']);
+        return response()->json($banner);
     }
-
-    return response()->json(['message' => 'Imagem não encontrada.'], 404);
-}
-
-    
 }

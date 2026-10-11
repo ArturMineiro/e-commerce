@@ -29,6 +29,6 @@ class CreateCorsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cors');
+        Schema::dropIfExists('cores');
     }
 }

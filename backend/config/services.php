@@ -30,4 +30,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+    | Mercado Pago (Checkout Pro). O token pode vir do .env ou ser cadastrado
+    | pelo admin em Configurações (o valor do painel tem prioridade).
+    */
+    'mercadopago' => [
+        'access_token' => env('MERCADOPAGO_ACCESS_TOKEN'),
+        'webhook_secret' => env('MERCADOPAGO_WEBHOOK_SECRET'),
+        'base_url' => env('MERCADOPAGO_BASE_URL', 'https://api.mercadopago.com'),
+    ],
+
+    // URL pública do front (React), usada nos links de retorno do pagamento.
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+
 ];

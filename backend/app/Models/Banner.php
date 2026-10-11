@@ -9,5 +9,10 @@ class Banner extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'image_urls'];
+    protected $fillable = ['name', 'image_urls', 'link', 'ativo'];
+
+    protected $casts = [
+        'image_urls' => 'array',
+        'ativo' => 'boolean',
+    ];
 }

@@ -3,90 +3,118 @@
 namespace App\Http\Controllers;
 
 use App\Models\Carrinho;
+use App\Models\Modelo;
 use App\Models\Produto;
+use App\Services\PedidoService;
 use Illuminate\Http\Request;
 
 class CarrinhoController extends Controller
 {
-    public function adicionarCarrinho(Request $request)
+    public function index(PedidoService $pedidos)
     {
-        $request->validate([
-            'produto_id' => 'required|exists:produtos,id',
-            'quantidade' => 'required|integer|min:1',
+        $itens = Carrinho::with(['produto.modelos.cor', 'modelo.cor'])
+            ->where('user_id', auth('api')->id())
+            ->orderBy('id')
+            ->get()
+            ->filter(fn ($item) => $item->produto !== null)
+            ->values();
+
+        $linhas = $itens->map(function (Carrinho $item) {
+            $preco = $item->produto->precoPara($item->modelo) ?? 0;
+            $estoque = $item->modelo ? $item->modelo->quantidade : $item->produto->quantidade;
+
+            return [
+                'id' => $item->id,
+                'quantidade' => $item->quantidade,
+                'preco_unitario' => $preco,
+                'subtotal' => round($preco * $item->quantidade, 2),
+                'estoque' => $estoque,
+                'variacao' => $item->modelo ? $item->modelo->descricao() : null,
+                'modelo_id' => $item->modelo_id,
+                'produto' => $item->produto,
+            ];
+        });
+
+        $subtotal = round($linhas->sum('subtotal'), 2);
+        $frete = $linhas->isEmpty() ? 0 : $pedidos->calcularFrete($subtotal);
+
+        return response()->json([
+            'itens' => $linhas,
+            'subtotal' => $subtotal,
+            'frete' => $frete,
+            'total' => round($subtotal + $frete, 2),
         ]);
-    
-        $userId = auth()->id();
-    
-        $carrinho = Carrinho::where('user_id', $userId)
-            ->where('produto_id', $request->produto_id)
-            ->first();
-    
-        if ($carrinho) {
-            // Se já existe, apenas soma a quantidade
-            $carrinho->quantidade += $request->quantidade;
-            $carrinho->save();
-        } else {
-            // Se não existe, cria um novo registro
-            $carrinho = Carrinho::create([
-                'user_id' => $userId,
-                'produto_id' => $request->produto_id,
-                'quantidade' => $request->quantidade,
-            ]);
+    }
+
+    public function store(Request $request)
+    {
+        $dados = $request->validate([
+            'produto_id' => 'required|exists:produtos,id',
+            'modelo_id' => 'nullable|exists:modelos,id',
+            'quantidade' => 'required|integer|min:1|max:999',
+        ]);
+
+        $produto = Produto::with('modelos')->findOrFail($dados['produto_id']);
+        $modelo = isset($dados['modelo_id']) ? Modelo::find($dados['modelo_id']) : null;
+
+        if (!$produto->ativo) {
+            return response()->json(['message' => 'Produto indisponível.'], 422);
         }
-    
-        return response()->json(['message' => 'Produto adicionado ao carrinho', 'carrinho' => $carrinho]);
+        if ($modelo && $modelo->produto_id !== $produto->id) {
+            return response()->json(['message' => 'Variação inválida para este produto.'], 422);
+        }
+        if ($produto->modelos->isNotEmpty() && !$modelo) {
+            return response()->json(['message' => 'Escolha uma variação (cor/tamanho).'], 422);
+        }
+
+        $item = Carrinho::firstOrNew([
+            'user_id' => auth('api')->id(),
+            'produto_id' => $produto->id,
+            'modelo_id' => $modelo->id ?? null,
+        ]);
+
+        $novaQuantidade = ($item->exists ? $item->quantidade : 0) + $dados['quantidade'];
+        $estoque = $modelo ? $modelo->quantidade : $produto->quantidade;
+
+        if ($novaQuantidade > $estoque) {
+            return response()->json(['message' => "Estoque insuficiente (disponível: {$estoque})."], 422);
+        }
+
+        $item->quantidade = $novaQuantidade;
+        $item->save();
+
+        return response()->json(['message' => 'Produto adicionado ao carrinho', 'item' => $item], 201);
     }
-    
-    public function listarCarrinho()
+
+    public function update(Request $request, $id)
     {
-        $userId = auth()->id();
+        $dados = $request->validate(['quantidade' => 'required|integer|min:1|max:999']);
 
-        $itens = Carrinho::with('produto')->where('user_id', $userId)->get();
+        $item = Carrinho::with(['produto', 'modelo'])
+            ->where('user_id', auth('api')->id())
+            ->findOrFail($id);
 
-        return response()->json($itens);
+        $estoque = $item->modelo ? $item->modelo->quantidade : $item->produto->quantidade;
+        if ($dados['quantidade'] > $estoque) {
+            return response()->json(['message' => "Estoque insuficiente (disponível: {$estoque})."], 422);
+        }
+
+        $item->update($dados);
+
+        return response()->json(['message' => 'Quantidade atualizada']);
     }
 
-    public function removerCarrinho($produto_id)
+    public function destroy($id)
     {
-        $userId = auth()->id();
+        Carrinho::where('user_id', auth('api')->id())->whereKey($id)->delete();
 
-        Carrinho::where('user_id', $userId)->where('produto_id', $produto_id)->delete();
-
-        return response()->json(['message' => 'Produto removido do carrinho']);
+        return response()->json(['message' => 'Item removido do carrinho']);
     }
 
-    public function limparCarrinho()
+    public function limpar()
     {
-        $userId = auth()->id();
-
-        Carrinho::where('user_id', $userId)->delete();
+        Carrinho::where('user_id', auth('api')->id())->delete();
 
         return response()->json(['message' => 'Carrinho esvaziado']);
     }
-
-    public function atualizarQuantidade(Request $request)
-{
-    $request->validate([
-        'produto_id' => 'required|exists:produtos,id',
-        'quantidade' => 'required|integer|min:1',
-    ]);
-
-    $userId = auth()->id();
-
-    $carrinho = Carrinho::where('user_id', $userId)
-        ->where('produto_id', $request->produto_id)
-        ->first();
-
-    if (!$carrinho) {
-        return response()->json(['message' => 'Produto não encontrado no carrinho.'], 404);
-    }
-
-    $carrinho->quantidade = $request->quantidade;
-    $carrinho->save();
-
-    return response()->json(['message' => 'Quantidade atualizada com sucesso.', 'carrinho' => $carrinho]);
 }
-
-
-}
-

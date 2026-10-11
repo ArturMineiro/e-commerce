@@ -20,12 +20,9 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
-        'created_at',
-        'updated_at',
         'email_verified_at',
     ];
 
-    // Métodos requeridos pela interface JWTSubject
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -35,10 +32,23 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'role' => $this->role,
+            'name' => $this->name,
+            'email' => $this->email,
         ];
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     public function favoritos()
-{
-    return $this->belongsToMany(Produto::class, 'favoritos'); // Assumindo que você tem uma tabela "favoritos"
-}
+    {
+        return $this->belongsToMany(Produto::class, 'favoritos')->withTimestamps();
+    }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class);
+    }
 }

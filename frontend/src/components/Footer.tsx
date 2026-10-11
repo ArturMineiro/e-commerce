@@ -1,51 +1,88 @@
-import { FaFacebook } from "react-icons/fa";
-import { FaTwitter } from "react-icons/fa6";
-import { FaInstagram } from "react-icons/fa";
-function Footer(){
-return (
-    <footer className="bg-dark text-light py-4 mt-4">
-    <div className="container text-center">
-      <div className="row">
-        <div className="col-md-4">
-          <h5>Sobre</h5>
-          <p>e-commerce focado em vendas de roupas.</p>
-        </div>
-        <div className="col-md-4">
-          <h5>Contatos</h5>
-          <ul className="list-unstyled">
-            <li>Email: info@example.com</li>
-            <li>Telefone: +123 456 7890</li>
-          </ul>
-        </div>
-        <div className="col-md-4">
-          <h5>Siga nossos perfis</h5>
-          <ul className="list-unstyled d-flex justify-content-center mt-5">
-              <li className="mx-3">
-                <a href="#" className="text-light">
-                  <FaFacebook size={30} />
-                </a>
+import { Col, Container, Row } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { FaFacebook, FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa6";
+import { useCategorias, useConfigLoja } from "../hooks/useLoja";
+import { formatarPreco } from "../lib/api";
+import { linkRede, linkWhatsapp } from "../lib/utils";
+
+function Footer() {
+  const { data: config } = useConfigLoja();
+  const { data: categorias = [] } = useCategorias();
+
+  if (!config) return null;
+
+  const redes = [
+    { chave: "instagram" as const, valor: config.instagram, Icone: FaInstagram, nome: "Instagram" },
+    { chave: "facebook" as const, valor: config.facebook, Icone: FaFacebook, nome: "Facebook" },
+    { chave: "tiktok" as const, valor: config.tiktok, Icone: FaTiktok, nome: "TikTok" },
+  ].filter((r) => r.valor);
+
+  return (
+    <footer className="bg-loja pt-5 pb-3 mt-5">
+      <Container>
+        <Row className="gy-4">
+          <Col md={4}>
+            <h2 className="h5">{config.nome_loja}</h2>
+            {config.descricao && <p className="mb-2 opacity-75">{config.descricao}</p>}
+            {config.frete_gratis_acima > 0 && (
+              <p className="small mb-0">Frete grátis acima de {formatarPreco(config.frete_gratis_acima)}</p>
+            )}
+          </Col>
+
+          <Col md={4}>
+            <h2 className="h5">Navegue</h2>
+            <ul className="list-unstyled mb-0">
+              <li>
+                <Link to="/produtos">Todos os produtos</Link>
               </li>
-              <li className="mx-3">
-                <a href="#" className="text-light">
-                  <FaTwitter size={30} />
-                </a>
+              <li>
+                <Link to="/produtos?promocao=1">Promoções</Link>
               </li>
-              <li className="mx-3">
-                <a href="#" className="text-light">
-                  <FaInstagram size={30} />
-                </a>
-              </li>
+              {categorias.slice(0, 5).map((c) => (
+                <li key={c.id}>
+                  <Link to={`/produtos?categoria_id=${c.id}`}>{c.nome}</Link>
+                </li>
+              ))}
             </ul>
-        </div>
-      </div>
-      <div className="row mt-3">
-        <div className="col-md-12">
-          <p className="mb-0">&copy; {new Date().getFullYear()} Your Company. All rights reserved.</p>
-        </div>
-      </div>
-    </div>
-  </footer>
-)
+          </Col>
+
+          <Col md={4}>
+            <h2 className="h5">Atendimento</h2>
+            <ul className="list-unstyled mb-3">
+              {config.email && (
+                <li>
+                  <a href={`mailto:${config.email}`}>{config.email}</a>
+                </li>
+              )}
+              {config.telefone && <li>{config.telefone}</li>}
+              {config.endereco && <li className="opacity-75">{config.endereco}</li>}
+              {config.whatsapp && (
+                <li className="mt-2">
+                  <a href={linkWhatsapp(config.whatsapp)} target="_blank" rel="noreferrer">
+                    <FaWhatsapp className="me-1" /> Fale no WhatsApp
+                  </a>
+                </li>
+              )}
+            </ul>
+            {redes.length > 0 && (
+              <div className="d-flex gap-3 fs-4">
+                {redes.map(({ chave, valor, Icone, nome }) => (
+                  <a key={chave} href={linkRede(chave, valor)} target="_blank" rel="noreferrer" aria-label={nome}>
+                    <Icone />
+                  </a>
+                ))}
+              </div>
+            )}
+          </Col>
+        </Row>
+
+        <hr className="opacity-25" />
+        <p className="small text-center mb-0 opacity-75">
+          {config.texto_rodape || `© ${new Date().getFullYear()} ${config.nome_loja}. Todos os direitos reservados.`}
+        </p>
+      </Container>
+    </footer>
+  );
 }
 
-export default Footer
+export default Footer;

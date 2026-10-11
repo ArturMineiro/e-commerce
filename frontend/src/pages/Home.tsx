@@ -1,71 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import Card from "../components/Card";
-import api from '../config/axiosConfig';
-import Carroussel from '../components/Carroussel';
+import { Alert, Col, Container, Row } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import BannerCarousel from "../components/BannerCarousel";
+import ProdutoCard from "../components/ProdutoCard";
+import { Carregando } from "../components/Ui";
+import { useCategorias, useConfigLoja, useProdutos } from "../hooks/useLoja";
+import type { Produto } from "../types";
 
-interface Produto {
-  id: number;
-  nome: string;
-  descricao: string;
-  imagens: string[];
-  preco: number; // deve ser number, não string
+function GradeProdutos({ produtos }: { produtos: Produto[] }) {
+  return (
+    <Row xs={2} md={3} lg={4} className="g-3 g-md-4">
+      {produtos.map((p) => (
+        <Col key={p.id}>
+          <ProdutoCard produto={p} />
+        </Col>
+      ))}
+    </Row>
+  );
+}
+
+function Secao({ titulo, link, children }: { titulo: string; link?: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-5">
+      <div className="d-flex justify-content-between align-items-end mb-3">
+        <h2 className="h4 mb-0">{titulo}</h2>
+        {link && (
+          <Link to={link} className="text-loja">
+            Ver todos
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  );
 }
 
 function Home() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { data: config } = useConfigLoja();
+  const { data: categorias = [] } = useCategorias();
+  const { data: produtos = [], isLoading, isError } = useProdutos();
 
-  useEffect(() => {
-    const fetchProdutos = async () => {
-      try {
-        const response = await api.get<Produto[]>('/produtos');
-        // Convertendo preco para número se vier como string
-        const produtosComPrecoNumerico = response.data.map(p => ({
-          ...p,
-          preco: Number(p.preco),
-        }));
-        setProdutos(produtosComPrecoNumerico);
-      } catch (error) {
-        setErrorMessage('Erro ao buscar produtos.');
-      }
-    };
-  
-    fetchProdutos();
-  }, []);
-  
-
-  // Função para adicionar produto ao carrinho
-  const handleAddToCart = async (produtoId: number) => {
-    try {
-      // Aqui você pode definir a quantidade como 1 por padrão
-      await api.post('/adicionar-carrinho', { produto_id: produtoId, quantidade: 1 });
-
-      alert('Produto adicionado ao carrinho!');
-      // Opcional: Atualizar estado global ou emitir evento para atualizar carrinho
-    } catch (error) {
-      console.error('Erro ao adicionar ao carrinho', error);
-      alert('Erro ao adicionar produto ao carrinho.');
-    }
-  };
+  const promocoes = produtos.filter((p) => p.em_promocao).slice(0, 8);
+  const destaques = produtos.filter((p) => p.destaque).slice(0, 8);
+  const novidades = produtos.slice(0, 8);
 
   return (
-    <div className="container mt-5 ">
-      <h1 className="text-center">Home Page</h1>
-      
-      <Carroussel />
-      <h2 className="text-center mb-3">Veja nossos produtos abaixo:</h2>
+    <Container className="py-4">
+      <BannerCarousel />
 
-      {errorMessage && <p className="text-danger text-center">{errorMessage}</p>}
+      {config?.slogan && <p className="lead text-center mb-4">{config.slogan}</p>}
 
-      <div className="row justify-content-center">
-        {produtos.map((produto) => (
-          <div className="col-md-4 d-flex justify-content-center" key={produto.id}>
-            {/* Passa a função para o Card */}
-            <Card produto={produto} onAddToCart={handleAddToCart} />
-          </div>
-        ))}
-      </div>
-    </div>
+      {categorias.length > 0 && (
+        <nav aria-label="Categorias" className="d-flex flex-wrap gap-2 justify-content-center mb-5">
+          {categorias.map((c) => (
+            <Link key={c.id} to={`/produtos?categoria_id=${c.id}`} className="btn btn-outline-secondary rounded-pill">
+              {c.nome}
+            </Link>
+          ))}
+        </nav>
+      )}
+
+      {isLoading && <Carregando texto="Carregando produtos..." />}
+      {isError && <Alert variant="danger">Não foi possível carregar os produtos.</Alert>}
+
+      {!isLoading && produtos.length === 0 && !isError && (
+        <Alert variant="info" className="text-center">
+          Nenhum produto cadastrado ainda.
+        </Alert>
+      )}
+
+      {destaques.length > 0 && (
+        <Secao titulo="Destaques" link="/produtos?destaque=1">
+          <GradeProdutos produtos={destaques} />
+        </Secao>
+      )}
+
+      {promocoes.length > 0 && (
+        <Secao titulo="Promoções" link="/produtos?promocao=1">
+          <GradeProdutos produtos={promocoes} />
+        </Secao>
+      )}
+
+      {novidades.length > 0 && (
+        <Secao titulo="Novidades" link="/produtos">
+          <GradeProdutos produtos={novidades} />
+        </Secao>
+      )}
+    </Container>
   );
 }
 

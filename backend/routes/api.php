@@ -1,94 +1,105 @@
 <?php
-use App\Http\Controllers\ProdutoController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\BannerController;
-use App\Http\Controllers\FavoritoController;
-use App\Http\Controllers\CategoriaController;
-use App\Http\Controllers\CarrinhoController;
-use App\Http\Controllers\CorController;
-use App\Http\Controllers\ModeloController;
 
+use App\Http\Controllers\BannerController;
+use App\Http\Controllers\CarrinhoController;
+use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\ConfiguracaoController;
+use App\Http\Controllers\CorController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FavoritoController;
+use App\Http\Controllers\ModeloController;
+use App\Http\Controllers\PagamentoController;
+use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\ProdutoController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| Rotas públicas (vitrine)
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
 */
+Route::post('/register', [UserController::class, 'register'])->middleware('throttle:10,1');
+Route::post('/login', [UserController::class, 'login'])->middleware('throttle:10,1');
 
-    Route::post('/favoritos', [FavoritoController::class, 'adicionar']);
-    Route::delete('/remover-favoritos/{produtoId}', [FavoritoController::class, 'removerFavorito']);
-    Route::get('/listar-favoritos', [FavoritoController::class, 'listar']);
-    Route::get('/verificar-favorito/{produtoId}', [FavoritoController::class, 'verificarFavorito']);
-    Route::get('/listar-favoritos-usuario', [FavoritoController::class, 'listarPorUsuario']);
-    //categoria 
-    Route::get('/categorias', [CategoriaController::class, 'exibirCategoria']);
-    Route::post('/categorias', [CategoriaController::class, 'criarCategoria']);
-    Route::get('/categorias/buscar/{id}', [CategoriaController::class, 'mostrarCategoria']);
-    Route::put('/categorias/atualizar/{id}', [CategoriaController::class, 'atualizarCategoria']);
-    Route::delete('/categorias/excluir/{id}', [CategoriaController::class, 'excluirCategoria']);
-//Banners
-Route::post('/cadastrar-banners', [BannerController::class, 'cadastroBanner']);
-Route::get('/banners', [BannerController::class, 'mostrarBanners']);
-Route::delete('/banners/{id}', [BannerController::class, 'deletarBanner']);
-Route::post('/banners/{id}/delete-image', [BannerController::class, 'deletarImagem']);
+Route::get('/configuracoes', [ConfiguracaoController::class, 'publicas']);
+Route::get('/banners', [BannerController::class, 'index']);
+Route::get('/categorias', [CategoriaController::class, 'index']);
+Route::get('/categorias/{id}', [CategoriaController::class, 'show']);
+Route::get('/cores', [CorController::class, 'index']);
+Route::get('/produtos', [ProdutoController::class, 'index']);
+Route::get('/produtos/{id}', [ProdutoController::class, 'show']);
+Route::get('/produtos/{produtoId}/modelos', [ModeloController::class, 'listarPorProduto']);
 
-// Rotas de Produtos
-Route::get('/produtos', [ProdutoController::class, 'index']); 
-Route::get('/produtos/{id}', [ProdutoController::class, 'mostrarProdutos']); 
-Route::post('/produtos/store', [ProdutoController::class, 'criarProdutos']);
-Route::put('/produtos/update/{id}', [ProdutoController::class, 'atualizarProduto']);
-Route::delete('/produtos/delete/{id}', [ProdutoController::class, 'deletarProduto']);
-Route::delete('/produtos/{id}/imagem', [ProdutoController::class, 'deletarImagem']);
-// Adicione esta linha no seu arquivo de rotas
-Route::post('/produtos/{id}/imagens', [ProdutoController::class, 'adicionarImagens']);
+// Notificações do Mercado Pago (sem auth; a validação é feita consultando a API do MP)
+Route::post('/pagamentos/webhook', [PagamentoController::class, 'webhook']);
 
-//pesquisa
-Route::get('/search', [SearchController::class, 'search']);
-
-Route::post('/register', [UserController::class, 'register']);
-Route::post('/login', [UserController::class, 'login']);
-
-// Rotas Protegidas
-Route::middleware('auth:api')->get('/usuarios', [UserController::class, 'index']);
-
+/*
+|--------------------------------------------------------------------------
+| Cliente autenticado
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:api')->group(function () {
-    Route::post('/adicionar-carrinho', [CarrinhoController::class, 'adicionarCarrinho']);
-    Route::get('/listar-carrinho', [CarrinhoController::class, 'listarCarrinho']);
-    Route::delete('/remover-carrinho/{produto_id}', [CarrinhoController::class, 'removerCarrinho']);
-    Route::delete('/limpar-carrinho', [CarrinhoController::class, 'limparCarrinho']);
-    Route::put('/atualizar-quantidade', [CarrinhoController::class, 'atualizarQuantidade']);
+    Route::get('/me', [UserController::class, 'me']);
 
+    Route::get('/carrinho', [CarrinhoController::class, 'index']);
+    Route::post('/carrinho', [CarrinhoController::class, 'store']);
+    Route::put('/carrinho/{id}', [CarrinhoController::class, 'update']);
+    Route::delete('/carrinho/{id}', [CarrinhoController::class, 'destroy']);
+    Route::delete('/carrinho', [CarrinhoController::class, 'limpar']);
+
+    Route::get('/favoritos', [FavoritoController::class, 'index']);
+    Route::get('/favoritos/ids', [FavoritoController::class, 'ids']);
+    Route::post('/favoritos/{produtoId}', [FavoritoController::class, 'store']);
+    Route::delete('/favoritos/{produtoId}', [FavoritoController::class, 'destroy']);
+
+    Route::get('/pedidos', [PedidoController::class, 'index']);
+    Route::post('/pedidos', [PedidoController::class, 'store']);
+    Route::get('/pedidos/{id}', [PedidoController::class, 'show']);
+    Route::post('/pedidos/{id}/pagar', [PedidoController::class, 'pagar']);
+    Route::post('/pedidos/{id}/sincronizar', [PedidoController::class, 'sincronizar']);
 });
 
-// Rotas para Modelo
-Route::prefix('modelos')->group(function () {
-    Route::get('/', [ModeloController::class, 'index']);           // Listar todos os modelos
-    Route::get('/produtos/{produtoId}/modelos', [ModeloController::class, 'listarModelosPorProduto']);
+/*
+|--------------------------------------------------------------------------
+| Painel do dono da loja
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    Route::post('/criar-modelo', [ModeloController::class, 'criarModelo']);    // Criar modelo
-    Route::get('/mostrar-modelo/{id}', [ModeloController::class, 'mostrarModelo']); // Mostrar um modelo
-    Route::put('/atualizar-modelo/{id}', [ModeloController::class, 'atualizarModelo']);
-    Route::delete('/deletar-modelo/{id}', [ModeloController::class, 'deletarModelo']); // Deletar modelo
+    Route::get('/configuracoes', [ConfiguracaoController::class, 'admin']);
+    Route::post('/configuracoes', [ConfiguracaoController::class, 'atualizar']); // POST por causa do upload do logo
+
+    Route::get('/produtos', [ProdutoController::class, 'adminIndex']);
+    Route::post('/produtos', [ProdutoController::class, 'store']);
+    Route::put('/produtos/{id}', [ProdutoController::class, 'update']);
+    Route::delete('/produtos/{id}', [ProdutoController::class, 'destroy']);
+    Route::post('/produtos/{id}/imagens', [ProdutoController::class, 'adicionarImagens']);
+    Route::delete('/produtos/{id}/imagens', [ProdutoController::class, 'removerImagem']);
+
+    Route::post('/modelos', [ModeloController::class, 'store']);
+    Route::put('/modelos/{id}', [ModeloController::class, 'update']);
+    Route::delete('/modelos/{id}', [ModeloController::class, 'destroy']);
+
+    Route::post('/categorias', [CategoriaController::class, 'store']);
+    Route::put('/categorias/{id}', [CategoriaController::class, 'update']);
+    Route::delete('/categorias/{id}', [CategoriaController::class, 'destroy']);
+
+    Route::post('/cores', [CorController::class, 'store']);
+    Route::put('/cores/{id}', [CorController::class, 'update']);
+    Route::delete('/cores/{id}', [CorController::class, 'destroy']);
+
+    Route::get('/banners', [BannerController::class, 'adminIndex']);
+    Route::post('/banners', [BannerController::class, 'store']);
+    Route::put('/banners/{id}', [BannerController::class, 'update']);
+    Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
+    Route::post('/banners/{id}/remover-imagem', [BannerController::class, 'removerImagem']);
+
+    Route::get('/pedidos', [PedidoController::class, 'adminIndex']);
+    Route::get('/pedidos/{id}', [PedidoController::class, 'adminShow']);
+    Route::put('/pedidos/{id}', [PedidoController::class, 'adminUpdate']);
+
+    Route::get('/usuarios', [UserController::class, 'index']);
+    Route::put('/usuarios/{id}/role', [UserController::class, 'alterarRole']);
 });
-
-// Rotas para Cor
-Route::prefix('cores')->group(function () {
-    Route::get('/', [CorController::class, 'index']);              // Listar todas as cores
-    Route::post('/cadastrar-cor', [CorController::class, 'cadastrarCor']);      // Criar cor
-    Route::get('/mostrar-cor/{id}', [CorController::class, 'mostrarCor']);     // Mostrar cor específica
-    Route::put('/atualizar-cor/{id}', [CorController::class, 'atualizarCor']);   // Atualizar cor
-    Route::delete('/apagar-cor/{id}', [CorController::class, 'apagarCor']);   // Deletar cor
-});
-Route::get('/api/favoritos/{userId}', [ProdutoController::class, 'favoritos']);
-
-// Route::get('/test', function () {
-//     return response()->json(['message' => 'API está funcionando!']);
-// });
