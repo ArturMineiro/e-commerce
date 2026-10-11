@@ -42,6 +42,12 @@ class User extends Authenticatable implements JWTSubject
         return $this->role === 'admin';
     }
 
+    /** Usa o e-mail em português com link para o front (React). */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\RedefinirSenha($token));
+    }
+
     public function favoritos()
     {
         return $this->belongsToMany(Produto::class, 'favoritos')->withTimestamps();

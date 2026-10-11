@@ -106,6 +106,9 @@ Outras regras de acesso:
 | `MERCADOPAGO_ACCESS_TOKEN`   | vazio                         | Opcional. O ideal é o dono informar pelo painel; o valor do painel tem prioridade.          |
 | `MERCADOPAGO_WEBHOOK_SECRET` | vazio                         | Opcional, idem. Valida a assinatura das notificações.                                       |
 | `SEED_ADMIN_*`, `SEED_CLIENTE_*` | ver `.env.example`        | Nome, e-mail e senha dos usuários criados pelo seed.                                         |
+| `MAIL_MAILER`                | `log` (dev) / `smtp` (produção) | Como os e-mails saem. `log` grava em `storage/logs/laravel.log`, sem enviar de verdade.   |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION` | dados do provedor | Servidor SMTP (veja [E-mails](#e-mails)).                                 |
+| `MAIL_FROM_ADDRESS`          | vazio                         | Remetente. Vazio = e-mail da loja (Configurações) ou `nao-responda@{domínio}`.              |
 
 Depois de alterar o `.env`, rode `php artisan config:clear`.
 
@@ -122,8 +125,64 @@ Tudo pelo painel, sem mexer em código:
 - **Banners**: imagens do carrossel da home (recomendado 1600 × 500 px), com link opcional.
 - **Pedidos**: status (pago, em separação, enviado, entregue, cancelado) e código de rastreio.
   Marcar como pago baixa o estoque; cancelar devolve.
+- **Cupons**: código, desconto em % ou R$, pedido mínimo, validade e limite de usos. O desconto vale
+  sobre os produtos (não sobre o frete). Cancelar um pedido devolve o uso do cupom.
 
-Frete: valor fixo por pedido, com frete grátis acima de um valor (os dois são opcionais).
+## Frete
+
+Em Painel → Configurações da loja → Frete, escolha o modo:
+
+- **Valor fixo por pedido**: um valor único (0 = grátis).
+- **Por CEP, com Melhor Envio**: o cliente digita o CEP no checkout e escolhe entre as opções das
+  transportadoras (Correios, Jadlog, Loggi...) com preço e prazo. O preço é recalculado no servidor
+  ao fechar o pedido.
+
+Nos dois modos vale o **frete grátis acima de R$ X** (opcional; considera o desconto do cupom).
+
+Para usar o Melhor Envio:
+
+1. Crie uma conta em https://melhorenvio.com.br (para testes: https://sandbox.melhorenvio.com.br).
+2. Em *Configurações → Permissões de acesso → Tokens*, gere um token com a permissão
+   `shipping-calculate` e cole no painel. Marque "ambiente de teste" se o token for do sandbox.
+3. Informe o **CEP de onde você envia** e, se quiser, os dias para postar (somados ao prazo).
+4. Cadastre **peso e medidas** em cada produto (card "Envio"). Produtos sem medidas usam o pacote
+   padrão do painel (0,3 kg, 10 × 15 × 20 cm).
+
+Sem token ou sem CEP de origem, a loja continua usando o valor fixo automaticamente. O sistema só
+**cota** o frete: a etiqueta continua sendo comprada no site do Melhor Envio.
+
+## E-mails
+
+Enviados automaticamente:
+
+| Quando                        | Para o cliente                         | Para a loja (e-mail das Configurações) |
+| ----------------------------- | -------------------------------------- | -------------------------------------- |
+| Pedido criado                 | "Recebemos seu pedido", com os itens   | "Novo pedido"                          |
+| Pagamento confirmado          | "Pagamento confirmado"                 | "Venda paga"                           |
+| Status "enviado"              | "Pedido enviado" + código de rastreio  | —                                      |
+| Status "entregue"/"cancelado" | Aviso do status                        | —                                      |
+| "Esqueci minha senha"         | Link para criar nova senha (60 min)    | —                                      |
+
+Em desenvolvimento, com `MAIL_MAILER=log`, os e-mails vão para `backend/storage/logs/laravel.log`
+(procure por `redefinir-senha?token=` para testar a recuperação de senha). Se o servidor de e-mail
+falhar, a compra **não** é interrompida: o erro só fica registrado no log.
+
+Em produção, configure um SMTP no `.env`:
+
+```env
+# Gmail (crie uma "senha de app" em https://myaccount.google.com/apppasswords)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=sualoja@gmail.com
+MAIL_PASSWORD=senha-de-app
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=sualoja@gmail.com
+
+# Brevo, Resend, Mailgun, Hostinger etc.: use host/porta/usuário/senha SMTP do painel deles
+```
+
+Depois rode `php artisan config:clear`.
 
 ## Pagamentos (Mercado Pago Checkout Pro)
 
@@ -201,6 +260,8 @@ desenvolvimento não é tocado. As chamadas ao Mercado Pago são simuladas.
 | Configurações da loja antigas continuam aparecendo            | `php artisan cache:clear`.                                                                   |
 | Pagamento aprovado mas pedido continua "Aguardando"           | Em localhost, o cliente precisa voltar para a loja; em produção, confira o webhook.          |
 | "Pagamento online ainda não configurado"                      | Cole o Access Token em Painel → Configurações da loja.                                       |
+| E-mail não chega                                              | Em dev, veja `storage/logs/laravel.log` (`MAIL_MAILER=log`). Em produção, confira o SMTP e o spam. |
+| Frete por CEP não aparece no checkout                         | Confira token, CEP de origem e a opção "ambiente de teste". Os erros ficam no `laravel.log`. |
 | Upload de foto falha                                          | Limite de 4 MB por imagem; confira `upload_max_filesize` e `post_max_size` no `php.ini`.     |
 
 ## Estrutura

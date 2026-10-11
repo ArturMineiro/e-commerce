@@ -7,7 +7,9 @@ import type {
   Categoria,
   ConfigLoja,
   Cor,
+  CupomAplicado,
   DadosEntrega,
+  OpcaoFrete,
   Pedido,
   Produto,
   RespostaPagamento,
@@ -160,7 +162,7 @@ export const useMeusPedidos = () =>
 export const useCriarPedido = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (dados: DadosEntrega) =>
+    mutationFn: async (dados: DadosEntrega & { cupom?: string; frete_servico_id?: string }) =>
       (await api.post<{ pedido: Pedido; pagamento: RespostaPagamento }>("/pedidos", dados)).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["carrinho"] });
@@ -184,3 +186,16 @@ export const useSincronizarPedido = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["pedidos"] }),
   });
 };
+
+/* ---------------- Frete e cupom ---------------- */
+
+export const useCotarFrete = () =>
+  useMutation({
+    mutationFn: async (dados: { cep: string; cupom?: string }) =>
+      (await api.post<OpcaoFrete[]>("/carrinho/frete", dados)).data,
+  });
+
+export const useValidarCupom = () =>
+  useMutation({
+    mutationFn: async (codigo: string) => (await api.post<CupomAplicado>("/cupons/validar", { codigo })).data,
+  });

@@ -5,12 +5,14 @@ use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ConfiguracaoController;
 use App\Http\Controllers\CorController;
+use App\Http\Controllers\CupomController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\ProdutoController;
+use App\Http\Controllers\SenhaController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,8 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('/register', [UserController::class, 'register'])->middleware('throttle:10,1');
 Route::post('/login', [UserController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/esqueci-senha', [SenhaController::class, 'enviarLink'])->middleware('throttle:5,1');
+Route::post('/redefinir-senha', [SenhaController::class, 'redefinir'])->middleware('throttle:10,1');
 
 Route::get('/configuracoes', [ConfiguracaoController::class, 'publicas']);
 Route::get('/banners', [BannerController::class, 'index']);
@@ -47,6 +51,8 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/carrinho/{id}', [CarrinhoController::class, 'update']);
     Route::delete('/carrinho/{id}', [CarrinhoController::class, 'destroy']);
     Route::delete('/carrinho', [CarrinhoController::class, 'limpar']);
+    Route::post('/carrinho/frete', [CarrinhoController::class, 'cotarFrete'])->middleware('throttle:30,1');
+    Route::post('/cupons/validar', [CupomController::class, 'validar'])->middleware('throttle:20,1');
 
     Route::get('/favoritos', [FavoritoController::class, 'index']);
     Route::get('/favoritos/ids', [FavoritoController::class, 'ids']);
@@ -95,6 +101,11 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::put('/banners/{id}', [BannerController::class, 'update']);
     Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
     Route::post('/banners/{id}/remover-imagem', [BannerController::class, 'removerImagem']);
+
+    Route::get('/cupons', [CupomController::class, 'index']);
+    Route::post('/cupons', [CupomController::class, 'store']);
+    Route::put('/cupons/{id}', [CupomController::class, 'update']);
+    Route::delete('/cupons/{id}', [CupomController::class, 'destroy']);
 
     Route::get('/pedidos', [PedidoController::class, 'adminIndex']);
     Route::get('/pedidos/{id}', [PedidoController::class, 'adminShow']);

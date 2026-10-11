@@ -10,16 +10,44 @@ import { Carregando } from "../components/Ui";
 import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import type { ItemCarrinho } from "../types";
 
-export function ResumoValores({ subtotal, frete, total }: { subtotal: number; frete: number; total: number }) {
+export function ResumoValores({
+  subtotal,
+  frete,
+  total,
+  desconto = 0,
+  cupom,
+  textoFretePendente = "Calculado no checkout",
+}: {
+  subtotal: number;
+  frete: number | null;
+  total: number;
+  desconto?: number;
+  cupom?: string | null;
+  textoFretePendente?: string;
+}) {
   return (
     <dl className="mb-0">
       <div className="d-flex justify-content-between">
         <dt className="fw-normal">Subtotal</dt>
         <dd className="mb-1">{formatarPreco(subtotal)}</dd>
       </div>
+      {desconto > 0 && (
+        <div className="d-flex justify-content-between text-success">
+          <dt className="fw-normal">Desconto{cupom && ` (${cupom})`}</dt>
+          <dd className="mb-1">-{formatarPreco(desconto)}</dd>
+        </div>
+      )}
       <div className="d-flex justify-content-between">
         <dt className="fw-normal">Frete</dt>
-        <dd className="mb-1">{frete > 0 ? formatarPreco(frete) : <span className="text-success">Grátis</span>}</dd>
+        <dd className="mb-1">
+          {frete === null ? (
+            <span className="text-muted small">{textoFretePendente}</span>
+          ) : frete > 0 ? (
+            formatarPreco(frete)
+          ) : (
+            <span className="text-success">Grátis</span>
+          )}
+        </dd>
       </div>
       <hr className="my-2" />
       <div className="d-flex justify-content-between fs-5">
@@ -134,7 +162,7 @@ function CarrinhoPage() {
             <Card.Body>
               <h2 className="h5">Resumo</h2>
               <ResumoValores {...carrinho} />
-              {faltaParaFreteGratis > 0 && carrinho.frete > 0 && (
+              {faltaParaFreteGratis > 0 && carrinho.frete !== 0 && (
                 <Alert variant="info" className="small mt-3 mb-0 py-2">
                   Faltam {formatarPreco(faltaParaFreteGratis)} para ganhar frete grátis!
                 </Alert>

@@ -5,6 +5,7 @@ import type {
   Categoria,
   ConfigAdmin,
   Cor,
+  Cupom,
   Dashboard,
   Modelo,
   Paginado,
@@ -223,5 +224,30 @@ export const useAlterarRole = () => {
     mutationFn: ({ id, role }: { id: number; role: Usuario["role"] }) =>
       api.put(`/admin/usuarios/${id}/role`, { role }),
     onSuccess: () => invalidar(["admin", "usuarios"]),
+  });
+};
+
+/* ---------- Cupons ---------- */
+
+export const useCupons = () =>
+  useQuery({
+    queryKey: ["admin", "cupons"],
+    queryFn: async () => (await api.get<Cupom[]>("/admin/cupons")).data,
+  });
+
+export const useSalvarCupom = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: ({ id, ...dados }: Partial<Cupom>) =>
+      id ? api.put(`/admin/cupons/${id}`, dados) : api.post("/admin/cupons", dados),
+    onSuccess: () => invalidar(["admin", "cupons"]),
+  });
+};
+
+export const useExcluirCupom = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/cupons/${id}`),
+    onSuccess: () => invalidar(["admin", "cupons"]),
   });
 };

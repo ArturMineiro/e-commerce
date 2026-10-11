@@ -45,7 +45,12 @@ function Login() {
               <Form.Control type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
             </Form.Group>
             <Form.Group className="mb-3" controlId="login-senha">
-              <Form.Label>Senha</Form.Label>
+              <div className="d-flex justify-content-between">
+                <Form.Label>Senha</Form.Label>
+                <Link to="/esqueci-senha" className="small">
+                  Esqueci minha senha
+                </Link>
+              </div>
               <InputGroup>
                 <Form.Control
                   type={mostrarSenha ? "text" : "password"}

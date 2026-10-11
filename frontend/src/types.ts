@@ -40,6 +40,10 @@ export interface Produto {
   desconto_percentual: number;
   promocao_ate: string | null;
   quantidade: number;
+  peso: number | null;
+  altura: number | null;
+  largura: number | null;
+  comprimento: number | null;
   categoria_id: number | null;
   imagens: string[] | null;
   ativo: boolean;
@@ -71,11 +75,42 @@ export interface ItemCarrinho {
   produto: Produto;
 }
 
+export type FreteModo = "fixo" | "melhor_envio";
+
 export interface Carrinho {
   itens: ItemCarrinho[];
   subtotal: number;
-  frete: number;
+  /** null = depende do CEP (calculado no checkout) */
+  frete: number | null;
+  frete_modo: FreteModo;
   total: number;
+}
+
+export interface OpcaoFrete {
+  id: string;
+  nome: string;
+  empresa: string | null;
+  preco: number;
+  prazo: number | null;
+}
+
+export interface Cupom {
+  id: number;
+  codigo: string;
+  tipo: "percentual" | "fixo";
+  valor: number;
+  minimo_pedido: number;
+  validade_ate: string | null;
+  limite_usos: number | null;
+  usos: number;
+  ativo: boolean;
+}
+
+export interface CupomAplicado {
+  codigo: string;
+  tipo: Cupom["tipo"];
+  valor: number;
+  desconto: number;
 }
 
 export type StatusPedido =
@@ -118,7 +153,11 @@ export interface Pedido extends DadosEntrega {
   user_id: number;
   status: StatusPedido;
   subtotal: number;
+  desconto: number;
+  cupom_codigo: string | null;
   frete: number;
+  frete_servico: string | null;
+  frete_prazo: number | null;
   total: number;
   mp_payment_id: string | null;
   mp_status: string | null;
@@ -152,11 +191,21 @@ export interface ConfigLoja {
   texto_rodape: string;
   frete_fixo: number;
   frete_gratis_acima: number;
+  frete_modo: FreteModo;
   mp_public_key: string;
   pagamento_online: boolean;
 }
 
 export interface ConfigAdmin extends ConfigLoja {
+  cep_origem: string;
+  melhor_envio_sandbox: boolean;
+  frete_prazo_extra: string;
+  peso_padrao: string;
+  altura_padrao: string;
+  largura_padrao: string;
+  comprimento_padrao: string;
+  melhor_envio_token_definido: boolean;
+  melhor_envio_ativo: boolean;
   mp_access_token_definido: boolean;
   mp_webhook_secret_definido: boolean;
   webhook_url: string;

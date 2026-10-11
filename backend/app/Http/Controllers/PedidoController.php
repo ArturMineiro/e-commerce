@@ -49,6 +49,8 @@ class PedidoController extends Controller
             'cidade' => 'required|string|max:255',
             'uf' => 'required|string|size:2',
             'observacoes' => 'nullable|string|max:1000',
+            'cupom' => 'nullable|string|max:40',
+            'frete_servico_id' => 'nullable|string|max:50',
         ]);
         $dados['uf'] = strtoupper($dados['uf']);
 

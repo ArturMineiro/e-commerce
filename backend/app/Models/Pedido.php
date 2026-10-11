@@ -22,7 +22,7 @@ class Pedido extends Model
     public const STATUS_PAGOS = ['pago', 'em_separacao', 'enviado', 'entregue'];
 
     protected $fillable = [
-        'user_id', 'status', 'subtotal', 'frete', 'total',
+        'user_id', 'status', 'subtotal', 'cupom_id', 'cupom_codigo', 'desconto', 'frete', 'frete_servico', 'frete_prazo', 'total',
         'nome', 'email', 'telefone', 'cpf', 'cep', 'logradouro', 'numero',
         'complemento', 'bairro', 'cidade', 'uf', 'observacoes',
         'mp_preference_id', 'mp_payment_id', 'mp_status', 'metodo_pagamento',
@@ -32,6 +32,8 @@ class Pedido extends Model
     protected $casts = [
         'subtotal' => 'float',
         'frete' => 'float',
+        'desconto' => 'float',
+        'frete_prazo' => 'integer',
         'total' => 'float',
         'pago_em' => 'datetime',
         'estoque_baixado' => 'boolean',

@@ -70,10 +70,22 @@ class MercadoPagoService
             ];
         })->values()->all();
 
+        // Com cupom, o MP não aceita item negativo: envia os produtos como um item único já com desconto.
+        if ($pedido->desconto > 0) {
+            $quantidade = (int) $pedido->itens->sum('quantidade');
+            $itens = [[
+                'id' => 'pedido-' . $pedido->id,
+                'title' => Str::limit("Pedido #{$pedido->id} ({$quantidade} itens, cupom {$pedido->cupom_codigo})", 250),
+                'quantity' => 1,
+                'unit_price' => round($pedido->subtotal - $pedido->desconto, 2),
+                'currency_id' => 'BRL',
+            ]];
+        }
+
         if ($pedido->frete > 0) {
             $itens[] = [
                 'id' => 'frete',
-                'title' => 'Frete',
+                'title' => 'Frete' . ($pedido->frete_servico ? " ({$pedido->frete_servico})" : ''),
                 'quantity' => 1,
                 'unit_price' => (float) $pedido->frete,
                 'currency_id' => 'BRL',

@@ -36,11 +36,24 @@ class Configuracao extends Model
         'texto_rodape' => '',
         'frete_fixo' => '0',
         'frete_gratis_acima' => '0',
+        // fixo = valor único; melhor_envio = cotação por CEP (Correios, Jadlog...)
+        'frete_modo' => 'fixo',
         'mp_public_key' => '',
     ];
 
+    /** Chaves visíveis só para o admin (não vão para a vitrine). */
+    public const PRIVADAS = [
+        'cep_origem' => '',
+        'melhor_envio_sandbox' => '0',
+        'frete_prazo_extra' => '0',
+        'peso_padrao' => '0.3',
+        'altura_padrao' => '10',
+        'largura_padrao' => '15',
+        'comprimento_padrao' => '20',
+    ];
+
     /** Chaves privadas (somente backend). */
-    public const SECRETAS = ['mp_access_token', 'mp_webhook_secret'];
+    public const SECRETAS = ['mp_access_token', 'mp_webhook_secret', 'melhor_envio_token'];
 
     public static function todas(): array
     {
@@ -60,7 +73,7 @@ class Configuracao extends Model
         $valores = static::todas();
 
         if (!array_key_exists($chave, $valores) || $valores[$chave] === null || $valores[$chave] === '') {
-            return $padrao ?? (self::PUBLICAS[$chave] ?? null);
+            return $padrao ?? (self::PUBLICAS[$chave] ?? self::PRIVADAS[$chave] ?? null);
         }
 
         $valor = $valores[$chave];
@@ -96,6 +109,34 @@ class Configuracao extends Model
 
         $resultado['frete_fixo'] = (float) $resultado['frete_fixo'];
         $resultado['frete_gratis_acima'] = (float) $resultado['frete_gratis_acima'];
+
+        return $resultado;
+    }
+
+    /**
+     * Remetente dos e-mails: MAIL_FROM_ADDRESS do .env ou, se vazio, o e-mail da loja.
+     * O nome exibido é sempre o nome da loja.
+     */
+    public static function remetente(): array
+    {
+        $nome = static::obter('nome_loja', config('app.name'));
+        // O rodapé padrão dos e-mails do Laravel usa app.name: troca pelo nome da loja.
+        config(['app.name' => $nome]);
+
+        $host = parse_url(config('app.url'), PHP_URL_HOST) ?: 'localhost';
+        $endereco = config('mail.from.address') ?: (static::obter('email') ?: "nao-responda@{$host}");
+
+        return [$endereco, $nome];
+    }
+
+    /** Configurações exclusivas do painel (sem segredos). */
+    public static function privadas(): array
+    {
+        $resultado = [];
+        foreach (self::PRIVADAS as $chave => $padrao) {
+            $resultado[$chave] = static::obter($chave, $padrao);
+        }
+        $resultado['melhor_envio_sandbox'] = (bool) $resultado['melhor_envio_sandbox'];
 
         return $resultado;
     }

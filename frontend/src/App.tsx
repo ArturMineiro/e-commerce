@@ -17,6 +17,8 @@ import MeusPedidos from "./pages/MeusPedidos";
 import Favoritos from "./pages/Favoritos";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EsqueciSenha from "./pages/EsqueciSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 
 // O painel só é baixado por quem acessa /admin
 const AdminLayout = lazy(() => import("./admin/AdminLayout"));
@@ -27,6 +29,7 @@ const ProdutoForm = lazy(() => import("./admin/ProdutoForm"));
 const Categorias = lazy(() => import("./admin/Categorias"));
 const Cores = lazy(() => import("./admin/Cores"));
 const Banners = lazy(() => import("./admin/Banners"));
+const Cupons = lazy(() => import("./admin/Cupons"));
 const PedidosAdmin = lazy(() => import("./admin/PedidosAdmin"));
 const Usuarios = lazy(() => import("./admin/Usuarios"));
 
@@ -59,6 +62,8 @@ function App() {
             <Route path="/carrinho" element={<Carrinho />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/pagamento/retorno" element={<ProtectedRoute><PagamentoRetorno /></ProtectedRoute>} />
             <Route path="/meus-pedidos" element={<ProtectedRoute><MeusPedidos /></ProtectedRoute>} />
@@ -74,6 +79,7 @@ function App() {
               <Route path="categorias" element={<Categorias />} />
               <Route path="cores" element={<Cores />} />
               <Route path="banners" element={<Banners />} />
+              <Route path="cupons" element={<Cupons />} />
               <Route path="usuarios" element={<Usuarios />} />
               <Route path="configuracoes" element={<Configuracoes />} />
             </Route>

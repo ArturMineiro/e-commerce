@@ -56,7 +56,16 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
         <div className="col-md-6 small text-md-end">
           Subtotal: {formatarPreco(pedido.subtotal)}
           <br />
-          Frete: {pedido.frete > 0 ? formatarPreco(pedido.frete) : "Grátis"}
+          {pedido.desconto > 0 && (
+            <>
+              <span className="text-success">
+                Desconto{pedido.cupom_codigo && ` (${pedido.cupom_codigo})`}: -{formatarPreco(pedido.desconto)}
+              </span>
+              <br />
+            </>
+          )}
+          Frete{pedido.frete_servico && ` (${pedido.frete_servico})`}: {pedido.frete > 0 ? formatarPreco(pedido.frete) : "Grátis"}
+          {pedido.frete_prazo && <span className="text-muted"> · até {pedido.frete_prazo} dias úteis</span>}
           <br />
           <strong className="fs-6">Total: {formatarPreco(pedido.total)}</strong>
         </div>

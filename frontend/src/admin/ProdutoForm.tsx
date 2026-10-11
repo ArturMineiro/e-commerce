@@ -23,6 +23,10 @@ interface DadosProduto {
   categoria_id: string;
   preco: string;
   quantidade: string;
+  peso: string;
+  altura: string;
+  largura: string;
+  comprimento: string;
   desconto_percentual: string;
   promocao_ate: string;
   ativo: boolean;
@@ -43,6 +47,10 @@ const vazio: DadosProduto = {
   categoria_id: "",
   preco: "",
   quantidade: "0",
+  peso: "",
+  altura: "",
+  largura: "",
+  comprimento: "",
   desconto_percentual: "",
   promocao_ate: "",
   ativo: true,
@@ -56,6 +64,10 @@ function paraFormulario(p: Produto): DadosProduto {
     categoria_id: p.categoria_id ? String(p.categoria_id) : "",
     preco: p.preco !== null ? String(p.preco) : "",
     quantidade: String(p.quantidade ?? 0),
+    peso: p.peso ? String(p.peso) : "",
+    altura: p.altura ? String(p.altura) : "",
+    largura: p.largura ? String(p.largura) : "",
+    comprimento: p.comprimento ? String(p.comprimento) : "",
     desconto_percentual: p.desconto_percentual ? String(p.desconto_percentual) : "",
     promocao_ate: p.promocao_ate ? p.promocao_ate.slice(0, 10) : "",
     ativo: p.ativo,
@@ -239,6 +251,10 @@ function ProdutoForm() {
     categoria_id: dados.categoria_id ? Number(dados.categoria_id) : null,
     preco: precoNum,
     quantidade: Number(dados.quantidade || 0),
+    peso: dados.peso ? Number(dados.peso) : null,
+    altura: dados.altura ? Number(dados.altura) : null,
+    largura: dados.largura ? Number(dados.largura) : null,
+    comprimento: dados.comprimento ? Number(dados.comprimento) : null,
     desconto_percentual: descontoNum,
     promocao_ate: dados.promocao_ate ? `${dados.promocao_ate} 23:59:59` : null,
     ativo: dados.ativo,
@@ -481,6 +497,32 @@ function ProdutoForm() {
                   <Form.Text>Com variações, o estoque é controlado em cada uma delas.</Form.Text>
                 </Form.Group>
               )}
+            </Card.Body>
+          </Card>
+
+          <Card className="border-0 shadow-sm mb-4">
+            <Card.Body>
+              <h2 className="h5 mb-1">Envio</h2>
+              <p className="small text-muted">
+                Peso e medidas da embalagem, usados no frete por CEP. Vazio = usa o padrão da loja.
+              </p>
+              <Row className="g-2">
+                {(
+                  [
+                    ["peso", "Peso (kg)", "0.001"],
+                    ["altura", "Altura (cm)", "0.1"],
+                    ["largura", "Largura (cm)", "0.1"],
+                    ["comprimento", "Compr. (cm)", "0.1"],
+                  ] as const
+                ).map(([nome, rotulo, passo]) => (
+                  <Col xs={6} key={nome}>
+                    <Form.Group controlId={`p-${nome}`}>
+                      <Form.Label className="small">{rotulo}</Form.Label>
+                      <Form.Control type="number" min={0} step={passo} name={nome} value={dados[nome]} onChange={alterar} size="sm" />
+                    </Form.Group>
+                  </Col>
+                ))}
+              </Row>
             </Card.Body>
           </Card>
 

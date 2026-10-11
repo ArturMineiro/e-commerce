@@ -8,6 +8,7 @@ import {
   FaPalette,
   FaReceipt,
   FaTags,
+  FaTicket,
   FaUsers,
   FaStore,
 } from "react-icons/fa6";
@@ -19,6 +20,7 @@ const itens = [
   { to: "/admin/categorias", texto: "Categorias", Icone: FaTags },
   { to: "/admin/cores", texto: "Cores", Icone: FaPalette },
   { to: "/admin/banners", texto: "Banners", Icone: FaImages },
+  { to: "/admin/cupons", texto: "Cupons", Icone: FaTicket },
   { to: "/admin/usuarios", texto: "Clientes", Icone: FaUsers },
   { to: "/admin/configuracoes", texto: "Configurações da loja", Icone: FaGear },
 ];

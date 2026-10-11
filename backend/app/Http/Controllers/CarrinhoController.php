@@ -5,45 +5,50 @@ namespace App\Http\Controllers;
 use App\Models\Carrinho;
 use App\Models\Modelo;
 use App\Models\Produto;
+use App\Services\FreteService;
 use App\Services\PedidoService;
 use Illuminate\Http\Request;
 
 class CarrinhoController extends Controller
 {
-    public function index(PedidoService $pedidos)
+    public function index(PedidoService $pedidos, FreteService $frete)
     {
-        $itens = Carrinho::with(['produto.modelos.cor', 'modelo.cor'])
-            ->where('user_id', auth('api')->id())
-            ->orderBy('id')
-            ->get()
-            ->filter(fn ($item) => $item->produto !== null)
-            ->values();
+        $itens = $pedidos->itensDoCarrinho(auth('api')->user());
 
-        $linhas = $itens->map(function (Carrinho $item) {
-            $preco = $item->produto->precoPara($item->modelo) ?? 0;
-            $estoque = $item->modelo ? $item->modelo->quantidade : $item->produto->quantidade;
-
-            return [
-                'id' => $item->id,
-                'quantidade' => $item->quantidade,
-                'preco_unitario' => $preco,
-                'subtotal' => round($preco * $item->quantidade, 2),
-                'estoque' => $estoque,
-                'variacao' => $item->modelo ? $item->modelo->descricao() : null,
-                'modelo_id' => $item->modelo_id,
-                'produto' => $item->produto,
-            ];
-        });
+        $linhas = $itens->map(fn (Carrinho $item) => [
+            'id' => $item->id,
+            'quantidade' => $item->quantidade,
+            'preco_unitario' => $item->preco_unitario,
+            'subtotal' => $item->subtotal,
+            'estoque' => $item->estoque,
+            'variacao' => $item->modelo ? $item->modelo->descricao() : null,
+            'modelo_id' => $item->modelo_id,
+            'produto' => $item->produto,
+        ]);
 
         $subtotal = round($linhas->sum('subtotal'), 2);
-        $frete = $linhas->isEmpty() ? 0 : $pedidos->calcularFrete($subtotal);
+        $modo = $frete->modo();
+        // No modo Melhor Envio o frete depende do CEP: é calculado no checkout.
+        $valorFrete = $linhas->isEmpty() ? 0 : ($modo === 'fixo' ? $frete->valorFixo($subtotal) : null);
 
         return response()->json([
             'itens' => $linhas,
             'subtotal' => $subtotal,
-            'frete' => $frete,
-            'total' => round($subtotal + $frete, 2),
+            'frete' => $valorFrete,
+            'frete_modo' => $modo,
+            'total' => round($subtotal + ($valorFrete ?? 0), 2),
         ]);
+    }
+
+    /** Opções de frete para o CEP informado (POST /carrinho/frete {cep, cupom?}). */
+    public function cotarFrete(Request $request, PedidoService $pedidos)
+    {
+        $dados = $request->validate([
+            'cep' => ['required', 'string', 'regex:/^\d{5}-?\d{3}$/'],
+            'cupom' => 'nullable|string|max:40',
+        ]);
+
+        return response()->json($pedidos->cotarFrete(auth('api')->user(), $dados['cep'], $dados['cupom'] ?? null));
     }
 
     public function store(Request $request)
