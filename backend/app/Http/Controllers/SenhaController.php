@@ -15,7 +15,7 @@ class SenhaController extends Controller
 {
     public function enviarLink(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate(['email' => 'required|email:rfc,filter']);
 
         try {
             $status = Password::sendResetLink($request->only('email'));
@@ -38,7 +38,7 @@ class SenhaController extends Controller
     {
         $request->validate([
             'token' => 'required|string',
-            'email' => 'required|email',
+            'email' => 'required|email:rfc,filter',
             'password' => 'required|string|min:8|confirmed',
         ]);
 

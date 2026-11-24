@@ -128,7 +128,7 @@ class CatalogoAvancadoTest extends TestCase
 
         $original = $this->actingAs($admin, 'api')->post('/api/admin/produtos', [
             'nome' => 'Saree de Seda', 'preco' => 650, 'ativo' => 1,
-            'imagens' => [UploadedFile::fake()->create('a.jpg', 10, 'image/jpeg'), UploadedFile::fake()->create('b.jpg', 10, 'image/jpeg')],
+            'imagens' => [UploadedFile::fake()->createWithContent('a.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')), UploadedFile::fake()->createWithContent('b.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='))],
             'imagens_cor' => [1 => $cor->id],
             'especificacoes' => [$esp->id => ['Saree']],
             'modelos' => [['cor_id' => $cor->id, 'tamanho' => 'Único', 'quantidade' => 3]],

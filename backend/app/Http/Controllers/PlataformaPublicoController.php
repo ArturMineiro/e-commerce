@@ -83,7 +83,7 @@ class PlataformaPublicoController extends Controller
             'fonte_texto' => ['nullable', Rule::in(array_keys(Fontes::LISTA))],
             'estilo_cantos' => 'nullable|in:reto,suave,arredondado',
             'dono_nome' => 'required|string|max:255',
-            'dono_email' => 'required|email|max:255',
+            'dono_email' => 'required|email:rfc,filter|max:255',
             'dono_senha' => 'required|string|min:8|max:100',
             'aceite' => 'accepted',
         ], [

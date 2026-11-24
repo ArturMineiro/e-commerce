@@ -9,6 +9,7 @@ use App\Services\MercadoPagoService;
 use App\Services\PagamentoService;
 use App\Services\PixService;
 use App\Services\StripeService;
+use App\Support\Imagens;
 use App\Support\LojaAtual;
 use App\Services\ModeloLojaService;
 use App\Support\Fontes;
@@ -80,7 +81,7 @@ class ConfiguracaoController extends Controller
             'descricao' => 'nullable|string|max:1000',
             'cor_primaria' => $cor,
             'cor_secundaria' => $cor,
-            'email' => 'nullable|email|max:150',
+            'email' => 'nullable|email:rfc,filter|max:150',
             'telefone' => 'nullable|string|max:30',
             'whatsapp' => 'nullable|string|max:30',
             'endereco' => 'nullable|string|max:255',
@@ -129,7 +130,7 @@ class ConfiguracaoController extends Controller
             'stripe_webhook_secret' => ['nullable', 'string', 'max:255', 'regex:/^whsec_[A-Za-z0-9]+$/'],
             'remover_stripe' => 'nullable|boolean',
             'remover_melhor_envio_token' => 'nullable|boolean',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
+            'logo' => 'nullable|' . Imagens::regra(2048),
             'remover_logo' => 'nullable|boolean',
 
             // Aparência
@@ -209,7 +210,7 @@ class ConfiguracaoController extends Controller
             if ($logoAtual) {
                 Storage::disk('public')->delete($logoAtual);
             }
-            Configuracao::definir('logo', $request->hasFile('logo') ? $request->file('logo')->store(LojaAtual::pasta('logo'), 'public') : null);
+            Configuracao::definir('logo', $request->hasFile('logo') ? Imagens::salvar($request->file('logo'), 'logo', 'logo') : null);
         }
 
         return $this->admin();

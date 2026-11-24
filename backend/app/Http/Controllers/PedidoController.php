@@ -50,7 +50,7 @@ class PedidoController extends Controller
 
         $dados = $request->validate([
             'nome' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email:rfc,filter|max:255',
             'telefone' => 'required|string|max:30',
             'cpf' => ['nullable', 'string', 'regex:/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/'],
             'cep' => [$endereco, 'string', 'regex:/^\d{5}-?\d{3}$/'],

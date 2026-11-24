@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cor;
 use App\Models\Especificacao;
 use App\Models\Produto;
+use App\Support\Imagens;
 use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -128,7 +129,7 @@ class ProdutoController extends Controller
     {
         $dados = $request->validate($this->regras(true) + [
             'imagens' => 'nullable|array|max:20',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'imagens.*' => Imagens::regra(),
             'imagens_cor' => 'nullable|array',
             'imagens_cor.*' => ['nullable', LojaAtual::existe('cores')],
             'modelos' => 'nullable|array|max:300',
@@ -256,7 +257,7 @@ class ProdutoController extends Controller
 
         $request->validate([
             'imagens' => 'required|array|max:20',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'imagens.*' => Imagens::regra(),
             'imagens_cor' => 'nullable|array',
             'imagens_cor.*' => ['nullable', LojaAtual::existe('cores')],
         ]);
@@ -304,7 +305,7 @@ class ProdutoController extends Controller
         $corPorIndice = (array) $request->input('imagens_cor', []);
 
         foreach ((array) $request->file('imagens', []) as $indice => $imagem) {
-            $caminho = $imagem->store(LojaAtual::pasta('produtos'), 'public');
+            $caminho = Imagens::salvar($imagem, 'produtos');
             $caminhos[] = $caminho;
             if (!empty($corPorIndice[$indice])) {
                 $cores[$caminho] = (int) $corPorIndice[$indice];

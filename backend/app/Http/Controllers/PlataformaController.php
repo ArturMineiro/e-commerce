@@ -82,7 +82,7 @@ class PlataformaController extends Controller
     {
         $dados = $request->validate($this->regras() + [
             'dono_nome' => 'required|string|max:255',
-            'dono_email' => 'required|email|max:255',
+            'dono_email' => 'required|email:rfc,filter|max:255',
             'dono_senha' => 'required|string|min:8',
             'modelo' => ['nullable', 'string', function ($atributo, $valor, $falhar) {
                 if (!app(ModeloLojaService::class)->existe($valor)) {

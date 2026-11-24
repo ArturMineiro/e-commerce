@@ -110,7 +110,7 @@ function Configuracoes() {
                       )}
                       <Form.Control
                         type="file"
-                        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                        accept="image/png,image/jpeg,image/webp"
                         onChange={(e) => setLogo((e.target as HTMLInputElement).files?.[0] ?? null)}
                       />
                     </div>
