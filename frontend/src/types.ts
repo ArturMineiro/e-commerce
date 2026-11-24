@@ -195,19 +195,48 @@ export interface Pedido extends DadosEntrega {
   frete_servico: string | null;
   frete_prazo: number | null;
   total: number;
+  forma_pagamento: FormaPagamentoId | null;
   mp_payment_id: string | null;
   mp_status: string | null;
+  stripe_payment_intent?: string | null;
   metodo_pagamento: string | null;
   pago_em: string | null;
+  pagamento_informado_em: string | null;
   codigo_rastreio: string | null;
   created_at: string;
   itens: PedidoItem[];
   user?: Pick<Usuario, "id" | "name" | "email">;
 }
 
+export type FormaPagamentoId = "pix" | "cartao" | "mercado_pago" | "combinar";
+
+/** Forma de pagamento ativa na loja (aparece no checkout). */
+export interface FormaPagamento {
+  id: Exclude<FormaPagamentoId, "combinar">;
+  nome: string;
+  descricao: string;
+}
+
+/** Pix Copia e Cola de um pedido (o mesmo texto vira o QR Code). */
+export interface PixPedido {
+  copia_e_cola: string;
+  valor: number;
+  recebedor: string;
+  cidade: string;
+  tipo_chave: string | null;
+  identificador: string;
+}
+
 export interface RespostaPagamento {
+  tipo: FormaPagamentoId;
   url: string | null;
   mensagem: string | null;
+  pix: PixPedido | null;
+}
+
+export interface RespostaPixPedido {
+  pedido: Pick<Pedido, "id" | "status" | "total" | "forma_pagamento" | "pago_em" | "pagamento_informado_em" | "created_at">;
+  pix: PixPedido | null;
 }
 
 export interface ConfigLoja {
@@ -230,6 +259,7 @@ export interface ConfigLoja {
   frete_modo: FreteModo;
   mp_public_key: string;
   pagamento_online: boolean;
+  formas_pagamento: FormaPagamento[];
   fonte_titulos: string;
   fonte_texto: string;
   fonte_titulos_css: string;
@@ -254,6 +284,19 @@ export interface ConfigAdmin extends ConfigLoja {
   mp_access_token_definido: boolean;
   mp_webhook_secret_definido: boolean;
   webhook_url: string;
+  mercado_pago_ativo: boolean;
+  pix_ativo: boolean;
+  pix_tipo: string;
+  pix_chave: string;
+  pix_nome: string;
+  pix_cidade: string;
+  pix_configurado: boolean;
+  pix_tipos: Record<string, string>;
+  stripe_ativo: boolean;
+  stripe_modo_teste: boolean;
+  stripe_secret_key_definido: boolean;
+  stripe_webhook_secret_definido: boolean;
+  stripe_webhook_url: string;
 }
 
 export interface Dashboard {

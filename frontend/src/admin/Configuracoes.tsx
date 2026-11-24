@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Badge, Button, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { useConfigAdmin, useSalvarConfig } from "../hooks/useAdmin";
 import { useToast } from "../components/Toast";
 import { Carregando } from "../components/Ui";
@@ -20,8 +21,6 @@ function Configuracoes() {
   const [campos, setCampos] = useState<CamposTexto | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
   const [removerLogo, setRemoverLogo] = useState(false);
-  const [accessToken, setAccessToken] = useState("");
-  const [webhookSecret, setWebhookSecret] = useState("");
   const [tokenMelhorEnvio, setTokenMelhorEnvio] = useState("");
   const [sandbox, setSandbox] = useState(false);
 
@@ -44,14 +43,12 @@ function Configuracoes() {
     const form = new FormData();
     const chaves: (keyof CamposTexto)[] = [
       "nome_loja", "slogan", "descricao", "cor_primaria", "cor_secundaria", "email", "telefone", "whatsapp",
-      "endereco", "instagram", "facebook", "tiktok", "texto_rodape", "frete_fixo", "frete_gratis_acima", "mp_public_key",
+      "endereco", "instagram", "facebook", "tiktok", "texto_rodape", "frete_fixo", "frete_gratis_acima",
       "frete_modo", "cep_origem", "frete_prazo_extra", "peso_padrao", "altura_padrao", "largura_padrao", "comprimento_padrao",
     ];
     chaves.forEach((chave) => form.append(chave, String(campos[chave] ?? "")));
     if (logo) form.append("logo", logo);
     if (removerLogo) form.append("remover_logo", "1");
-    if (accessToken.trim()) form.append("mp_access_token", accessToken.trim());
-    if (webhookSecret.trim()) form.append("mp_webhook_secret", webhookSecret.trim());
     if (tokenMelhorEnvio.trim()) form.append("melhor_envio_token", tokenMelhorEnvio.trim());
     form.append("melhor_envio_sandbox", sandbox ? "1" : "0");
     Object.entries(extras).forEach(([k, v]) => form.append(k, v));
@@ -61,8 +58,6 @@ function Configuracoes() {
         notificar("Configurações salvas!");
         setLogo(null);
         setRemoverLogo(false);
-        setAccessToken("");
-        setWebhookSecret("");
         setTokenMelhorEnvio("");
       },
       onError: (erro) => notificar(mensagemErro(erro), "danger"),
@@ -252,88 +247,19 @@ function Configuracoes() {
           </Card>
 
           <Card className="border-0 shadow-sm">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2 className="h5 mb-0">Recebimento (Mercado Pago)</h2>
-                {config.pagamento_online ? <Badge bg="success">Conectado</Badge> : <Badge bg="secondary">Desativado</Badge>}
-              </div>
-
-              <Alert variant="light" className="border small">
-                <p className="mb-2">
-                  Os clientes pagam com <strong>Pix, cartão ou boleto</strong> no ambiente do Mercado Pago e o dinheiro cai
-                  direto na <strong>sua conta Mercado Pago</strong>. Para conectar:
+            <Card.Body className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+              <div>
+                <h2 className="h5 mb-1">Pagamentos</h2>
+                <p className="small text-muted mb-0">
+                  {config.formas_pagamento.length
+                    ? `Ativos: ${config.formas_pagamento.map((f) => f.nome).join(", ")}.`
+                    : "Nenhuma forma de pagamento ativa."}{" "}
+                  Pix, cartão (Stripe) e Mercado Pago ficam em Pagamentos.
                 </p>
-                <ol className="mb-2 ps-3">
-                  <li>
-                    Acesse{" "}
-                    <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noreferrer">
-                      Mercado Pago Developers → Suas integrações
-                    </a>{" "}
-                    e crie uma aplicação (Checkout Pro).
-                  </li>
-                  <li>
-                    Em <em>Credenciais de produção</em>, copie o <strong>Access Token</strong> (começa com <code>APP_USR-</code>) e cole abaixo.
-                    Para testar sem dinheiro real, use as credenciais de teste.
-                  </li>
-                  <li>
-                    Em <em>Webhooks</em>, cadastre a URL abaixo com o evento <strong>Pagamentos</strong> e copie a
-                    <strong> assinatura secreta</strong>.
-                  </li>
-                </ol>
-                <InputGroup size="sm">
-                  <InputGroup.Text>Webhook</InputGroup.Text>
-                  <Form.Control readOnly value={config.webhook_url} aria-label="URL do webhook" />
-                  <Button variant="outline-secondary" onClick={() => navigator.clipboard?.writeText(config.webhook_url)}>
-                    Copiar
-                  </Button>
-                </InputGroup>
-                {!config.webhook_url.startsWith("https://") && (
-                  <p className="text-danger mt-2 mb-0">
-                    O Mercado Pago só envia notificações para endereços públicos com HTTPS. Em localhost a confirmação
-                    acontece quando o cliente volta para a loja após pagar.
-                  </p>
-                )}
-              </Alert>
-
-              <Form.Group className="mb-3" controlId="cfg-mp-token">
-                <Form.Label>
-                  Access Token {config.mp_access_token_definido && <Badge bg="success">salvo</Badge>}
-                </Form.Label>
-                <Form.Control
-                  type="password"
-                  autoComplete="off"
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
-                  placeholder={config.mp_access_token_definido ? "•••••••• (deixe vazio para manter)" : "APP_USR-..."}
-                />
-                <Form.Text>Fica guardado criptografado no servidor e nunca é exibido novamente.</Form.Text>
-              </Form.Group>
-
-              <Form.Group className="mb-3" controlId="cfg-mp-secret">
-                <Form.Label>
-                  Assinatura secreta do webhook {config.mp_webhook_secret_definido && <Badge bg="success">salva</Badge>}
-                </Form.Label>
-                <Form.Control
-                  type="password"
-                  autoComplete="off"
-                  value={webhookSecret}
-                  onChange={(e) => setWebhookSecret(e.target.value)}
-                  placeholder={config.mp_webhook_secret_definido ? "•••••••• (deixe vazio para manter)" : "Opcional, recomendado"}
-                />
-              </Form.Group>
-
-              {texto("mp_public_key", "Public Key (opcional)", { placeholder: "APP_USR-..." })}
-
-              {config.mp_access_token_definido && (
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  className="mt-3"
-                  onClick={(e) => enviar(e as unknown as React.FormEvent, { remover_mp_access_token: "1" })}
-                >
-                  Desconectar Mercado Pago
-                </Button>
-              )}
+              </div>
+              <Link to="/admin/pagamentos" className="btn btn-outline-secondary btn-sm">
+                Abrir Pagamentos
+              </Link>
             </Card.Body>
           </Card>
         </Col>

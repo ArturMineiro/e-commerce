@@ -14,6 +14,8 @@ import type {
   Pedido,
   Produto,
   RespostaPagamento,
+  RespostaPixPedido,
+  FormaPagamentoId,
 } from "../types";
 
 /* ---------------- Vitrine (público) ---------------- */
@@ -186,7 +188,7 @@ export const useMeusPedidos = () =>
 export const useCriarPedido = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (dados: DadosEntrega & { cupom?: string; frete_servico_id?: string }) =>
+    mutationFn: async (dados: DadosEntrega & { cupom?: string; frete_servico_id?: string; forma_pagamento?: FormaPagamentoId }) =>
       (await api.post<{ pedido: Pedido; pagamento: RespostaPagamento }>("/pedidos", dados)).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["carrinho"] });
@@ -195,19 +197,48 @@ export const useCriarPedido = () => {
   });
 };
 
-export const usePagarPedido = () =>
-  useMutation({
-    mutationFn: async (id: number) =>
-      (await api.post<RespostaPagamento>(`/pedidos/${id}/pagar`)).data,
+/** Inicia de novo o pagamento (pode trocar a forma: ex. de cartão para Pix). */
+export const usePagarPedido = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, forma }: { id: number; forma?: FormaPagamentoId }) =>
+      (await api.post<RespostaPagamento>(`/pedidos/${id}/pagar`, { forma_pagamento: forma })).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["pedidos"] }),
   });
+};
 
 export const useSincronizarPedido = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, paymentId }: { id: number | string; paymentId?: string | null }) =>
-      (await api.post<Pedido>(`/pedidos/${id}/sincronizar`, { payment_id: paymentId || undefined }))
-        .data,
+    mutationFn: async ({ id, paymentId, sessionId }: { id: number | string; paymentId?: string | null; sessionId?: string | null }) =>
+      (
+        await api.post<Pedido>(`/pedidos/${id}/sincronizar`, {
+          payment_id: paymentId || undefined,
+          session_id: sessionId || undefined,
+        })
+      ).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["pedidos"] }),
+  });
+};
+
+/** Pix do pedido; enquanto aguarda, consulta a cada 8 s para mostrar quando a loja confirmar. */
+export const usePixPedido = (id: number | string | undefined) =>
+  useQuery({
+    queryKey: ["pedidos", Number(id), "pix"],
+    queryFn: async () => (await api.get<RespostaPixPedido>(`/pedidos/${id}/pix`)).data,
+    enabled: !!id,
+    refetchInterval: (q) => (q.state.data?.pedido.status === "aguardando_pagamento" ? 8000 : false),
+    refetchIntervalInBackground: false,
+  });
+
+export const useInformarPix = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => (await api.post<RespostaPixPedido["pedido"]>(`/pedidos/${id}/pix/informar`)).data,
+    onSuccess: (_d, id) => {
+      qc.invalidateQueries({ queryKey: ["pedidos", id, "pix"] });
+      qc.invalidateQueries({ queryKey: ["pedidos"], exact: true });
+    },
   });
 };
 

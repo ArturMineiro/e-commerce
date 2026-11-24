@@ -24,6 +24,7 @@ class Pedido extends Model
 
     protected $fillable = [
         'user_id', 'status', 'subtotal', 'cupom_id', 'cupom_codigo', 'desconto', 'frete', 'frete_servico', 'frete_prazo', 'total',
+        'forma_pagamento',
         'nome', 'email', 'telefone', 'cpf', 'cep', 'logradouro', 'numero',
         'complemento', 'bairro', 'cidade', 'uf', 'observacoes',
         'mp_preference_id', 'mp_payment_id', 'mp_status', 'metodo_pagamento',
@@ -37,10 +38,11 @@ class Pedido extends Model
         'frete_prazo' => 'integer',
         'total' => 'float',
         'pago_em' => 'datetime',
+        'pagamento_informado_em' => 'datetime',
         'estoque_baixado' => 'boolean',
     ];
 
-    protected $hidden = ['mp_preference_id'];
+    protected $hidden = ['mp_preference_id', 'stripe_session_id'];
 
     public function itens()
     {

@@ -37,6 +37,9 @@ const PedidosAdmin = lazy(() => import("./admin/PedidosAdmin"));
 const Usuarios = lazy(() => import("./admin/Usuarios"));
 const Aparencia = lazy(() => import("./admin/Aparencia"));
 const OpcoesProduto = lazy(() => import("./admin/OpcoesProduto"));
+const Pagamentos = lazy(() => import("./admin/Pagamentos"));
+// Tela do Pix (traz a biblioteca do QR Code só quando usada)
+const PagamentoPix = lazy(() => import("./pages/PagamentoPix"));
 
 function NaoEncontrado() {
   return (
@@ -112,6 +115,7 @@ function App() {
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/pagamento/retorno" element={<ProtectedRoute><PagamentoRetorno /></ProtectedRoute>} />
             <Route path="/meus-pedidos" element={<ProtectedRoute><MeusPedidos /></ProtectedRoute>} />
+            <Route path="/pedido/:id/pix" element={<ProtectedRoute><PagamentoPix /></ProtectedRoute>} />
             <Route path="/favoritos" element={<ProtectedRoute><Favoritos /></ProtectedRoute>} />
 
             {/* Painel do dono da loja */}
@@ -127,6 +131,7 @@ function App() {
               <Route path="cupons" element={<Cupons />} />
               <Route path="usuarios" element={<Usuarios />} />
               <Route path="configuracoes" element={<Configuracoes />} />
+              <Route path="pagamentos" element={<Pagamentos />} />
               <Route path="aparencia" element={<Aparencia />} />
               <Route path="opcoes-produto" element={<OpcoesProduto />} />
             </Route>

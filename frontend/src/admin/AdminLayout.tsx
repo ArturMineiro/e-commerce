@@ -2,6 +2,7 @@ import { Col, Container, Nav, Row } from "react-bootstrap";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   FaBoxOpen,
+  FaMoneyBillWave,
   FaListCheck,
   FaWandMagicSparkles,
   FaGauge,
@@ -25,6 +26,7 @@ const itens = [
   { to: "/admin/banners", texto: "Banners", Icone: FaImages },
   { to: "/admin/cupons", texto: "Cupons", Icone: FaTicket },
   { to: "/admin/usuarios", texto: "Clientes", Icone: FaUsers },
+  { to: "/admin/pagamentos", texto: "Pagamentos", Icone: FaMoneyBillWave },
   { to: "/admin/aparencia", texto: "Aparência", Icone: FaWandMagicSparkles },
   { to: "/admin/configuracoes", texto: "Configurações da loja", Icone: FaGear },
 ];

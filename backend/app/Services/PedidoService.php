@@ -213,24 +213,13 @@ class PedidoService
                     Log::warning('Valor pago menor que o total do pedido', ['pedido' => $pedido->id, 'pago' => $valorPago]);
                     break;
                 }
-                if (in_array($pedido->status, ['aguardando_pagamento', 'cancelado'], true)) {
-                    if ($pedido->status === 'cancelado') {
-                        $this->ajustarUsoCupom($pedido, +1);
-                    }
-                    $pedido->status = 'pago';
-                    $pedido->pago_em = now();
-                    $this->baixarEstoque($pedido);
-                }
+                $this->confirmarPagamento($pedido);
                 break;
 
             case 'refunded':
             case 'charged_back':
             case 'cancelled':
-                if ($pedido->status !== 'cancelado') {
-                    $pedido->status = 'cancelado';
-                    $this->devolverEstoque($pedido);
-                    $this->ajustarUsoCupom($pedido, -1);
-                }
+                $this->cancelar($pedido);
                 break;
 
             // pending, in_process, authorized, rejected: continua aguardando (cliente pode tentar de novo)
@@ -240,6 +229,90 @@ class PedidoService
         $this->notificarMudanca($pedido, $statusAnterior);
 
         return $pedido;
+    }
+
+    /** Aplica ao pedido uma sessão de pagamento consultada na API da Stripe. */
+    public function aplicarPagamentoStripe(Pedido $pedido, array $sessao): Pedido
+    {
+        if ((string) ($sessao['client_reference_id'] ?? '') !== (string) $pedido->id) {
+            Log::warning('Sessão Stripe não pertence ao pedido', ['pedido' => $pedido->id, 'sessao' => $sessao['id'] ?? null]);
+            return $pedido;
+        }
+
+        $statusAnterior = $pedido->status;
+        $intencao = $sessao['payment_intent'] ?? null;
+
+        $pedido->stripe_session_id = $sessao['id'] ?? $pedido->stripe_session_id;
+        $pedido->stripe_payment_intent = (is_array($intencao) ? ($intencao['id'] ?? null) : $intencao) ?: $pedido->stripe_payment_intent;
+
+        if (($sessao['payment_status'] ?? null) === 'paid') {
+            $valorPago = ((int) ($sessao['amount_total'] ?? 0)) / 100;
+            if ($valorPago + 0.01 < $pedido->total) {
+                Log::warning('Valor pago na Stripe menor que o total do pedido', ['pedido' => $pedido->id, 'pago' => $valorPago]);
+            } else {
+                $pedido->metodo_pagamento = 'credit_card';
+                $this->confirmarPagamento($pedido);
+            }
+        }
+
+        $pedido->save();
+        $this->notificarMudanca($pedido, $statusAnterior);
+
+        return $pedido;
+    }
+
+    /** Estorno total feito no painel do meio de pagamento: cancela e devolve o estoque. */
+    public function estornar(Pedido $pedido): Pedido
+    {
+        $statusAnterior = $pedido->status;
+        $this->cancelar($pedido);
+        $pedido->save();
+        $this->notificarMudanca($pedido, $statusAnterior);
+
+        return $pedido;
+    }
+
+    /** Cliente avisa que já fez o Pix: registra uma vez e avisa a loja para conferir no banco. */
+    public function informarPagamento(Pedido $pedido): Pedido
+    {
+        if ($pedido->status !== 'aguardando_pagamento' || $pedido->pagamento_informado_em) {
+            return $pedido;
+        }
+
+        $pedido->pagamento_informado_em = now();
+        $pedido->save();
+
+        $emailLoja = Configuracao::obter('email');
+        if ($emailLoja) {
+            $this->enviar($emailLoja, new NovoPedidoLoja($pedido->loadMissing('itens'), 'informado'));
+        }
+
+        return $pedido;
+    }
+
+    private function confirmarPagamento(Pedido $pedido): void
+    {
+        if (!in_array($pedido->status, ['aguardando_pagamento', 'cancelado'], true)) {
+            return;
+        }
+
+        if ($pedido->status === 'cancelado') {
+            $this->ajustarUsoCupom($pedido, +1);
+        }
+        $pedido->status = 'pago';
+        $pedido->pago_em = now();
+        $this->baixarEstoque($pedido);
+    }
+
+    private function cancelar(Pedido $pedido): void
+    {
+        if ($pedido->status === 'cancelado') {
+            return;
+        }
+
+        $pedido->status = 'cancelado';
+        $this->devolverEstoque($pedido);
+        $this->ajustarUsoCupom($pedido, -1);
     }
 
     /** Mudança de status feita pelo admin no painel. */

@@ -5,34 +5,57 @@ namespace App\Http\Controllers;
 use App\Models\Configuracao;
 use App\Services\FreteService;
 use App\Services\MercadoPagoService;
+use App\Services\PagamentoService;
+use App\Services\PixService;
+use App\Services\StripeService;
 use App\Support\LojaAtual;
 use App\Services\ModeloLojaService;
 use App\Support\Fontes;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 
 /** Personalização da loja pelo dono (nome, logo, cores, contatos, frete, pagamento). */
 class ConfiguracaoController extends Controller
 {
-    public function __construct(private MercadoPagoService $mercadoPago, private FreteService $frete)
-    {
+    public function __construct(
+        private MercadoPagoService $mercadoPago,
+        private FreteService $frete,
+        private PixService $pix,
+        private StripeService $stripe,
+        private PagamentoService $pagamentos
+    ) {
     }
 
     /** Público: usado pelo front para montar o visual da loja. */
     public function publicas()
     {
+        $formas = $this->pagamentos->formas();
+
         return response()->json(array_merge(Configuracao::publicas(), [
             'frete_modo' => $this->frete->modo(), // modo efetivo (cai para "fixo" se o Melhor Envio estiver incompleto)
-            'pagamento_online' => $this->mercadoPago->configurado(),
+            'formas_pagamento' => $formas,
+            'pagamento_online' => count($formas) > 0,
         ]));
     }
 
     /** Admin: mesmas chaves + privadas + indicação (sem revelar) se os segredos estão definidos. */
     public function admin()
     {
+        $formas = $this->pagamentos->formas();
+
         return response()->json(Configuracao::publicas() + Configuracao::privadas() + [
-            'pagamento_online' => $this->mercadoPago->configurado(),
+            'formas_pagamento' => $formas,
+            'pagamento_online' => count($formas) > 0,
+            'mercado_pago_ativo' => $this->mercadoPago->configurado(),
+            'pix_configurado' => $this->pix->configurado(),
+            'pix_tipos' => PixService::TIPOS,
+            'stripe_ativo' => $this->stripe->configurado(),
+            'stripe_modo_teste' => $this->stripe->modoTeste(),
+            'stripe_secret_key_definido' => (bool) Configuracao::obter('stripe_secret_key'),
+            'stripe_webhook_secret_definido' => (bool) Configuracao::obter('stripe_webhook_secret'),
+            'stripe_webhook_url' => $this->stripe->webhookUrl(),
             'mp_access_token_definido' => (bool) Configuracao::obter('mp_access_token'),
             'mp_webhook_secret_definido' => (bool) Configuracao::obter('mp_webhook_secret'),
             'melhor_envio_token_definido' => (bool) Configuracao::obter('melhor_envio_token'),
@@ -75,6 +98,18 @@ class ConfiguracaoController extends Controller
             'mp_webhook_secret' => 'nullable|string|max:255',
             'melhor_envio_token' => 'nullable|string|max:2000',
             'remover_mp_access_token' => 'nullable|boolean',
+
+            // Pix direto na chave da loja
+            'pix_ativo' => 'nullable|boolean',
+            'pix_tipo' => ['nullable', Rule::in(array_keys(PixService::TIPOS))],
+            'pix_chave' => 'nullable|string|max:100',
+            'pix_nome' => 'nullable|string|max:25',
+            'pix_cidade' => 'nullable|string|max:15',
+
+            // Cartão pela Stripe (chaves do painel da Stripe; ficam criptografadas)
+            'stripe_secret_key' => ['nullable', 'string', 'max:255', 'regex:/^(sk|rk)_(test|live)_[A-Za-z0-9]+$/'],
+            'stripe_webhook_secret' => ['nullable', 'string', 'max:255', 'regex:/^whsec_[A-Za-z0-9]+$/'],
+            'remover_stripe' => 'nullable|boolean',
             'remover_melhor_envio_token' => 'nullable|boolean',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
             'remover_logo' => 'nullable|boolean',
@@ -97,7 +132,14 @@ class ConfiguracaoController extends Controller
             'guia_medidas.linhas' => 'nullable|array|max:40',
             'guia_medidas.linhas.*' => 'array|max:9',
             'guia_medidas.linhas.*.*' => 'nullable|string|max:40',
+        ], [
+            'pix_nome.max' => 'O nome do recebedor do Pix pode ter até 25 caracteres.',
+            'pix_cidade.max' => 'A cidade do Pix pode ter até 15 caracteres.',
+            'stripe_secret_key.regex' => 'A chave secreta da Stripe começa com sk_live_ ou sk_test_.',
+            'stripe_webhook_secret.regex' => 'O segredo do webhook da Stripe começa com whsec_.',
         ]);
+
+        $this->validarPix($dados);
 
         foreach (Configuracao::JSON as $chave) {
             if (array_key_exists($chave, $dados)) {
@@ -129,6 +171,10 @@ class ConfiguracaoController extends Controller
         if ($request->boolean('remover_melhor_envio_token')) {
             Configuracao::definir('melhor_envio_token', null);
         }
+        if ($request->boolean('remover_stripe')) {
+            Configuracao::definir('stripe_secret_key', null);
+            Configuracao::definir('stripe_webhook_secret', null);
+        }
 
         $logoAtual = Configuracao::obter('logo');
         if ($request->hasFile('logo') || $request->boolean('remover_logo')) {
@@ -139,6 +185,43 @@ class ConfiguracaoController extends Controller
         }
 
         return $this->admin();
+    }
+
+    /** Pix de R$ 1,00 com os dados salvos, para o dono escanear e conferir o nome no app do banco. */
+    public function pixTeste()
+    {
+        if ($this->pix->chave() === null) {
+            return response()->json(['message' => 'Salve uma chave Pix válida primeiro.'], 422);
+        }
+
+        return response()->json($this->pix->teste());
+    }
+
+    /**
+     * Guarda a chave Pix já no formato do Pix (CPF só números, celular com +55...) e
+     * recusa chave inválida para o tipo. Para ligar o Pix, a chave final precisa ser válida.
+     */
+    private function validarPix(array &$dados): void
+    {
+        $tipo = (string) ($dados['pix_tipo'] ?? Configuracao::obter('pix_tipo', ''));
+        $chave = trim((string) (array_key_exists('pix_chave', $dados) ? $dados['pix_chave'] : Configuracao::obter('pix_chave', '')));
+
+        if ($chave !== '') {
+            $normalizada = PixService::normalizarChave($tipo, $chave);
+            if ($normalizada === null) {
+                throw ValidationException::withMessages([
+                    'pix_chave' => 'Chave Pix inválida para o tipo "' . (PixService::TIPOS[$tipo] ?? 'não escolhido') . '". Confira os números.',
+                ]);
+            }
+            if (array_key_exists('pix_chave', $dados) || array_key_exists('pix_tipo', $dados)) {
+                $dados['pix_chave'] = $normalizada;
+            }
+        }
+
+        $ligado = array_key_exists('pix_ativo', $dados) ? (bool) $dados['pix_ativo'] : $this->pix->ativo();
+        if ($ligado && $chave === '') {
+            throw ValidationException::withMessages(['pix_chave' => 'Informe a chave Pix para ativar o Pix.']);
+        }
     }
 
     /** Opções de aparência para o painel: fontes disponíveis e modelos prontos. */

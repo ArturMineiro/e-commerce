@@ -63,10 +63,16 @@ class Configuracao extends Model
         'altura_padrao' => '10',
         'largura_padrao' => '15',
         'comprimento_padrao' => '20',
+        // Pix direto na chave da loja (tipo: cpf | cnpj | telefone | email | aleatoria)
+        'pix_ativo' => '0',
+        'pix_tipo' => '',
+        'pix_chave' => '',
+        'pix_nome' => '',
+        'pix_cidade' => '',
     ];
 
     /** Chaves privadas (somente backend). */
-    public const SECRETAS = ['mp_access_token', 'mp_webhook_secret', 'melhor_envio_token'];
+    public const SECRETAS = ['mp_access_token', 'mp_webhook_secret', 'melhor_envio_token', 'stripe_secret_key', 'stripe_webhook_secret'];
 
     public static function todas(): array
     {
@@ -183,6 +189,7 @@ class Configuracao extends Model
             $resultado[$chave] = static::obter($chave, $padrao);
         }
         $resultado['melhor_envio_sandbox'] = (bool) $resultado['melhor_envio_sandbox'];
+        $resultado['pix_ativo'] = (bool) $resultado['pix_ativo'];
 
         return $resultado;
     }

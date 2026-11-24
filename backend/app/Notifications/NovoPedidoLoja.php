@@ -4,6 +4,8 @@ namespace App\Notifications;
 
 use App\Models\Configuracao;
 use App\Models\Pedido;
+use App\Services\PagamentoService;
+use App\Services\PixService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -28,12 +30,23 @@ class NovoPedidoLoja extends Notification
         $total = 'R$ ' . number_format($p->total, 2, ',', '.');
         $link = Configuracao::urlFrontend('/admin/pedidos');
 
+        [$assunto, $saudacao] = match ($this->evento) {
+            'pago' => ["Venda paga: pedido #{$p->id} ({$total})", 'Pagamento confirmado!'],
+            'informado' => ["Cliente avisou que pagou o Pix: pedido #{$p->id} ({$total})", 'Confira o Pix no app do seu banco'],
+            default => ["Novo pedido #{$p->id} ({$total})", 'Você recebeu um novo pedido!'],
+        };
+        $forma = PagamentoService::NOMES[$p->forma_pagamento] ?? null;
+
         $mensagem = (new MailMessage())
             ->from(...Configuracao::remetente())
-            ->subject($this->evento === 'pago' ? "Venda paga: pedido #{$p->id} ({$total})" : "Novo pedido #{$p->id} ({$total})")
-            ->greeting($this->evento === 'pago' ? 'Pagamento confirmado!' : 'Você recebeu um novo pedido!')
+            ->subject($assunto)
+            ->greeting($saudacao)
             ->line("Cliente: {$p->nome} ({$p->email}, {$p->telefone})")
             ->line("Entrega: {$p->cidade}/{$p->uf}" . ($p->frete_servico ? " — {$p->frete_servico}" : ''));
+
+        if ($forma) {
+            $mensagem->line("Pagamento: {$forma}");
+        }
 
         foreach ($p->itens as $item) {
             $variacao = $item->variacao ? " ({$item->variacao})" : '';
@@ -42,7 +55,12 @@ class NovoPedidoLoja extends Notification
 
         return $mensagem
             ->line("**Total: {$total}**")
-            ->line($this->evento === 'pago' ? 'Já pode separar e enviar.' : 'Aguardando pagamento.')
+            ->line(match (true) {
+                $this->evento === 'pago' => 'Já pode separar e enviar.',
+                $this->evento === 'informado' => "Se o Pix de {$total} (identificador " . PixService::identificador($p) . ') caiu na sua conta, confirme o pagamento no painel.',
+                $p->forma_pagamento === 'pix' => 'Aguardando o Pix. Quando o valor cair na conta, confirme o pagamento no painel.',
+                default => 'Aguardando pagamento.',
+            })
             ->action('Abrir pedidos no painel', $link);
     }
 }

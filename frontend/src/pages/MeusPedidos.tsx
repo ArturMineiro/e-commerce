@@ -1,24 +1,49 @@
 import { Accordion, Alert, Button, Container } from "react-bootstrap";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { FaClock, FaPix } from "react-icons/fa6";
 import { useConfigLoja, useMeusPedidos, usePagarPedido } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import { Carregando, StatusBadge } from "../components/Ui";
 import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { linkWhatsapp } from "../lib/utils";
-import type { Pedido } from "../types";
+import type { FormaPagamentoId, Pedido } from "../types";
+
+const NOME_FORMA: Record<FormaPagamentoId, string> = {
+  pix: "Pix",
+  cartao: "Cartão de crédito",
+  mercado_pago: "Mercado Pago",
+  combinar: "Combinar com a loja",
+};
 
 function DetalhePedido({ pedido }: { pedido: Pedido }) {
   const pagar = usePagarPedido();
   const notificar = useToast();
   const { data: config } = useConfigLoja();
+  const navigate = useNavigate();
+  const formas = config?.formas_pagamento ?? [];
+  const formaAtual = formas.find((f) => f.id === pedido.forma_pagamento) ?? formas[0];
+  const outras = formas.filter((f) => f.id !== formaAtual?.id);
 
-  const pagarAgora = () =>
-    pagar.mutate(pedido.id, {
-      onSuccess: ({ url }) => {
-        if (url) window.location.href = url;
-      },
-      onError: (erro) => notificar(mensagemErro(erro), "danger"),
-    });
+  const pagarCom = (forma: FormaPagamentoId) => {
+    // Pix já no pedido: a tela do Pix busca o código sozinha
+    if (forma === "pix" && pedido.forma_pagamento === "pix") {
+      navigate(`/pedido/${pedido.id}/pix`);
+      return;
+    }
+    pagar.mutate(
+      { id: pedido.id, forma },
+      {
+        onSuccess: (r) => {
+          if (r.tipo === "pix" && r.pix) navigate(`/pedido/${pedido.id}/pix`);
+          else if (r.url) window.location.href = r.url;
+        },
+        onError: (erro) => notificar(mensagemErro(erro), "danger"),
+      }
+    );
+  };
+
+  const textoBotao = (forma: FormaPagamentoId) =>
+    forma === "pix" ? "Pagar com Pix" : forma === "cartao" ? "Pagar com cartão" : "Pagar no Mercado Pago";
 
   return (
     <>
@@ -68,15 +93,35 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
           {pedido.frete_prazo && <span className="text-muted"> · até {pedido.frete_prazo} dias úteis</span>}
           <br />
           <strong className="fs-6">Total: {formatarPreco(pedido.total)}</strong>
+          {pedido.forma_pagamento && (
+            <>
+              <br />
+              <span className="text-muted">Pagamento: {NOME_FORMA[pedido.forma_pagamento]}</span>
+            </>
+          )}
         </div>
       </div>
 
+      {pedido.status === "aguardando_pagamento" && pedido.pagamento_informado_em && (
+        <Alert variant="success" className="mt-3 mb-0 py-2 small d-flex gap-2 align-items-center">
+          <FaClock aria-hidden /> Você avisou que pagou o Pix. A loja vai conferir e confirmar o pedido.
+        </Alert>
+      )}
+
       {pedido.status === "aguardando_pagamento" && (
         <div className="mt-3 d-flex gap-2 flex-wrap">
-          {config?.pagamento_online ? (
-            <Button className="btn-loja" onClick={pagarAgora} disabled={pagar.isPending}>
-              {pagar.isPending ? "Abrindo pagamento..." : "Pagar agora"}
-            </Button>
+          {formaAtual ? (
+            <>
+              <Button className="btn-loja" onClick={() => pagarCom(formaAtual.id)} disabled={pagar.isPending}>
+                {formaAtual.id === "pix" && <FaPix className="me-1" aria-hidden />}
+                {pagar.isPending ? "Abrindo pagamento..." : textoBotao(formaAtual.id)}
+              </Button>
+              {outras.map((f) => (
+                <Button key={f.id} variant="outline-secondary" onClick={() => pagarCom(f.id)} disabled={pagar.isPending}>
+                  {textoBotao(f.id)}
+                </Button>
+              ))}
+            </>
           ) : (
             <Alert variant="info" className="mb-0 py-2 small">
               A loja entrará em contato para combinar o pagamento.

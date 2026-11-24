@@ -1,12 +1,23 @@
 import { useState } from "react";
-import { Alert, Button, Col, Form, InputGroup, Modal, Pagination, Row, Table } from "react-bootstrap";
+import { Alert, Badge, Button, Col, Form, InputGroup, Modal, Pagination, Row, Table } from "react-bootstrap";
+import { FaCircleCheck, FaPix } from "react-icons/fa6";
 import { useSearchParams } from "react-router-dom";
 import { useAtualizarPedido, usePedidosAdmin } from "../hooks/useAdmin";
 import { useToast } from "../components/Toast";
 import { Carregando, STATUS_PEDIDO, StatusBadge } from "../components/Ui";
 import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { linkWhatsapp } from "../lib/utils";
-import type { Pedido, StatusPedido } from "../types";
+import type { FormaPagamentoId, Pedido, StatusPedido } from "../types";
+
+const FORMAS: Record<FormaPagamentoId, string> = {
+  pix: "Pix",
+  cartao: "Cartão (Stripe)",
+  mercado_pago: "Mercado Pago",
+  combinar: "Combinar com a loja",
+};
+
+/** Pix ou combinar: a loja confirma o pagamento à mão. */
+const confirmacaoManual = (p: Pedido) => p.status === "aguardando_pagamento" && (p.forma_pagamento === "pix" || p.forma_pagamento === "combinar");
 
 const METODOS: Record<string, string> = {
   bank_transfer: "Pix",
@@ -21,6 +32,18 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
   const notificar = useToast();
   const [status, setStatus] = useState<StatusPedido>(pedido.status);
   const [rastreio, setRastreio] = useState(pedido.codigo_rastreio ?? "");
+
+  const confirmarPagamento = () =>
+    atualizar.mutate(
+      { id: pedido.id, status: "pago", codigo_rastreio: rastreio.trim() || null },
+      {
+        onSuccess: () => {
+          notificar(`Pagamento do pedido #${pedido.id} confirmado. O cliente recebe um e-mail.`);
+          onClose();
+        },
+        onError: (e) => notificar(mensagemErro(e), "danger"),
+      }
+    );
 
   const salvar = () =>
     atualizar.mutate(
@@ -78,7 +101,26 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
               <strong>Observações:</strong> {pedido.observacoes}
             </Col>
           )}
+          {confirmacaoManual(pedido) && (
+            <Col xs={12}>
+              <Alert variant={pedido.pagamento_informado_em ? "success" : "light"} className="border mb-0 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                <span className="small">
+                  {pedido.forma_pagamento === "pix" && <FaPix className="me-1 opcao-pix" aria-hidden />}
+                  {pedido.pagamento_informado_em
+                    ? `O cliente avisou que pagou em ${formatarData(pedido.pagamento_informado_em, true)}. Confira o Pix de ${formatarPreco(pedido.total)} (identificador PEDIDO${pedido.id}) no app do banco.`
+                    : pedido.forma_pagamento === "pix"
+                    ? `Aguardando o Pix de ${formatarPreco(pedido.total)} (identificador PEDIDO${pedido.id}).`
+                    : "Pagamento a combinar com o cliente."}
+                </span>
+                <Button size="sm" variant="success" onClick={confirmarPagamento} disabled={atualizar.isPending}>
+                  <FaCircleCheck aria-hidden /> Confirmar pagamento
+                </Button>
+              </Alert>
+            </Col>
+          )}
           <Col xs={12}>
+            <strong>Forma de pagamento:</strong> {pedido.forma_pagamento ? FORMAS[pedido.forma_pagamento] : "—"}
+            <br />
             <strong>Pagamento:</strong>{" "}
             {pedido.pago_em
               ? `${METODOS[pedido.metodo_pagamento ?? ""] ?? pedido.metodo_pagamento ?? "Manual"} em ${formatarData(pedido.pago_em, true)}`
@@ -86,6 +128,7 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
               ? `Mercado Pago: ${pedido.mp_status}`
               : "Não pago"}
             {pedido.mp_payment_id && <span className="text-muted"> (ID MP {pedido.mp_payment_id})</span>}
+            {pedido.stripe_payment_intent && <span className="text-muted"> (Stripe {pedido.stripe_payment_intent})</span>}
           </Col>
         </Row>
 
@@ -141,7 +184,7 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
                 ))}
               </Form.Select>
               <Form.Text>
-                Marcar como pago baixa o estoque; cancelar devolve. Pagamentos do Mercado Pago atualizam sozinhos.
+                Marcar como pago baixa o estoque; cancelar devolve. Cartão e Mercado Pago atualizam sozinhos; Pix você confirma.
               </Form.Text>
             </Form.Group>
           </Col>
@@ -257,6 +300,12 @@ function PedidosAdmin() {
                     <td className="text-nowrap">{formatarPreco(p.total)}</td>
                     <td>
                       <StatusBadge status={p.status} />
+                      {p.forma_pagamento && <div className="small text-muted mt-1">{FORMAS[p.forma_pagamento]}</div>}
+                      {confirmacaoManual(p) && p.pagamento_informado_em && (
+                        <Badge bg="success" className="mt-1">
+                          Cliente avisou que pagou
+                        </Badge>
+                      )}
                     </td>
                     <td className="text-end">
                       <Button size="sm" variant="outline-secondary" onClick={() => setSelecionado(p)}>

@@ -38,6 +38,13 @@ class PedidoAtualizado extends Notification
             default => ["Atualização do pedido #{$p->id}", 'Seu pedido foi atualizado.'],
         };
 
+        // Pedido no Pix: o e-mail leva direto para a tela com o QR Code e o copia e cola
+        $pagarComPix = $this->evento === 'recebido' && $p->forma_pagamento === 'pix' && $p->status === 'aguardando_pagamento';
+        if ($pagarComPix) {
+            $intro = 'Recebemos seu pedido! Para concluir, pague com Pix pelo botão abaixo (QR Code ou copia e cola). '
+                . 'Assim que a loja confirmar o pagamento, começamos a preparar o envio.';
+        }
+
         $mensagem = (new MailMessage())
             ->from(...Configuracao::remetente())
             ->subject("{$assunto} | {$loja}")
@@ -62,7 +69,10 @@ class PedidoAtualizado extends Notification
         }
 
         return $mensagem
-            ->action('Ver meu pedido', $link)
+            ->action(
+                $pagarComPix ? 'Pagar com Pix' : 'Ver meu pedido',
+                $pagarComPix ? Configuracao::urlFrontend("/pedido/{$p->id}/pix") : $link
+            )
             ->salutation("Obrigado por comprar com a gente!\n{$loja}");
     }
 

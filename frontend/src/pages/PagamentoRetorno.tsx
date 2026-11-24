@@ -7,23 +7,24 @@ import { Carregando, StatusBadge } from "../components/Ui";
 import { formatarPreco } from "../lib/api";
 
 /**
- * Página para onde o Mercado Pago devolve o cliente após o pagamento
- * (/pagamento/retorno?pedido=ID&payment_id=...&status=...).
- * O status exibido vem do backend, que consulta o Mercado Pago, e não da URL.
+ * Página para onde a Stripe ou o Mercado Pago devolvem o cliente após o pagamento
+ * (/pagamento/retorno?pedido=ID&session_id=... ou &payment_id=...&status=...).
+ * O status exibido vem do backend, que consulta o meio de pagamento, e não da URL.
  */
 function PagamentoRetorno() {
   const [params] = useSearchParams();
   const pedidoId = params.get("pedido");
   const paymentId = params.get("payment_id") ?? params.get("collection_id");
+  const sessionId = params.get("session_id");
   const sincronizar = useSincronizarPedido();
   const jaChamou = useRef(false);
 
   useEffect(() => {
     if (pedidoId && !jaChamou.current) {
       jaChamou.current = true;
-      sincronizar.mutate({ id: pedidoId, paymentId });
+      sincronizar.mutate({ id: pedidoId, paymentId, sessionId });
     }
-  }, [pedidoId, paymentId, sincronizar]);
+  }, [pedidoId, paymentId, sessionId, sincronizar]);
 
   if (!pedidoId) {
     return (
@@ -73,7 +74,7 @@ function PagamentoRetorno() {
               <h1 className="h3">Aguardando pagamento</h1>
               <p>
                 Se você pagou com Pix ou boleto, a confirmação pode levar alguns minutos. O status será atualizado
-                automaticamente.
+                automaticamente. Se desistiu, pode pagar de novo em “Meus pedidos”.
               </p>
             </>
           )}

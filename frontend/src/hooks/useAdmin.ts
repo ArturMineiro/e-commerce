@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
 import type {
+  PixPedido,
   Banner,
   Categoria,
   ConfigAdmin,
@@ -70,6 +71,15 @@ export const useSalvarConfigJson = () => {
     },
   });
 };
+
+/** Pix de R$ 1,00 com os dados salvos, para conferir o nome no app do banco. */
+export const usePixTeste = (ativo: boolean) =>
+  useQuery({
+    queryKey: ["admin", "pix-teste"],
+    queryFn: async () => (await api.get<PixPedido>("/admin/pagamentos/pix-teste")).data,
+    enabled: ativo,
+    retry: false,
+  });
 
 export type DadosOpcoesProduto = { grades_tamanho?: GradeTamanho[]; guia_medidas?: GuiaMedidas | null };
 

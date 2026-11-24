@@ -1,3 +1,4 @@
+import { textoMeios } from "../lib/pagamento";
 import { useMemo, useState } from "react";
 import { Alert, Badge, Breadcrumb, Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -268,7 +269,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
               <ul className="list-unstyled seguranca-compra mb-4">
                 <li>
                   <FaShieldHalved className="me-2" aria-hidden />
-                  {config?.pagamento_online ? "Pagamento seguro via Mercado Pago (Pix, cartão ou boleto)" : "Compra segura"}
+                  {textoMeios(config) ? `Pague com ${textoMeios(config, false)} com segurança` : "Compra segura"}
                 </li>
                 <li>
                   <FaTruckFast className="me-2" aria-hidden />

@@ -1,3 +1,4 @@
+import { meiosAceitos, textoMeios } from "../lib/pagamento";
 import { Col, Row } from "react-bootstrap";
 import { FaCreditCard, FaHeadset, FaShieldHalved, FaTruckFast } from "react-icons/fa6";
 import { useConfigLoja } from "../hooks/useLoja";
@@ -8,6 +9,7 @@ function Beneficios() {
   const { data: config } = useConfigLoja();
   if (!config) return null;
 
+  const meios = textoMeios(config);
   const itens = [
     {
       Icone: FaTruckFast,
@@ -19,10 +21,10 @@ function Beneficios() {
           ? `Frete fixo de ${formatarPreco(config.frete_fixo)}`
           : "Frete grátis em todos os pedidos",
     },
-    config.pagamento_online
-      ? { Icone: FaCreditCard, titulo: "Pix, cartão ou boleto", texto: "Pague como preferir" }
+    meios
+      ? { Icone: FaCreditCard, titulo: meios, texto: "Pague como preferir" }
       : { Icone: FaCreditCard, titulo: "Pagamento facilitado", texto: "Combine direto com a loja" },
-    { Icone: FaShieldHalved, titulo: "Compra segura", texto: config.pagamento_online ? "Processada pelo Mercado Pago" : "Seus dados protegidos" },
+    { Icone: FaShieldHalved, titulo: "Compra segura", texto: meiosAceitos(config).ambienteSeguro ? "Pagamento em ambiente seguro" : "Seus dados protegidos" },
     {
       Icone: FaHeadset,
       titulo: "Atendimento",

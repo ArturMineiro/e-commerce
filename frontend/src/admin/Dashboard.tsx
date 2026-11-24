@@ -47,8 +47,8 @@ function Dashboard() {
 
       {config && !config.pagamento_online && (
         <Alert variant="warning">
-          <strong>Pagamento online desativado.</strong> Conecte sua conta do Mercado Pago em{" "}
-          <Link to="/admin/configuracoes">Configurações da loja</Link> para receber por Pix, cartão e boleto.
+          <strong>Nenhuma forma de pagamento ativa.</strong> Ative o Pix (sem taxa, direto na sua conta) ou o cartão em{" "}
+          <Link to="/admin/pagamentos">Pagamentos</Link>.
         </Alert>
       )}
 

@@ -4,15 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use App\Services\MercadoPagoService;
+use App\Services\PagamentoService;
 use App\Services\PedidoService;
+use App\Services\PixService;
+use App\Services\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class PedidoController extends Controller
 {
+    private const MSG_FORMA = ['forma_pagamento.in' => 'Esta forma de pagamento não está disponível nesta loja.'];
+
     public function __construct(
         private PedidoService $pedidos,
-        private MercadoPagoService $mercadoPago
+        private MercadoPagoService $mercadoPago,
+        private StripeService $stripe,
+        private PixService $pix,
+        private PagamentoService $pagamentos
     ) {
     }
 
@@ -31,8 +40,8 @@ class PedidoController extends Controller
     }
 
     /**
-     * Fecha o pedido com o carrinho atual e já devolve o link de pagamento
-     * (quando o Mercado Pago estiver configurado).
+     * Fecha o pedido com o carrinho atual e já inicia o pagamento na forma escolhida
+     * (Pix: copia e cola; cartão/Mercado Pago: link da página segura).
      */
     public function store(Request $request)
     {
@@ -51,19 +60,21 @@ class PedidoController extends Controller
             'observacoes' => 'nullable|string|max:1000',
             'cupom' => 'nullable|string|max:40',
             'frete_servico_id' => 'nullable|string|max:50',
-        ]);
+            'forma_pagamento' => ['nullable', Rule::in($this->pagamentos->idsAceitos())],
+        ], self::MSG_FORMA);
         $dados['uf'] = strtoupper($dados['uf']);
+        $dados['forma_pagamento'] = $dados['forma_pagamento'] ?? $this->pagamentos->padrao();
 
         $pedido = $this->pedidos->criarDoCarrinho(auth('api')->user(), $dados);
 
         return response()->json([
             'pedido' => $pedido,
-            'pagamento' => $this->gerarPagamento($pedido),
+            'pagamento' => $this->pagamentos->iniciar($pedido),
         ], 201);
     }
 
-    /** Gera (de novo) o link de pagamento de um pedido que ainda não foi pago. */
-    public function pagar($id)
+    /** Inicia de novo o pagamento de um pedido não pago (pode trocar a forma de pagamento). */
+    public function pagar(Request $request, $id)
     {
         $pedido = $this->pedidoDoUsuario($id);
 
@@ -71,24 +82,78 @@ class PedidoController extends Controller
             return response()->json(['message' => 'Este pedido não está aguardando pagamento.'], 422);
         }
 
-        $pagamento = $this->gerarPagamento($pedido);
+        $dados = $request->validate([
+            'forma_pagamento' => ['nullable', Rule::in($this->pagamentos->idsAceitos())],
+        ], self::MSG_FORMA);
 
-        if (!$pagamento['url']) {
+        if (!empty($dados['forma_pagamento']) && $dados['forma_pagamento'] !== $pedido->forma_pagamento) {
+            $pedido->forma_pagamento = $dados['forma_pagamento'];
+            $pedido->pagamento_informado_em = null;
+            $pedido->save();
+        }
+
+        $pagamento = $this->pagamentos->iniciar($pedido);
+
+        if (!$pagamento['url'] && !$pagamento['pix']) {
             return response()->json(['message' => $pagamento['mensagem']], 503);
         }
 
         return response()->json($pagamento);
     }
 
+    /** Pix do pedido (a tela consulta de tempos em tempos para saber se a loja já confirmou). */
+    public function pix($id)
+    {
+        $pedido = $this->pedidoDoUsuario($id);
+
+        $pix = $pedido->status === 'aguardando_pagamento' && $this->pix->configurado()
+            ? $this->pix->paraPedido($pedido)
+            : null;
+
+        return response()->json(['pedido' => $this->resumoPagamento($pedido), 'pix' => $pix]);
+    }
+
+    /** Cliente avisa que já pagou o Pix: a loja recebe um e-mail para conferir no banco. */
+    public function informarPix($id)
+    {
+        $pedido = $this->pedidoDoUsuario($id);
+
+        if ($pedido->status !== 'aguardando_pagamento') {
+            return response()->json(['message' => 'Este pedido não está aguardando pagamento.'], 422);
+        }
+
+        $this->pedidos->informarPagamento($pedido);
+
+        return response()->json($this->resumoPagamento($pedido->fresh()));
+    }
+
+    private function resumoPagamento(Pedido $pedido): array
+    {
+        return $pedido->only(['id', 'status', 'total', 'forma_pagamento', 'pago_em', 'pagamento_informado_em', 'created_at']);
+    }
+
     /**
-     * Chamado pela página de retorno do pagamento: consulta o Mercado Pago e
+     * Chamado pela página de retorno do pagamento: consulta a Stripe ou o Mercado Pago e
      * atualiza o pedido (necessário em localhost, onde o webhook não chega).
      */
     public function sincronizar(Request $request, $id)
     {
         $pedido = $this->pedidoDoUsuario($id);
+        $stripe = $pedido->forma_pagamento === 'cartao' || $request->filled('session_id');
 
-        if ($this->mercadoPago->configurado() && $pedido->status === 'aguardando_pagamento') {
+        if ($stripe && $this->stripe->configurado() && $pedido->status === 'aguardando_pagamento') {
+            try {
+                $sessaoId = (string) ($request->input('session_id') ?: $pedido->stripe_session_id);
+                $sessao = $sessaoId !== '' ? $this->stripe->buscarSessao($sessaoId) : null;
+
+                if ($sessao) {
+                    // Confere se a sessão é deste pedido antes de aplicar
+                    $this->pedidos->aplicarPagamentoStripe($pedido, $sessao);
+                }
+            } catch (\Throwable $e) {
+                Log::error('Erro ao sincronizar pagamento Stripe', ['pedido' => $pedido->id, 'erro' => $e->getMessage()]);
+            }
+        } elseif (!$stripe && $this->mercadoPago->configurado() && $pedido->status === 'aguardando_pagamento') {
             try {
                 $paymentId = $request->input('payment_id');
                 $pagamento = $paymentId
@@ -104,30 +169,6 @@ class PedidoController extends Controller
         }
 
         return response()->json($pedido->fresh('itens'));
-    }
-
-    private function gerarPagamento(Pedido $pedido): array
-    {
-        if (!$this->mercadoPago->configurado()) {
-            return [
-                'url' => null,
-                'mensagem' => 'Pagamento online ainda não configurado pela loja. Entraremos em contato para combinar o pagamento.',
-            ];
-        }
-
-        try {
-            $preferencia = $this->mercadoPago->criarPreferencia($pedido);
-            $pedido->update(['mp_preference_id' => $preferencia['id'] ?? null]);
-
-            return ['url' => $preferencia['init_point'] ?? null, 'mensagem' => null];
-        } catch (\Throwable $e) {
-            Log::error('Erro ao criar preferência MP', ['pedido' => $pedido->id, 'erro' => $e->getMessage()]);
-
-            return [
-                'url' => null,
-                'mensagem' => 'Não foi possível iniciar o pagamento agora. Tente novamente em "Meus pedidos".',
-            ];
-        }
     }
 
     private function pedidoDoUsuario($id): Pedido

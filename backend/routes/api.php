@@ -68,6 +68,8 @@ Route::middleware('loja')->group(function () {
     // Notificações do Mercado Pago (sem auth; a validação é feita consultando a API do MP).
     // Cada loja tem a sua URL: /pagamentos/webhook/{slug}. Sem slug = loja padrão.
     Route::post('/pagamentos/webhook/{loja?}', [PagamentoController::class, 'webhook']);
+    // Avisos da Stripe (assinados com o segredo do webhook; o estado é reconsultado na API)
+    Route::post('/pagamentos/stripe/webhook/{loja?}', [PagamentoController::class, 'stripe']);
 
     /*
     | Cliente autenticado
@@ -93,6 +95,8 @@ Route::middleware('loja')->group(function () {
         Route::get('/pedidos/{id}', [PedidoController::class, 'show']);
         Route::post('/pedidos/{id}/pagar', [PedidoController::class, 'pagar']);
         Route::post('/pedidos/{id}/sincronizar', [PedidoController::class, 'sincronizar']);
+        Route::get('/pedidos/{id}/pix', [PedidoController::class, 'pix']);
+        Route::post('/pedidos/{id}/pix/informar', [PedidoController::class, 'informarPix'])->middleware('throttle:10,1');
     });
 
     /*
@@ -105,6 +109,7 @@ Route::middleware('loja')->group(function () {
         Route::post('/configuracoes', [ConfiguracaoController::class, 'atualizar']); // POST por causa do upload do logo
         Route::get('/aparencia', [ConfiguracaoController::class, 'aparencia']);
         Route::post('/aparencia/modelo', [ConfiguracaoController::class, 'aplicarModelo']);
+        Route::get('/pagamentos/pix-teste', [ConfiguracaoController::class, 'pixTeste']);
 
         Route::get('/produtos', [ProdutoController::class, 'adminIndex']);
         Route::post('/produtos', [ProdutoController::class, 'store']);

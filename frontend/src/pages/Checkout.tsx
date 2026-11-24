@@ -1,18 +1,26 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Card, Col, Container, Form, InputGroup, Row, Spinner } from "react-bootstrap";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { FaTag, FaXmark } from "react-icons/fa6";
+import { FaCreditCard, FaHandshake, FaPix, FaTag, FaWallet, FaXmark } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import { useCarrinho, useConfigLoja, useCotarFrete, useCriarPedido, useValidarCupom } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import { Carregando } from "../components/Ui";
 import { formatarPreco, mensagemErro } from "../lib/api";
 import { ResumoValores } from "./Carrinho";
-import type { CupomAplicado, DadosEntrega, OpcaoFrete } from "../types";
+import type { CupomAplicado, DadosEntrega, FormaPagamentoId, OpcaoFrete } from "../types";
 
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 
 const cepValido = (cep: string) => cep.replace(/\D/g, "").length === 8;
+
+/** Ícone, texto do botão e explicação de cada forma de pagamento. */
+const PAGAMENTO: Record<FormaPagamentoId, { Icone: typeof FaPix; botao: string; ajuda: string }> = {
+  pix: { Icone: FaPix, botao: "Gerar Pix", ajuda: "Na próxima tela você copia o código ou escaneia o QR Code no app do banco." },
+  cartao: { Icone: FaCreditCard, botao: "Pagar com cartão", ajuda: "Você vai para a página segura da Stripe para digitar os dados do cartão." },
+  mercado_pago: { Icone: FaWallet, botao: "Ir para o Mercado Pago", ajuda: "Você vai para o Mercado Pago para pagar com Pix, cartão ou boleto." },
+  combinar: { Icone: FaHandshake, botao: "Confirmar pedido", ajuda: "A loja entrará em contato para combinar o pagamento." },
+};
 
 function Checkout() {
   const { user } = useAuth();
@@ -32,6 +40,7 @@ function Checkout() {
   const [opcoesFrete, setOpcoesFrete] = useState<OpcaoFrete[] | null>(null);
   const [freteId, setFreteId] = useState<string | null>(null);
   const [erroFrete, setErroFrete] = useState<string | null>(null);
+  const [formaEscolhida, setFormaEscolhida] = useState<FormaPagamentoId | null>(null);
 
   const [dados, setDados] = useState<DadosEntrega>({
     nome: user?.name ?? "",
@@ -48,6 +57,10 @@ function Checkout() {
     observacoes: "",
   });
 
+  const formas = config?.formas_pagamento ?? [];
+  // A primeira forma ativa vem marcada; se a escolhida sumir (loja desligou), volta para a primeira
+  const forma: FormaPagamentoId =
+    formaEscolhida && formas.some((f) => f.id === formaEscolhida) ? formaEscolhida : formas[0]?.id ?? "combinar";
   const freteDinamico = carrinho?.frete_modo === "melhor_envio";
   const { mutate: cotar } = cotarFrete;
 
@@ -137,11 +150,20 @@ function Checkout() {
       return;
     }
     criarPedido.mutate(
-      { ...dados, cupom: cupom?.codigo, frete_servico_id: freteDinamico ? freteId ?? undefined : undefined },
+      {
+        ...dados,
+        cupom: cupom?.codigo,
+        frete_servico_id: freteDinamico ? freteId ?? undefined : undefined,
+        forma_pagamento: forma,
+      },
       {
         onSuccess: ({ pedido, pagamento }) => {
+          if (pagamento.tipo === "pix" && pagamento.pix) {
+            navigate(`/pedido/${pedido.id}/pix`, { replace: true });
+            return;
+          }
           if (pagamento.url) {
-            // Vai para o ambiente seguro do Mercado Pago (Pix, cartão, boleto...)
+            // Página segura da Stripe ou do Mercado Pago
             window.location.href = pagamento.url;
             return;
           }
@@ -230,7 +252,7 @@ function Checkout() {
                   <p className="text-muted mb-0">Informe o CEP acima para ver as opções de entrega.</p>
                 ) : cotarFrete.isPending ? (
                   <p className="mb-0">
-                    <Spinner size="sm" className="me-2" />
+                    <Spinner as="span" size="sm" className="me-2" aria-hidden />
                     Calculando frete...
                   </p>
                 ) : erroFrete ? (
@@ -268,6 +290,42 @@ function Checkout() {
                         </strong>
                       </label>
                     ))}
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+
+            <Card className="shadow-sm border-0 mt-4">
+              <Card.Body>
+                <h2 className="h5 mb-3">Pagamento</h2>
+                {formas.length === 0 ? (
+                  <p className="text-muted mb-0">{PAGAMENTO.combinar.ajuda}</p>
+                ) : (
+                  <div role="radiogroup" aria-label="Formas de pagamento" className="d-grid gap-2">
+                    {formas.map((f) => {
+                      const { Icone } = PAGAMENTO[f.id];
+                      return (
+                        <label
+                          key={f.id}
+                          className={`d-flex align-items-center gap-3 border rounded-3 p-3 opcao-pagamento ${forma === f.id ? "border-primary bg-light" : ""}`}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <Form.Check
+                            type="radio"
+                            name="forma_pagamento"
+                            id={`pagamento-${f.id}`}
+                            checked={forma === f.id}
+                            onChange={() => setFormaEscolhida(f.id)}
+                            aria-label={f.nome}
+                          />
+                          <Icone className={`opcao-pagamento-icone opcao-${f.id}`} aria-hidden />
+                          <span className="flex-grow-1">
+                            <span className="fw-semibold d-block">{f.nome}</span>
+                            <span className="small text-muted">{f.descricao}</span>
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                 )}
               </Card.Body>
@@ -344,17 +402,9 @@ function Checkout() {
                   size="lg"
                   disabled={criarPedido.isPending || cotarFrete.isPending}
                 >
-                  {criarPedido.isPending
-                    ? "Processando..."
-                    : config?.pagamento_online
-                    ? "Ir para o pagamento"
-                    : "Confirmar pedido"}
+                  {criarPedido.isPending ? "Processando..." : PAGAMENTO[forma].botao}
                 </Button>
-                <p className="small text-muted mt-2 mb-0">
-                  {config?.pagamento_online
-                    ? "Você será levado ao Mercado Pago para pagar com Pix, cartão ou boleto com segurança."
-                    : "A loja entrará em contato para combinar o pagamento."}
-                </p>
+                <p className="small text-muted mt-2 mb-0">{PAGAMENTO[forma].ajuda}</p>
                 <Link to="/carrinho" className="btn btn-link w-100 mt-1">
                   Voltar ao carrinho
                 </Link>

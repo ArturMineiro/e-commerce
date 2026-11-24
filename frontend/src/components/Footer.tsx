@@ -5,6 +5,7 @@ import { useCategorias, useConfigLoja } from "../hooks/useLoja";
 import { formatarPreco } from "../lib/api";
 import { linkRede, linkWhatsapp } from "../lib/utils";
 import { urlPlataforma } from "../lib/loja";
+import { meiosAceitos } from "../lib/pagamento";
 import { MARCA } from "../site/marca";
 
 function Footer() {
@@ -13,6 +14,7 @@ function Footer() {
 
   if (!config) return null;
 
+  const meios = meiosAceitos(config);
   const redes = [
     { chave: "instagram" as const, valor: config.instagram, Icone: FaInstagram, nome: "Instagram" },
     { chave: "facebook" as const, valor: config.facebook, Icone: FaFacebook, nome: "Facebook" },
@@ -31,9 +33,9 @@ function Footer() {
             )}
             {config.pagamento_online && (
               <div className="d-flex flex-wrap gap-2" aria-label="Formas de pagamento">
-                <span className="selo-pagamento"><FaPix aria-hidden /> Pix</span>
-                <span className="selo-pagamento"><FaCreditCard aria-hidden /> Cartão</span>
-                <span className="selo-pagamento"><FaBarcode aria-hidden /> Boleto</span>
+                {meios.pix && <span className="selo-pagamento"><FaPix aria-hidden /> Pix</span>}
+                {meios.cartao && <span className="selo-pagamento"><FaCreditCard aria-hidden /> Cartão</span>}
+                {meios.boleto && <span className="selo-pagamento"><FaBarcode aria-hidden /> Boleto</span>}
               </div>
             )}
           </Col>
