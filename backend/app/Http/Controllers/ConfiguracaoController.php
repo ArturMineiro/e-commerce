@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Configuracao;
 use App\Services\FreteService;
+use App\Services\GeocodificadorService;
 use App\Services\MercadoPagoService;
 use App\Services\PagamentoService;
 use App\Services\PixService;
@@ -24,7 +25,8 @@ class ConfiguracaoController extends Controller
         private FreteService $frete,
         private PixService $pix,
         private StripeService $stripe,
-        private PagamentoService $pagamentos
+        private PagamentoService $pagamentos,
+        private GeocodificadorService $geocodificador
     ) {
     }
 
@@ -37,6 +39,7 @@ class ConfiguracaoController extends Controller
             'frete_modo' => $this->frete->modo(), // modo efetivo (cai para "fixo" se o Melhor Envio estiver incompleto)
             'formas_pagamento' => $formas,
             'pagamento_online' => count($formas) > 0,
+            'entrega_local' => $this->frete->entregaLocalAtiva(),
         ]));
     }
 
@@ -48,6 +51,8 @@ class ConfiguracaoController extends Controller
         return response()->json(Configuracao::publicas() + Configuracao::privadas() + [
             'formas_pagamento' => $formas,
             'pagamento_online' => count($formas) > 0,
+            'entrega_local_pronta' => $this->frete->entregaLocalAtiva(),
+            'origem_localizada' => $this->frete->origem() !== null,
             'mercado_pago_ativo' => $this->mercadoPago->configurado(),
             'pix_configurado' => $this->pix->configurado(),
             'pix_tipos' => PixService::TIPOS,
@@ -85,7 +90,20 @@ class ConfiguracaoController extends Controller
             'texto_rodape' => 'nullable|string|max:500',
             'frete_fixo' => 'nullable|numeric|min:0',
             'frete_gratis_acima' => 'nullable|numeric|min:0',
-            'frete_modo' => 'nullable|in:fixo,melhor_envio',
+            'frete_modo' => 'nullable|in:fixo,melhor_envio,nenhum',
+            'frete_fixo_nome' => 'nullable|string|max:60',
+            'frete_fixo_prazo' => 'nullable|integer|min:0|max:90',
+
+            // Entrega local por distância e retirada na loja
+            'origem_numero' => 'nullable|string|max:20',
+            'entrega_local_ativa' => 'nullable|boolean',
+            'entrega_local_faixas' => 'nullable|array|max:10',
+            'entrega_local_faixas.*.ate_km' => 'required|numeric|min:0.1|max:300',
+            'entrega_local_faixas.*.nome' => 'required|string|max:60',
+            'entrega_local_faixas.*.preco' => 'nullable|numeric|min:0|max:10000',
+            'entrega_local_faixas.*.prazo_dias' => 'nullable|integer|min:0|max:30',
+            'retirada_ativa' => 'nullable|boolean',
+            'retirada_instrucoes' => 'nullable|string|max:300',
             'cep_origem' => ['nullable', 'string', 'regex:/^\d{5}-?\d{3}$/'],
             'melhor_envio_sandbox' => 'nullable|boolean',
             'frete_prazo_extra' => 'nullable|integer|min:0|max:60',
@@ -137,9 +155,12 @@ class ConfiguracaoController extends Controller
             'pix_cidade.max' => 'A cidade do Pix pode ter até 15 caracteres.',
             'stripe_secret_key.regex' => 'A chave secreta da Stripe começa com sk_live_ ou sk_test_.',
             'stripe_webhook_secret.regex' => 'O segredo do webhook da Stripe começa com whsec_.',
+            'entrega_local_faixas.*.ate_km.required' => 'Informe até quantos km vale cada faixa de entrega.',
+            'entrega_local_faixas.*.nome.required' => 'Dê um nome para cada faixa de entrega (ex.: Motoboy).',
         ]);
 
         $this->validarPix($dados);
+        $origemAntes = [Configuracao::obter('cep_origem'), Configuracao::obter('origem_numero')];
 
         foreach (Configuracao::JSON as $chave) {
             if (array_key_exists($chave, $dados)) {
@@ -150,6 +171,7 @@ class ConfiguracaoController extends Controller
         $chavesTexto = array_diff(
             array_merge(array_keys(Configuracao::PUBLICAS), array_keys(Configuracao::PRIVADAS)),
             Configuracao::JSON,
+            Configuracao::CALCULADAS,
             ['logo', 'modelo_loja']
         );
         foreach ($chavesTexto as $chave) {
@@ -174,6 +196,12 @@ class ConfiguracaoController extends Controller
         if ($request->boolean('remover_stripe')) {
             Configuracao::definir('stripe_secret_key', null);
             Configuracao::definir('stripe_webhook_secret', null);
+        }
+
+        // Endereço da loja mudou (ou ainda não foi localizado): calcula as coordenadas para a entrega local
+        $origemDepois = [Configuracao::obter('cep_origem'), Configuracao::obter('origem_numero')];
+        if ($origemDepois !== $origemAntes || ($this->frete->origem() === null && !empty($dados['entrega_local_ativa']))) {
+            $this->localizarOrigem();
         }
 
         $logoAtual = Configuracao::obter('logo');
@@ -258,11 +286,57 @@ class ConfiguracaoController extends Controller
         return $this->admin();
     }
 
+    /** Painel: simula a entrega local para um CEP (distância e faixa), para o dono conferir os preços. */
+    public function simularEntrega(Request $request)
+    {
+        $dados = $request->validate(['cep' => ['required', 'string', 'regex:/^\d{5}-?\d{3}$/']]);
+
+        $origem = $this->frete->origem();
+        if (!$origem) {
+            return response()->json(['message' => 'Salve o endereço da loja primeiro.'], 422);
+        }
+
+        $destino = $this->geocodificador->coordenadasDoCep($dados['cep']);
+        if (!$destino) {
+            return response()->json(['message' => 'Não encontramos este CEP no mapa. Confira o número.'], 422);
+        }
+
+        $distancia = GeocodificadorService::distanciaKm($origem, $destino);
+
+        return response()->json([
+            'distancia_km' => round($distancia, 1),
+            'endereco' => $this->geocodificador->endereco($dados['cep']),
+            'faixa' => collect($this->frete->faixas())->first(fn ($f) => $distancia <= $f['ate_km']),
+        ]);
+    }
+
+    /** Coordenadas e endereço (para conferência) da loja, a partir do CEP de origem e do número. */
+    private function localizarOrigem(): void
+    {
+        $cep = (string) preg_replace('/\D/', '', (string) Configuracao::obter('cep_origem', ''));
+        $numero = trim((string) Configuracao::obter('origem_numero', ''));
+        $coordenadas = strlen($cep) === 8 ? $this->geocodificador->coordenadasDoEndereco($cep, $numero) : null;
+        $endereco = $coordenadas ? $this->geocodificador->endereco($cep) : null;
+
+        Configuracao::definir('origem_lat', $coordenadas ? (string) $coordenadas[0] : null);
+        Configuracao::definir('origem_lng', $coordenadas ? (string) $coordenadas[1] : null);
+        Configuracao::definir('origem_endereco', $endereco ? implode(', ', array_filter([
+            $endereco['logradouro'],
+            $numero,
+            $endereco['bairro'],
+            trim("{$endereco['cidade']}/{$endereco['uf']}", '/'),
+        ])) : null);
+    }
+
     /** Remove linhas/valores vazios das estruturas JSON. */
     private function limparJson(string $chave, ?array $valor): ?array
     {
         if (!$valor) {
             return null;
+        }
+
+        if ($chave === 'entrega_local_faixas') {
+            return FreteService::normalizarFaixas($valor) ?: null;
         }
 
         if ($chave === 'grades_tamanho') {

@@ -49,10 +49,13 @@ class Configuracao extends Model
         'grades_tamanho' => '[]',
         // JSON: {"colunas": ["Busto (cm)"], "linhas": [["P", "84-88"]]}
         'guia_medidas' => '',
+        // Retirada na loja (o texto aparece no checkout: onde e como retirar)
+        'retirada_ativa' => '0',
+        'retirada_instrucoes' => '',
     ];
 
     /** Chaves guardadas como JSON (a API devolve já decodificadas). */
-    public const JSON = ['grades_tamanho', 'guia_medidas'];
+    public const JSON = ['grades_tamanho', 'guia_medidas', 'entrega_local_faixas'];
 
     /** Chaves visíveis só para o admin (não vão para a vitrine). */
     public const PRIVADAS = [
@@ -69,7 +72,21 @@ class Configuracao extends Model
         'pix_chave' => '',
         'pix_nome' => '',
         'pix_cidade' => '',
+        // Envio com valor fixo: nome exibido (ex.: "Correios") e prazo em dias úteis
+        'frete_fixo_nome' => '',
+        'frete_fixo_prazo' => '',
+        // Entrega local por distância a partir do endereço da loja
+        'origem_numero' => '',
+        'origem_lat' => '',
+        'origem_lng' => '',
+        'origem_endereco' => '',
+        'entrega_local_ativa' => '0',
+        // JSON: [{"ate_km": 3, "nome": "Entrega em mãos", "preco": 0, "prazo_dias": 0}]
+        'entrega_local_faixas' => '[]',
     ];
+
+    /** Calculadas pelo sistema (não podem ser enviadas pelo painel). */
+    public const CALCULADAS = ['origem_lat', 'origem_lng', 'origem_endereco'];
 
     /** Chaves privadas (somente backend). */
     public const SECRETAS = ['mp_access_token', 'mp_webhook_secret', 'melhor_envio_token', 'stripe_secret_key', 'stripe_webhook_secret'];
@@ -144,6 +161,7 @@ class Configuracao extends Model
         }
 
         $resultado['frete_fixo'] = (float) $resultado['frete_fixo'];
+        $resultado['retirada_ativa'] = (bool) $resultado['retirada_ativa'];
         $resultado['frete_gratis_acima'] = (float) $resultado['frete_gratis_acima'];
         $resultado['guia_medidas'] = $resultado['guia_medidas'] ?: null;
 
@@ -186,9 +204,10 @@ class Configuracao extends Model
     {
         $resultado = [];
         foreach (self::PRIVADAS as $chave => $padrao) {
-            $resultado[$chave] = static::obter($chave, $padrao);
+            $resultado[$chave] = in_array($chave, self::JSON, true) ? static::json($chave) : static::obter($chave, $padrao);
         }
         $resultado['melhor_envio_sandbox'] = (bool) $resultado['melhor_envio_sandbox'];
+        $resultado['entrega_local_ativa'] = (bool) $resultado['entrega_local_ativa'];
         $resultado['pix_ativo'] = (bool) $resultado['pix_ativo'];
 
         return $resultado;

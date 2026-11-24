@@ -65,12 +65,18 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
 
       <div className="row g-3">
         <div className="col-md-6 small">
-          <strong>Entrega</strong>
+          <strong>{pedido.tipo_entrega === "retirada" ? "Retirada na loja" : "Entrega"}</strong>
           <br />
-          {pedido.logradouro}, {pedido.numero}
-          {pedido.complemento && ` - ${pedido.complemento}`}
-          <br />
-          {pedido.bairro} · {pedido.cidade}/{pedido.uf} · {pedido.cep}
+          {pedido.tipo_entrega === "retirada" ? (
+            config?.retirada_instrucoes || "A loja vai combinar com você o dia e o horário."
+          ) : (
+            <>
+              {pedido.logradouro}, {pedido.numero}
+              {pedido.complemento && ` - ${pedido.complemento}`}
+              <br />
+              {pedido.bairro} · {pedido.cidade}/{pedido.uf} · {pedido.cep}
+            </>
+          )}
           {pedido.codigo_rastreio && (
             <>
               <br />
@@ -90,7 +96,8 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
             </>
           )}
           Frete{pedido.frete_servico && ` (${pedido.frete_servico})`}: {pedido.frete > 0 ? formatarPreco(pedido.frete) : "Grátis"}
-          {pedido.frete_prazo && <span className="text-muted"> · até {pedido.frete_prazo} dias úteis</span>}
+          {pedido.frete_prazo === 0 && <span className="text-muted"> · no mesmo dia</span>}
+          {!!pedido.frete_prazo && <span className="text-muted"> · até {pedido.frete_prazo} dias úteis</span>}
           <br />
           <strong className="fs-6">Total: {formatarPreco(pedido.total)}</strong>
           {pedido.forma_pagamento && (

@@ -110,6 +110,7 @@ Route::middleware('loja')->group(function () {
         Route::get('/aparencia', [ConfiguracaoController::class, 'aparencia']);
         Route::post('/aparencia/modelo', [ConfiguracaoController::class, 'aplicarModelo']);
         Route::get('/pagamentos/pix-teste', [ConfiguracaoController::class, 'pixTeste']);
+        Route::get('/entrega/simular', [ConfiguracaoController::class, 'simularEntrega'])->middleware('throttle:30,1');
 
         Route::get('/produtos', [ProdutoController::class, 'adminIndex']);
         Route::post('/produtos', [ProdutoController::class, 'store']);

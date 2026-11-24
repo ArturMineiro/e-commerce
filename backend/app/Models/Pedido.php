@@ -24,7 +24,7 @@ class Pedido extends Model
 
     protected $fillable = [
         'user_id', 'status', 'subtotal', 'cupom_id', 'cupom_codigo', 'desconto', 'frete', 'frete_servico', 'frete_prazo', 'total',
-        'forma_pagamento',
+        'forma_pagamento', 'tipo_entrega', 'distancia_km',
         'nome', 'email', 'telefone', 'cpf', 'cep', 'logradouro', 'numero',
         'complemento', 'bairro', 'cidade', 'uf', 'observacoes',
         'mp_preference_id', 'mp_payment_id', 'mp_status', 'metodo_pagamento',
@@ -36,6 +36,7 @@ class Pedido extends Model
         'frete' => 'float',
         'desconto' => 'float',
         'frete_prazo' => 'integer',
+        'distancia_km' => 'float',
         'total' => 'float',
         'pago_em' => 'datetime',
         'pagamento_informado_em' => 'datetime',

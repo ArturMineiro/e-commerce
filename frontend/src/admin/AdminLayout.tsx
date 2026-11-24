@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import {
   FaBoxOpen,
   FaMoneyBillWave,
+  FaTruckFast,
   FaListCheck,
   FaWandMagicSparkles,
   FaGauge,
@@ -27,6 +28,7 @@ const itens = [
   { to: "/admin/cupons", texto: "Cupons", Icone: FaTicket },
   { to: "/admin/usuarios", texto: "Clientes", Icone: FaUsers },
   { to: "/admin/pagamentos", texto: "Pagamentos", Icone: FaMoneyBillWave },
+  { to: "/admin/entrega", texto: "Entrega", Icone: FaTruckFast },
   { to: "/admin/aparencia", texto: "Aparência", Icone: FaWandMagicSparkles },
   { to: "/admin/configuracoes", texto: "Configurações da loja", Icone: FaGear },
 ];

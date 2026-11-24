@@ -38,6 +38,7 @@ const Usuarios = lazy(() => import("./admin/Usuarios"));
 const Aparencia = lazy(() => import("./admin/Aparencia"));
 const OpcoesProduto = lazy(() => import("./admin/OpcoesProduto"));
 const Pagamentos = lazy(() => import("./admin/Pagamentos"));
+const Entrega = lazy(() => import("./admin/Entrega"));
 // Tela do Pix (traz a biblioteca do QR Code só quando usada)
 const PagamentoPix = lazy(() => import("./pages/PagamentoPix"));
 
@@ -132,6 +133,7 @@ function App() {
               <Route path="usuarios" element={<Usuarios />} />
               <Route path="configuracoes" element={<Configuracoes />} />
               <Route path="pagamentos" element={<Pagamentos />} />
+              <Route path="entrega" element={<Entrega />} />
               <Route path="aparencia" element={<Aparencia />} />
               <Route path="opcoes-produto" element={<OpcoesProduto />} />
             </Route>

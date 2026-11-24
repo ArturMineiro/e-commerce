@@ -87,14 +87,33 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
             )}
           </Col>
           <Col md={6}>
-            <strong>Entrega</strong>
-            <br />
-            {pedido.logradouro}, {pedido.numero}
-            {pedido.complemento && ` - ${pedido.complemento}`}
-            <br />
-            {pedido.bairro} · {pedido.cidade}/{pedido.uf}
-            <br />
-            CEP {pedido.cep}
+            <strong>
+              {pedido.tipo_entrega === "retirada" ? "Retirada na loja" : pedido.tipo_entrega === "local" ? "Entrega local" : "Entrega"}
+            </strong>
+            {pedido.tipo_entrega === "retirada" ? (
+              <>
+                <br />O cliente vai retirar. Combine o dia e o horário pelo WhatsApp.
+              </>
+            ) : (
+              <>
+                <br />
+                {pedido.logradouro}, {pedido.numero}
+                {pedido.complemento && ` - ${pedido.complemento}`}
+                <br />
+                {pedido.bairro} · {pedido.cidade}/{pedido.uf}
+                <br />
+                CEP {pedido.cep}
+                {pedido.tipo_entrega === "local" && (
+                  <>
+                    <br />
+                    <span className="text-primary">
+                      {pedido.frete_servico}
+                      {pedido.distancia_km !== null && ` · cerca de ${pedido.distancia_km.toLocaleString("pt-BR")} km`}
+                    </span>
+                  </>
+                )}
+              </>
+            )}
           </Col>
           {pedido.observacoes && (
             <Col xs={12}>
@@ -293,7 +312,8 @@ function PedidosAdmin() {
                     <td>
                       {p.nome}
                       <div className="small text-muted">
-                        {p.cidade}/{p.uf}
+                        {p.tipo_entrega === "retirada" ? "Retirada na loja" : `${p.cidade}/${p.uf}`}
+                        {p.tipo_entrega === "local" && " · entrega local"}
                       </div>
                     </td>
                     <td>{p.itens.reduce((s, i) => s + i.quantidade, 0)}</td>

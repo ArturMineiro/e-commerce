@@ -938,3 +938,37 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
   background: #f6fbfa;
   border: 1px solid #d1ede9;
 }
+
+/* ---------- Entrega (painel) ---------- */
+/* As faixas seguem a largura do cartão (container query), não a da tela: no desktop o cartão ocupa meia tela */
+.faixas-entrega { display: grid; gap: 0.75rem; container-type: inline-size; }
+
+.faixa-entrega {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "km nome nome"
+    "preco prazo remover";
+  gap: 0.5rem 0.6rem;
+  align-items: end;
+  padding: 0.75rem;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  background: #fcfcfd;
+}
+
+.faixa-km { grid-area: km; }
+.faixa-nome { grid-area: nome; }
+.faixa-preco { grid-area: preco; }
+.faixa-prazo { grid-area: prazo; }
+.faixa-remover { grid-area: remover; }
+
+@container (min-width: 640px) {
+  .faixa-entrega {
+    grid-template-columns: 5.5rem minmax(0, 1fr) 6.5rem 10rem auto;
+    grid-template-areas: "km nome preco prazo remover";
+    padding: 0.6rem 0.75rem;
+  }
+}
+
+.simulador-entrega { background: #f8f9fa; border-radius: 12px; padding: 0.85rem 1rem; }

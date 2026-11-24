@@ -65,7 +65,12 @@ class PedidoAtualizado extends Notification
             }
             $mensagem->line('Frete' . ($p->frete_servico ? " ({$p->frete_servico})" : '') . ': ' . ($p->frete > 0 ? $this->real($p->frete) : 'grátis'));
             $mensagem->line('**Total: ' . $this->real($p->total) . '**');
-            $mensagem->line("Entrega: {$p->logradouro}, {$p->numero} - {$p->bairro}, {$p->cidade}/{$p->uf}");
+            if ($p->tipo_entrega === 'retirada') {
+                $instrucoes = trim((string) Configuracao::obter('retirada_instrucoes'));
+                $mensagem->line('Retirada na loja.' . ($instrucoes !== '' ? " {$instrucoes}" : ' A loja vai combinar com você o dia e o horário.'));
+            } else {
+                $mensagem->line("Entrega: {$p->logradouro}, {$p->numero} - {$p->bairro}, {$p->cidade}/{$p->uf}");
+            }
         }
 
         return $mensagem

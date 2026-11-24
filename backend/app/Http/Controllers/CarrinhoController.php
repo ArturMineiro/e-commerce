@@ -29,8 +29,8 @@ class CarrinhoController extends Controller
 
         $subtotal = round($linhas->sum('subtotal'), 2);
         $modo = $frete->modo();
-        // No modo Melhor Envio o frete depende do CEP: é calculado no checkout.
-        $valorFrete = $linhas->isEmpty() ? 0 : ($modo === 'fixo' ? $frete->valorFixo($subtotal) : null);
+        // Com Melhor Envio, entrega local ou sem envio, o frete depende do CEP: é calculado no checkout.
+        $valorFrete = $linhas->isEmpty() ? 0 : ($frete->dependeDoCep() ? null : $frete->valorFixo($subtotal));
 
         return response()->json([
             'itens' => $linhas,

@@ -45,24 +45,29 @@ class PedidoController extends Controller
      */
     public function store(Request $request)
     {
+        // Retirada na loja: o endereço é opcional
+        $endereco = $request->input('frete_servico_id') === 'retirada' ? 'nullable' : 'required';
+
         $dados = $request->validate([
             'nome' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'telefone' => 'required|string|max:30',
             'cpf' => ['nullable', 'string', 'regex:/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/'],
-            'cep' => ['required', 'string', 'regex:/^\d{5}-?\d{3}$/'],
-            'logradouro' => 'required|string|max:255',
-            'numero' => 'required|string|max:20',
+            'cep' => [$endereco, 'string', 'regex:/^\d{5}-?\d{3}$/'],
+            'logradouro' => "{$endereco}|string|max:255",
+            'numero' => "{$endereco}|string|max:20",
             'complemento' => 'nullable|string|max:255',
-            'bairro' => 'required|string|max:255',
-            'cidade' => 'required|string|max:255',
-            'uf' => 'required|string|size:2',
+            'bairro' => "{$endereco}|string|max:255",
+            'cidade' => "{$endereco}|string|max:255",
+            'uf' => "{$endereco}|string|size:2",
             'observacoes' => 'nullable|string|max:1000',
             'cupom' => 'nullable|string|max:40',
             'frete_servico_id' => 'nullable|string|max:50',
             'forma_pagamento' => ['nullable', Rule::in($this->pagamentos->idsAceitos())],
         ], self::MSG_FORMA);
-        $dados['uf'] = strtoupper($dados['uf']);
+        if (!empty($dados['uf'])) {
+            $dados['uf'] = strtoupper($dados['uf']);
+        }
         $dados['forma_pagamento'] = $dados['forma_pagamento'] ?? $this->pagamentos->padrao();
 
         $pedido = $this->pedidos->criarDoCarrinho(auth('api')->user(), $dados);

@@ -111,7 +111,18 @@ export interface ItemCarrinho {
   produto: Produto;
 }
 
-export type FreteModo = "fixo" | "melhor_envio";
+/** Envio para longe: valor fixo, cotação no Melhor Envio ou desligado (só entrega local/retirada). */
+export type FreteModo = "fixo" | "melhor_envio" | "nenhum";
+
+export type TipoEntrega = "envio" | "local" | "retirada";
+
+/** Faixa da entrega local: até X km, com nome, preço e prazo (0 = no mesmo dia). */
+export interface FaixaEntrega {
+  ate_km: number;
+  nome: string;
+  preco: number;
+  prazo_dias: number | null;
+}
 
 export interface Carrinho {
   itens: ItemCarrinho[];
@@ -128,6 +139,8 @@ export interface OpcaoFrete {
   empresa: string | null;
   preco: number;
   prazo: number | null;
+  tipo?: TipoEntrega;
+  distancia_km?: number | null;
 }
 
 export interface Cupom {
@@ -184,7 +197,16 @@ export interface DadosEntrega {
   observacoes: string;
 }
 
-export interface Pedido extends DadosEntrega {
+/** Na retirada o pedido não tem endereço. */
+export interface Pedido extends Omit<DadosEntrega, "cep" | "logradouro" | "numero" | "bairro" | "cidade" | "uf"> {
+  cep: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+  tipo_entrega: TipoEntrega | null;
+  distancia_km: number | null;
   id: number;
   user_id: number;
   status: StatusPedido;
@@ -260,6 +282,10 @@ export interface ConfigLoja {
   mp_public_key: string;
   pagamento_online: boolean;
   formas_pagamento: FormaPagamento[];
+  /** entrega local por distância pronta para uso */
+  entrega_local: boolean;
+  retirada_ativa: boolean;
+  retirada_instrucoes: string;
   fonte_titulos: string;
   fonte_texto: string;
   fonte_titulos_css: string;
@@ -273,6 +299,14 @@ export interface ConfigLoja {
 
 export interface ConfigAdmin extends ConfigLoja {
   cep_origem: string;
+  origem_numero: string;
+  origem_endereco: string;
+  origem_localizada: boolean;
+  entrega_local_ativa: boolean;
+  entrega_local_pronta: boolean;
+  entrega_local_faixas: FaixaEntrega[];
+  frete_fixo_nome: string;
+  frete_fixo_prazo: string;
   melhor_envio_sandbox: boolean;
   frete_prazo_extra: string;
   peso_padrao: string;

@@ -43,4 +43,11 @@ return [
     // URL pública do front (React), usada nos links de retorno do pagamento.
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 
+    // Localização de CEPs para o frete por distância (OpenStreetMap pede um User-Agent do sistema)
+    'geocodificacao' => [
+        'user_agent' => env('GEOCODIFICACAO_USER_AGENT', 'Lojaria/1.0 (frete por distancia)'),
+        // Intervalo mínimo entre consultas ao Nominatim (a política de uso pede no máximo 1 por segundo)
+        'intervalo_ms' => (int) env('GEOCODIFICACAO_INTERVALO_MS', 1100),
+    ],
+
 ];

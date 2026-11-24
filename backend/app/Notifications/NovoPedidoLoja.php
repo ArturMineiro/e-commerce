@@ -42,7 +42,12 @@ class NovoPedidoLoja extends Notification
             ->subject($assunto)
             ->greeting($saudacao)
             ->line("Cliente: {$p->nome} ({$p->email}, {$p->telefone})")
-            ->line("Entrega: {$p->cidade}/{$p->uf}" . ($p->frete_servico ? " — {$p->frete_servico}" : ''));
+            ->line(match ($p->tipo_entrega) {
+                'retirada' => 'Entrega: cliente vai retirar na loja',
+                'local' => "Entrega local: {$p->frete_servico} — {$p->bairro}, {$p->cidade}/{$p->uf}"
+                    . ($p->distancia_km !== null ? ' (cerca de ' . number_format($p->distancia_km, 1, ',', '.') . ' km)' : ''),
+                default => "Entrega: {$p->cidade}/{$p->uf}" . ($p->frete_servico ? " — {$p->frete_servico}" : ''),
+            });
 
         if ($forma) {
             $mensagem->line("Pagamento: {$forma}");

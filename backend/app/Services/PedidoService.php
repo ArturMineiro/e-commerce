@@ -112,14 +112,15 @@ class PedidoService
         $subtotalPrevia = round($previa->sum('subtotal'), 2);
         [, $descontoPrevia] = $this->aplicarCupom($codigoCupom, $subtotalPrevia);
 
-        if ($this->frete->modo() === 'melhor_envio') {
-            if (!$servicoFrete) {
-                throw ValidationException::withMessages(['frete_servico_id' => 'Escolha uma opção de frete.']);
-            }
-            $opcaoFrete = $this->frete->opcaoEscolhida($dados['cep'], (string) $servicoFrete, $previa, $subtotalPrevia - $descontoPrevia);
-        } else {
-            $opcaoFrete = ['nome' => null, 'preco' => $this->frete->valorFixo($subtotalPrevia - $descontoPrevia), 'prazo' => null];
+        // Loja só com frete fixo: não precisa escolher. Com entrega local, Melhor Envio ou retirada, sim.
+        $servico = $servicoFrete !== null && $servicoFrete !== '' ? (string) $servicoFrete : null;
+        if ($servico === null && !$this->frete->dependeDoCep()) {
+            $servico = 'fixo';
         }
+        if ($servico === null) {
+            throw ValidationException::withMessages(['frete_servico_id' => 'Escolha uma opção de entrega.']);
+        }
+        $opcaoFrete = $this->frete->opcaoEscolhida($dados['cep'] ?? null, $servico, $previa, $subtotalPrevia - $descontoPrevia);
 
         // 2) Transação: revalida tudo com os registros bloqueados.
         $pedido = DB::transaction(function () use ($user, $dados, $codigoCupom, $opcaoFrete, $subtotalPrevia) {
@@ -177,6 +178,8 @@ class PedidoService
                 'frete' => $opcaoFrete['preco'],
                 'frete_servico' => $opcaoFrete['nome'],
                 'frete_prazo' => $opcaoFrete['prazo'],
+                'tipo_entrega' => $opcaoFrete['tipo'] ?? 'envio',
+                'distancia_km' => $opcaoFrete['distancia_km'] ?? null,
                 'total' => round($subtotal - $desconto + $opcaoFrete['preco'], 2),
             ]));
 
