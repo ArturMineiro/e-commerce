@@ -867,3 +867,7 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
 }
+
+.credito-plataforma { font-size: 0.75rem; opacity: 0.55; }
+.credito-plataforma a { text-decoration: none; }
+.credito-plataforma a:hover { opacity: 1; text-decoration: underline; }

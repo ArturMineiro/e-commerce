@@ -257,7 +257,7 @@ class MultiLojaTest extends TestCase
         // Preferência criada com o token da loja B e retorno para o site da loja B
         Http::assertSent(fn ($r) => str_contains($r->url(), '/checkout/preferences')
             && $r->hasHeader('Authorization', 'Bearer TOKEN-DA-LOJA-B')
-            && str_contains($r['back_urls']['success'], 'loja=lojab'));
+            && str_contains($r['back_urls']['success'], '/lojab/pagamento/retorno'));
 
         // Webhook na URL da loja A não acha o pedido (e a loja A nem tem token)
         $this->novaRequisicao();
@@ -291,7 +291,7 @@ class MultiLojaTest extends TestCase
         Notification::assertSentTo($anaA, RedefinirSenha::class, function ($n) use (&$token, $anaA) {
             $token = $n->token;
             $url = $n->toMail($anaA)->actionUrl;
-            return str_contains($url, 'email=ana%40teste.com') && str_contains($url, 'loja=loja');
+            return str_contains($url, 'email=ana%40teste.com') && str_contains($url, '/loja/redefinir-senha');
         });
         Notification::assertNotSentTo($anaB, RedefinirSenha::class);
 

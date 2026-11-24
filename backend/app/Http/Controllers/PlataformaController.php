@@ -7,6 +7,7 @@ use App\Models\Configuracao;
 use App\Models\Loja;
 use App\Models\Pedido;
 use App\Models\User;
+use App\Services\ModeloLojaService;
 use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -83,6 +84,11 @@ class PlataformaController extends Controller
             'dono_nome' => 'required|string|max:255',
             'dono_email' => 'required|email|max:255',
             'dono_senha' => 'required|string|min:8',
+            'modelo' => ['nullable', 'string', function ($atributo, $valor, $falhar) {
+                if (!app(ModeloLojaService::class)->existe($valor)) {
+                    $falhar('Modelo de loja inválido.');
+                }
+            }],
         ]);
 
         $loja = DB::transaction(function () use ($dados) {
@@ -92,6 +98,10 @@ class PlataformaController extends Controller
                 'dominio' => $dados['dominio'] ?? null,
                 'ativo' => $dados['ativo'] ?? true,
             ]);
+
+            if (!empty($dados['modelo'])) {
+                app(ModeloLojaService::class)->aplicar($loja, $dados['modelo'], ['textos' => true]);
+            }
 
             $this->lojaAtual->usar($loja, function () use ($dados) {
                 Configuracao::definir('nome_loja', $dados['nome']);

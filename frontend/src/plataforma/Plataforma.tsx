@@ -6,6 +6,11 @@ import apiPlataforma, { TOKEN_PLATAFORMA, tokenPlataformaValido } from "../lib/p
 import { formatarPreco, mensagemErro } from "../lib/api";
 import { Carregando } from "../components/Ui";
 import { useAtualizarLoja, useCriarLoja, useLojasPlataforma } from "./usePlataforma";
+import { useModelosPlataforma } from "../site/usePlataformaPublica";
+import Logo from "../site/Logo";
+import { MARCA } from "../site/marca";
+import { urlLoja } from "../lib/loja";
+import { Link } from "react-router-dom";
 import type { LojaPlataforma, NovaLoja } from "../types";
 
 /** Transforma "Loja da Ana" em "loja-da-ana" (sugestão de slug). */
@@ -44,6 +49,9 @@ function LoginPlataforma({ aoEntrar }: { aoEntrar: () => void }) {
     <Container className="py-5" style={{ maxWidth: 440 }}>
       <Card className="shadow-sm border-0">
         <Card.Body className="p-4">
+          <div className="text-center mb-3">
+            <Logo tamanho={36} />
+          </div>
           <h1 className="h4 mb-1 text-center">Painel da plataforma</h1>
           <p className="text-muted small text-center mb-4">Acesso do administrador do sistema</p>
           <Form onSubmit={enviar}>
@@ -66,12 +74,13 @@ function LoginPlataforma({ aoEntrar }: { aoEntrar: () => void }) {
   );
 }
 
-const VAZIA: NovaLoja = { nome: "", slug: "", dominio: "", dono_nome: "", dono_email: "", dono_senha: "" };
+const VAZIA: NovaLoja = { nome: "", slug: "", dominio: "", dono_nome: "", dono_email: "", dono_senha: "", modelo: "" };
 
 /** Modal de criar (com dono) ou editar loja. */
 function FormLoja({ loja, aoFechar }: { loja: LojaPlataforma | "nova" | null; aoFechar: () => void }) {
   const criar = useCriarLoja();
   const atualizar = useAtualizarLoja();
+  const { data: catalogo } = useModelosPlataforma();
   const [dados, setDados] = useState<NovaLoja>(VAZIA);
   const [slugEditado, setSlugEditado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -84,8 +93,8 @@ function FormLoja({ loja, aoFechar }: { loja: LojaPlataforma | "nova" | null; ao
   }, [loja, nova]);
 
   const campo = (nome: keyof NovaLoja) => ({
-    value: dados[nome],
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+    value: dados[nome] ?? "",
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const valor = e.target.value;
       setDados((d) => ({
         ...d,
@@ -101,7 +110,7 @@ function FormLoja({ loja, aoFechar }: { loja: LojaPlataforma | "nova" | null; ao
     setErro(null);
     const aoErrar = (err: unknown) => setErro(mensagemErro(err));
     if (nova) {
-      criar.mutate({ ...dados, slug: dados.slug.trim().toLowerCase() }, { onSuccess: aoFechar, onError: aoErrar });
+      criar.mutate({ ...dados, slug: dados.slug.trim().toLowerCase(), modelo: dados.modelo || undefined }, { onSuccess: aoFechar, onError: aoErrar });
     } else if (loja) {
       atualizar.mutate(
         { id: loja.id, nome: dados.nome, slug: dados.slug.trim().toLowerCase(), dominio: dados.dominio.trim() || null },
@@ -129,7 +138,7 @@ function FormLoja({ loja, aoFechar }: { loja: LojaPlataforma | "nova" | null; ao
             <Form.Label>Identificador (slug)</Form.Label>
             <Form.Control {...campo("slug")} maxLength={50} pattern="[a-z0-9]([a-z0-9\-]*[a-z0-9])?" required aria-describedby="loja-slug-ajuda" />
             <Form.Text id="loja-slug-ajuda">
-              Letras minúsculas, números e hífen. Vira o subdomínio ({dados.slug || "slug"}.seudominio.com) ou o ?loja= da URL.
+              Letras minúsculas, números e hífen. Endereço: {urlLoja(dados.slug || "slug").replace(/^https?:\/\//, "")}
             </Form.Text>
           </Form.Group>
           <Form.Group className="mb-3" controlId="loja-dominio">
@@ -140,6 +149,18 @@ function FormLoja({ loja, aoFechar }: { loja: LojaPlataforma | "nova" | null; ao
 
           {nova && (
             <>
+              <Form.Group className="mb-3" controlId="loja-modelo">
+                <Form.Label>Modelo pronto</Form.Label>
+                <Form.Select {...campo("modelo")}>
+                  <option value="">Sem modelo (loja em branco)</option>
+                  {catalogo?.modelos.map((m) => (
+                    <option key={m.chave} value={m.chave}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Text>Já cria visual, categorias, cores, tamanhos e especificações do segmento.</Form.Text>
+              </Form.Group>
               <hr />
               <p className="fw-semibold mb-2">Dono da loja (acesso ao painel /admin)</p>
               <Form.Group className="mb-3" controlId="loja-dono-nome">
@@ -183,7 +204,7 @@ function Plataforma() {
   const [editando, setEditando] = useState<LojaPlataforma | "nova" | null>(null);
 
   useEffect(() => {
-    document.title = "Painel da plataforma";
+    document.title = `Administração · ${MARCA.nome}`;
     const sair = () => setLogado(false);
     window.addEventListener("plataforma:logout", sair);
     return () => window.removeEventListener("plataforma:logout", sair);
@@ -199,9 +220,12 @@ function Plataforma() {
 
   return (
     <>
-      <Navbar bg="dark" variant="dark" className="px-3">
-        <Navbar.Brand as="span">Plataforma</Navbar.Brand>
-        <Button variant="outline-light" size="sm" className="ms-auto" onClick={sair}>
+      <Navbar className="px-3 bg-white border-bottom">
+        <Navbar.Brand as={Link} to="/" aria-label={`${MARCA.nome}: página inicial`}>
+          <Logo tamanho={30} />
+        </Navbar.Brand>
+        <span className="badge text-bg-light border ms-1">administração</span>
+        <Button variant="outline-dark" size="sm" className="ms-auto" onClick={sair}>
           <FaRightFromBracket aria-hidden /> Sair
         </Button>
       </Navbar>

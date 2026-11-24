@@ -13,6 +13,7 @@ use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\PlataformaController;
+use App\Http\Controllers\PlataformaPublicoController;
 use App\Http\Controllers\ProdutoController;
 use App\Http\Controllers\SenhaController;
 use App\Http\Controllers\UserController;
@@ -24,6 +25,12 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::middleware('plataforma')->prefix('plataforma')->group(function () {
+    // Públicas: página da plataforma e cadastro de loja pelo próprio dono
+    Route::get('/modelos', [PlataformaPublicoController::class, 'modelos']);
+    Route::get('/vitrine', [PlataformaPublicoController::class, 'vitrine']);
+    Route::get('/slug-disponivel', [PlataformaPublicoController::class, 'slugDisponivel'])->middleware('throttle:60,1');
+    Route::post('/cadastro', [PlataformaPublicoController::class, 'cadastro'])->middleware('throttle:5,1');
+
     Route::post('/login', [PlataformaController::class, 'login'])->middleware('throttle:10,1');
 
     Route::middleware(['auth:api', 'superadmin'])->group(function () {

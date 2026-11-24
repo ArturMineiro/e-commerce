@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Container } from "react-bootstrap";
@@ -21,10 +21,7 @@ import Register from "./pages/Register";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import { useConfigLoja } from "./hooks/useLoja";
-import { LOJA_SLUG } from "./lib/loja";
-
-// Painel da plataforma (gerencia as lojas): fora do layout da loja
-const Plataforma = lazy(() => import("./plataforma/Plataforma"));
+import { urlPlataforma } from "./lib/loja";
 
 // O painel só é baixado por quem acessa /admin
 const AdminLayout = lazy(() => import("./admin/AdminLayout"));
@@ -57,16 +54,27 @@ function LojaIndisponivel({ inativa }: { inativa: boolean }) {
   return (
     <Container className="py-5 text-center" as="main">
       <h1 className="h3">{inativa ? "Loja temporariamente indisponível" : "Loja não encontrada"}</h1>
-      <p className="text-muted">
-        {inativa ? "Volte mais tarde." : "Confira o endereço digitado."}
-      </p>
-      {LOJA_SLUG && (
-        <a href="/?loja=" className="btn btn-outline-secondary">
-          Voltar para a loja padrão
+      <p className="text-muted">{inativa ? "Volte mais tarde." : "Confira o endereço digitado."}</p>
+      <div className="d-flex gap-2 justify-content-center flex-wrap">
+        <a href={urlPlataforma("/")} className="btn btn-outline-secondary">
+          Ir para a página inicial
         </a>
-      )}
+        {!inativa && (
+          <a href={urlPlataforma("/criar-loja")} className="btn btn-dark">
+            Criar uma loja com este nome
+          </a>
+        )}
+      </div>
     </Container>
   );
+}
+
+/** Endereços da plataforma abertos dentro de uma loja: leva para o site da plataforma. */
+function IrParaPlataforma({ caminho }: { caminho: string }) {
+  useEffect(() => {
+    window.location.replace(urlPlataforma(caminho));
+  }, [caminho]);
+  return <Carregando />;
 }
 
 function App() {
@@ -74,11 +82,7 @@ function App() {
   const { error } = useConfigLoja();
 
   if (pathname.startsWith("/plataforma")) {
-    return (
-      <Suspense fallback={<Carregando />}>
-        <Plataforma />
-      </Suspense>
-    );
+    return <IrParaPlataforma caminho="/plataforma" />;
   }
 
   const codigo = axios.isAxiosError(error) ? (error.response?.data as { codigo?: string } | undefined)?.codigo : undefined;

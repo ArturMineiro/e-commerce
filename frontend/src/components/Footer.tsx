@@ -4,6 +4,8 @@ import { FaBarcode, FaCreditCard, FaFacebook, FaInstagram, FaPix, FaTiktok, FaWh
 import { useCategorias, useConfigLoja } from "../hooks/useLoja";
 import { formatarPreco } from "../lib/api";
 import { linkRede, linkWhatsapp } from "../lib/utils";
+import { urlPlataforma } from "../lib/loja";
+import { MARCA } from "../site/marca";
 
 function Footer() {
   const { data: config } = useConfigLoja();
@@ -84,8 +86,13 @@ function Footer() {
         </Row>
 
         <hr className="opacity-25" />
-        <p className="small text-center mb-0 opacity-75">
+        <p className="small text-center mb-1 opacity-75">
           {config.texto_rodape || `© ${new Date().getFullYear()} ${config.nome_loja}. Todos os direitos reservados.`}
+        </p>
+        <p className="text-center mb-0 credito-plataforma">
+          <a href={urlPlataforma("/")} target="_blank" rel="noreferrer">
+            Loja criada com {MARCA.nome}
+          </a>
         </p>
       </Container>
     </footer>

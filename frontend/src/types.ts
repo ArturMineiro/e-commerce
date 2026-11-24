@@ -334,4 +334,5 @@ export interface NovaLoja {
   dono_nome: string;
   dono_email: string;
   dono_senha: string;
+  modelo?: string;
 }

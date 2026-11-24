@@ -16,7 +16,9 @@ node_modules/
 dist/
 dist-ssr/
 .env
-.env.*        # Ex.: .env.local, .env.production
+# Ex.: .env.local, .env.production (o git não aceita comentário no fim da linha)
+.env.*
+!.env.example
 
 # =========================
 # BACKEND (Java / Spring Boot)

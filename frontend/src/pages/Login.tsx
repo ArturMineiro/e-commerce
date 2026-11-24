@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import api, { mensagemErro } from "../lib/api";
 import apiPlataforma, { TOKEN_PLATAFORMA } from "../lib/plataforma";
+import { urlPlataforma } from "../lib/loja";
 import axios from "axios";
 
 function Login() {
@@ -35,7 +36,7 @@ function Login() {
         try {
           const { data } = await apiPlataforma.post<{ access_token: string }>("/login", { email, password: senha });
           localStorage.setItem(TOKEN_PLATAFORMA, data.access_token);
-          navigate("/plataforma", { replace: true });
+          window.location.href = urlPlataforma("/plataforma");
           return;
         } catch {
           // segue para a mensagem de erro normal

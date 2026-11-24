@@ -16,8 +16,18 @@ class Loja extends Model
 
     protected $casts = ['ativo' => 'boolean'];
 
-    /** Slugs que não podem ser usados (subdomínios do sistema). */
-    public const SLUGS_RESERVADOS = ['www', 'api', 'admin', 'app', 'plataforma', 'painel', 'mail', 'static', 'cdn'];
+    /**
+     * Slugs que não podem ser usados: subdomínios do sistema, páginas da plataforma
+     * (site.com/criar-loja...) e rotas da própria loja (a loja fica em site.com/{slug}/...).
+     * Manter em sincronia com RESERVADOS em frontend/src/lib/loja.ts.
+     */
+    public const SLUGS_RESERVADOS = [
+        'www', 'api', 'admin', 'app', 'plataforma', 'painel', 'mail', 'static', 'cdn', 'assets', 'storage',
+        'criar-loja', 'entrar', 'precos', 'modelos', 'recursos', 'termos', 'privacidade', 'ajuda', 'suporte',
+        'blog', 'sobre', 'contato', 'login', 'register', 'cadastro', 'produtos', 'produto', 'carrinho', 'checkout',
+        'pagamento', 'pedido', 'pedidos', 'meus-pedidos', 'meuspedidos', 'favoritos', 'esqueci-senha',
+        'redefinir-senha', 'dashboard', 'home', 'conta',
+    ];
 
     public const REGEX_SLUG = '/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/';
 
@@ -38,14 +48,13 @@ class Loja extends Model
     /**
      * Endereço do site (front) desta loja, usado nos e-mails e no retorno do pagamento.
      *
-     * - Com domínio próprio: {esquema do FRONTEND_URL}://{dominio}
+     * - Com domínio próprio: {esquema do FRONTEND_URL}://{dominio}/caminho
      * - FRONTEND_URL com "{loja}" (ex.: https://{loja}.minhaplataforma.com): troca pelo slug
-     * - Senão: FRONTEND_URL + ?loja={slug}
+     * - Senão: FRONTEND_URL/{slug}/caminho (a loja como "pasta" do site da plataforma)
      */
     public function urlFrontend(string $caminho = '/'): string
     {
         $base = (string) config('services.frontend_url');
-        $precisaParametro = false;
 
         if ($this->dominio) {
             $esquema = parse_url($base, PHP_URL_SCHEME) ?: 'https';
@@ -53,16 +62,12 @@ class Loja extends Model
         } elseif (str_contains($base, '{loja}')) {
             $base = str_replace('{loja}', $this->slug, $base);
         } else {
-            $precisaParametro = true;
+            $base = rtrim($base, '/') . '/' . $this->slug;
         }
 
-        $url = rtrim($base, '/') . '/' . ltrim($caminho, '/');
+        $caminho = ltrim($caminho, '/');
 
-        if ($precisaParametro) {
-            $url .= (str_contains($url, '?') ? '&' : '?') . 'loja=' . urlencode($this->slug);
-        }
-
-        return $url;
+        return rtrim($base, '/') . ($caminho === '' ? '' : '/' . $caminho);
     }
 
     public function usuarios()
