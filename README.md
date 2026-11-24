@@ -16,6 +16,24 @@ frete, banners, produtos, variações, promoções) e recebe os pagamentos pelo 
 - MySQL ou MariaDB (o do XAMPP serve)
 - Node.js 18+ e npm
 
+## Atalho: banco no Docker (sem XAMPP)
+
+Se não tiver MySQL instalado, o `docker-compose.yml` da raiz sobe um MariaDB já com os bancos
+`ecommerce` e `ecommerce_test` criados, na porta **3307** (para não conflitar com outro MySQL na 3306):
+
+```bash
+docker compose up -d                       # na raiz do projeto
+cd backend
+composer install --ignore-platform-req=php # o lock trava tymon/jwt-auth 1.0.2, que declara só PHP 7 (funciona no 8.x)
+cp .env.example .env && sed -i 's/^DB_PORT=3306$/DB_PORT=3307/' .env
+php artisan key:generate && php artisan jwt:secret
+php artisan migrate && php artisan db:seed && php artisan storage:link
+php artisan serve                          # http://localhost:8000
+```
+
+O frontend segue igual ao passo 3 abaixo. Para parar o banco: `docker compose stop`
+(os dados ficam no volume `ecommerce-db`; `docker compose down -v` apaga tudo).
+
 ## Instalação passo a passo
 
 ### 1. Banco de dados

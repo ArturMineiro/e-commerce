@@ -1,0 +1,24 @@
+# Banco de dados para desenvolvimento local.
+# Uso: docker compose up -d   (backend/.env com DB_PORT=3307, DB_USERNAME=root, DB_PASSWORD vazio)
+services:
+  db:
+    image: mariadb:10.11
+    container_name: ecommerce-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"
+      TZ: America/Sao_Paulo
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - ecommerce-db:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  ecommerce-db:
