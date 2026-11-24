@@ -6,7 +6,10 @@ use App\Models\Configuracao;
 use App\Services\FreteService;
 use App\Services\MercadoPagoService;
 use App\Support\LojaAtual;
+use App\Services\ModeloLojaService;
+use App\Support\Fontes;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 
 /** Personalização da loja pelo dono (nome, logo, cores, contatos, frete, pagamento). */
@@ -75,11 +78,40 @@ class ConfiguracaoController extends Controller
             'remover_melhor_envio_token' => 'nullable|boolean',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
             'remover_logo' => 'nullable|boolean',
+
+            // Aparência
+            'fonte_titulos' => ['nullable', Rule::in(array_keys(Fontes::LISTA))],
+            'fonte_texto' => ['nullable', Rule::in(array_keys(Fontes::LISTA))],
+            'estilo_cantos' => 'nullable|in:reto,suave,arredondado',
+
+            // Grades de tamanho prontas para gerar variações
+            'grades_tamanho' => 'nullable|array|max:20',
+            'grades_tamanho.*.nome' => 'required|string|max:40',
+            'grades_tamanho.*.valores' => 'required|array|min:1|max:40',
+            'grades_tamanho.*.valores.*' => 'nullable|string|max:30',
+
+            // Guia de medidas (tabela exibida na página do produto)
+            'guia_medidas' => 'nullable|array',
+            'guia_medidas.colunas' => 'nullable|array|max:8',
+            'guia_medidas.colunas.*' => 'nullable|string|max:40',
+            'guia_medidas.linhas' => 'nullable|array|max:40',
+            'guia_medidas.linhas.*' => 'array|max:9',
+            'guia_medidas.linhas.*.*' => 'nullable|string|max:40',
         ]);
 
-        $chavesTexto = array_merge(array_keys(Configuracao::PUBLICAS), array_keys(Configuracao::PRIVADAS));
+        foreach (Configuracao::JSON as $chave) {
+            if (array_key_exists($chave, $dados)) {
+                Configuracao::definirJson($chave, $this->limparJson($chave, $dados[$chave]));
+            }
+        }
+
+        $chavesTexto = array_diff(
+            array_merge(array_keys(Configuracao::PUBLICAS), array_keys(Configuracao::PRIVADAS)),
+            Configuracao::JSON,
+            ['logo', 'modelo_loja']
+        );
         foreach ($chavesTexto as $chave) {
-            if ($chave !== 'logo' && array_key_exists($chave, $dados)) {
+            if (array_key_exists($chave, $dados)) {
                 $valor = $dados[$chave];
                 Configuracao::definir($chave, is_bool($valor) ? ($valor ? '1' : '0') : ($valor ?? ''));
             }
@@ -107,5 +139,67 @@ class ConfiguracaoController extends Controller
         }
 
         return $this->admin();
+    }
+
+    /** Opções de aparência para o painel: fontes disponíveis e modelos prontos. */
+    public function aparencia(ModeloLojaService $modelos)
+    {
+        return response()->json([
+            'fontes' => Fontes::opcoes(),
+            'fontes_url' => Fontes::url(array_keys(Fontes::LISTA)),
+            'modelos' => $modelos->catalogo(),
+        ]);
+    }
+
+    /**
+     * Aplica um modelo pronto na loja atual:
+     * visual = cores, fontes e cantos; catalogo = categorias, cores, especificações, grades e guia.
+     */
+    public function aplicarModelo(Request $request, ModeloLojaService $modelos, LojaAtual $lojaAtual)
+    {
+        $dados = $request->validate([
+            'modelo' => ['required', 'string', function ($atributo, $valor, $falhar) use ($modelos) {
+                if (!$modelos->existe($valor)) {
+                    $falhar('Modelo de loja inválido.');
+                }
+            }],
+            'visual' => 'nullable|boolean',
+            'catalogo' => 'nullable|boolean',
+        ]);
+
+        $modelos->aplicar($lojaAtual->get(), $dados['modelo'], [
+            'visual' => (bool) ($dados['visual'] ?? true),
+            'catalogo' => (bool) ($dados['catalogo'] ?? false),
+        ]);
+
+        return $this->admin();
+    }
+
+    /** Remove linhas/valores vazios das estruturas JSON. */
+    private function limparJson(string $chave, ?array $valor): ?array
+    {
+        if (!$valor) {
+            return null;
+        }
+
+        if ($chave === 'grades_tamanho') {
+            return collect($valor)
+                ->map(fn ($g) => [
+                    'nome' => trim((string) $g['nome']),
+                    'valores' => collect($g['valores'])->map(fn ($v) => trim((string) $v))->filter()->unique()->values()->all(),
+                ])
+                ->filter(fn ($g) => $g['nome'] !== '' && $g['valores'])
+                ->values()
+                ->all() ?: null;
+        }
+
+        // guia_medidas
+        $colunas = collect($valor['colunas'] ?? [])->map(fn ($c) => trim((string) $c))->values();
+        $linhas = collect($valor['linhas'] ?? [])
+            ->map(fn ($l) => collect($l)->map(fn ($c) => trim((string) $c))->values()->all())
+            ->filter(fn ($l) => isset($l[0]) && $l[0] !== '')
+            ->values();
+
+        return $linhas->isEmpty() ? null : ['colunas' => $colunas->all(), 'linhas' => $linhas->all()];
     }
 }

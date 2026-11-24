@@ -5,6 +5,7 @@ interface ConfirmDialogProps {
   title?: string;
   message?: React.ReactNode;
   confirmLabel?: string;
+  confirmVariant?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -14,6 +15,7 @@ function ConfirmDialog({
   title = "Confirmação",
   message = "Tem certeza?",
   confirmLabel = "Confirmar",
+  confirmVariant = "danger",
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -27,7 +29,7 @@ function ConfirmDialog({
         <Button variant="secondary" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button variant="danger" onClick={onConfirm}>
+        <Button variant={confirmVariant} onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </Modal.Footer>

@@ -7,6 +7,7 @@ use App\Http\Controllers\ConfiguracaoController;
 use App\Http\Controllers\CorController;
 use App\Http\Controllers\CupomController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EspecificacaoController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\PagamentoController;
@@ -52,6 +53,7 @@ Route::middleware('loja')->group(function () {
     Route::get('/categorias', [CategoriaController::class, 'index']);
     Route::get('/categorias/{id}', [CategoriaController::class, 'show']);
     Route::get('/cores', [CorController::class, 'index']);
+    Route::get('/especificacoes', [EspecificacaoController::class, 'index']);
     Route::get('/produtos', [ProdutoController::class, 'index']);
     Route::get('/produtos/{id}', [ProdutoController::class, 'show']);
     Route::get('/produtos/{produtoId}/modelos', [ModeloController::class, 'listarPorProduto']);
@@ -94,6 +96,8 @@ Route::middleware('loja')->group(function () {
 
         Route::get('/configuracoes', [ConfiguracaoController::class, 'admin']);
         Route::post('/configuracoes', [ConfiguracaoController::class, 'atualizar']); // POST por causa do upload do logo
+        Route::get('/aparencia', [ConfiguracaoController::class, 'aparencia']);
+        Route::post('/aparencia/modelo', [ConfiguracaoController::class, 'aplicarModelo']);
 
         Route::get('/produtos', [ProdutoController::class, 'adminIndex']);
         Route::post('/produtos', [ProdutoController::class, 'store']);
@@ -101,6 +105,8 @@ Route::middleware('loja')->group(function () {
         Route::delete('/produtos/{id}', [ProdutoController::class, 'destroy']);
         Route::post('/produtos/{id}/imagens', [ProdutoController::class, 'adicionarImagens']);
         Route::delete('/produtos/{id}/imagens', [ProdutoController::class, 'removerImagem']);
+        Route::post('/produtos/{id}/duplicar', [ProdutoController::class, 'duplicar']);
+        Route::post('/produtos/{produtoId}/modelos/lote', [ModeloController::class, 'lote']);
 
         Route::post('/modelos', [ModeloController::class, 'store']);
         Route::put('/modelos/{id}', [ModeloController::class, 'update']);
@@ -113,6 +119,11 @@ Route::middleware('loja')->group(function () {
         Route::post('/cores', [CorController::class, 'store']);
         Route::put('/cores/{id}', [CorController::class, 'update']);
         Route::delete('/cores/{id}', [CorController::class, 'destroy']);
+
+        Route::post('/especificacoes', [EspecificacaoController::class, 'store']);
+        Route::post('/especificacoes/reordenar', [EspecificacaoController::class, 'reordenar']);
+        Route::put('/especificacoes/{id}', [EspecificacaoController::class, 'update']);
+        Route::delete('/especificacoes/{id}', [EspecificacaoController::class, 'destroy']);
 
         Route::get('/banners', [BannerController::class, 'adminIndex']);
         Route::post('/banners', [BannerController::class, 'store']);

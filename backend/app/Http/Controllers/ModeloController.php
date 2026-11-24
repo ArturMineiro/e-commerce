@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Modelo;
+use App\Models\Produto;
 use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 
@@ -34,6 +35,44 @@ class ModeloController extends Controller
         $modelo = Modelo::create($dados);
 
         return response()->json($modelo->load('cor'), 201);
+    }
+
+    /**
+     * Gera várias variações de uma vez (ex.: 3 cores x 5 tamanhos = 15 variações).
+     * Combinações que já existem são ignoradas (não altera o estoque delas).
+     */
+    public function lote(Request $request, $produtoId)
+    {
+        $produto = Produto::findOrFail($produtoId);
+
+        $dados = $request->validate([
+            'modelos' => 'required|array|min:1|max:300',
+            'modelos.*.cor_id' => ['nullable', LojaAtual::existe('cores')],
+            'modelos.*.tamanho' => 'nullable|string|max:50',
+            'modelos.*.preco' => 'nullable|numeric|min:0',
+            'modelos.*.quantidade' => 'required|integer|min:0',
+        ]);
+
+        $chave = fn ($corId, $tamanho) => ($corId ?: '') . '|' . mb_strtolower(trim((string) $tamanho));
+        $existentes = $produto->modelos()->get()->map(fn ($m) => $chave($m->cor_id, $m->tamanho))->all();
+
+        $criadas = 0;
+        foreach ($dados['modelos'] as $modelo) {
+            $k = $chave($modelo['cor_id'] ?? null, $modelo['tamanho'] ?? null);
+            if (in_array($k, $existentes, true)) {
+                continue;
+            }
+            $modelo['tamanho'] = isset($modelo['tamanho']) && trim($modelo['tamanho']) !== '' ? trim($modelo['tamanho']) : null;
+            $produto->modelos()->create($modelo);
+            $existentes[] = $k;
+            $criadas++;
+        }
+
+        return response()->json([
+            'criadas' => $criadas,
+            'ignoradas' => count($dados['modelos']) - $criadas,
+            'modelos' => $produto->modelos()->with('cor')->get(),
+        ], 201);
     }
 
     public function update(Request $request, $id)

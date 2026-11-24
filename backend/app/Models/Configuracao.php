@@ -40,7 +40,19 @@ class Configuracao extends Model
         // fixo = valor único; melhor_envio = cotação por CEP (Correios, Jadlog...)
         'frete_modo' => 'fixo',
         'mp_public_key' => '',
+        // Aparência (fontes da lista App\Support\Fontes; cantos: reto | suave | arredondado)
+        'fonte_titulos' => 'Sistema',
+        'fonte_texto' => 'Sistema',
+        'estilo_cantos' => 'suave',
+        'modelo_loja' => '',
+        // JSON: [{"nome": "Letras", "valores": ["P", "M", "G"]}]
+        'grades_tamanho' => '[]',
+        // JSON: {"colunas": ["Busto (cm)"], "linhas": [["P", "84-88"]]}
+        'guia_medidas' => '',
     ];
+
+    /** Chaves guardadas como JSON (a API devolve já decodificadas). */
+    public const JSON = ['grades_tamanho', 'guia_medidas'];
 
     /** Chaves visíveis só para o admin (não vão para a vitrine). */
     public const PRIVADAS = [
@@ -104,16 +116,35 @@ class Configuracao extends Model
         Cache::forget(self::chaveCache());
     }
 
+    /** Valor JSON decodificado (array vazio se não houver). */
+    public static function json(string $chave): array
+    {
+        $valor = json_decode((string) static::obter($chave, ''), true);
+
+        return is_array($valor) ? $valor : [];
+    }
+
+    public static function definirJson(string $chave, ?array $valor): void
+    {
+        static::definir($chave, $valor ? json_encode($valor, JSON_UNESCAPED_UNICODE) : null);
+    }
+
     /** Configurações públicas já com defaults aplicados. */
     public static function publicas(): array
     {
         $resultado = [];
         foreach (self::PUBLICAS as $chave => $padrao) {
-            $resultado[$chave] = static::obter($chave, $padrao);
+            $resultado[$chave] = in_array($chave, self::JSON, true) ? static::json($chave) : static::obter($chave, $padrao);
         }
 
         $resultado['frete_fixo'] = (float) $resultado['frete_fixo'];
         $resultado['frete_gratis_acima'] = (float) $resultado['frete_gratis_acima'];
+        $resultado['guia_medidas'] = $resultado['guia_medidas'] ?: null;
+
+        // Fontes: valor pronto para font-family e a URL que carrega as duas
+        $resultado['fonte_titulos_css'] = \App\Support\Fontes::css($resultado['fonte_titulos']);
+        $resultado['fonte_texto_css'] = \App\Support\Fontes::css($resultado['fonte_texto']);
+        $resultado['fontes_url'] = \App\Support\Fontes::url([$resultado['fonte_titulos'], $resultado['fonte_texto']]);
 
         return $resultado;
     }

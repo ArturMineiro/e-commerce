@@ -2,6 +2,8 @@ import { Col, Container, Nav, Row } from "react-bootstrap";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   FaBoxOpen,
+  FaListCheck,
+  FaWandMagicSparkles,
   FaGauge,
   FaGear,
   FaImages,
@@ -17,18 +19,20 @@ const itens = [
   { to: "/admin", texto: "Visão geral", Icone: FaGauge, end: true },
   { to: "/admin/pedidos", texto: "Pedidos", Icone: FaReceipt },
   { to: "/admin/produtos", texto: "Produtos", Icone: FaBoxOpen },
+  { to: "/admin/opcoes-produto", texto: "Opções de produto", Icone: FaListCheck },
   { to: "/admin/categorias", texto: "Categorias", Icone: FaTags },
   { to: "/admin/cores", texto: "Cores", Icone: FaPalette },
   { to: "/admin/banners", texto: "Banners", Icone: FaImages },
   { to: "/admin/cupons", texto: "Cupons", Icone: FaTicket },
   { to: "/admin/usuarios", texto: "Clientes", Icone: FaUsers },
+  { to: "/admin/aparencia", texto: "Aparência", Icone: FaWandMagicSparkles },
   { to: "/admin/configuracoes", texto: "Configurações da loja", Icone: FaGear },
 ];
 
 /** Estrutura do painel: menu lateral + conteúdo da página atual. */
 function AdminLayout() {
   return (
-    <Container fluid className="px-0">
+    <Container fluid className="px-0 painel-admin">
       <Row className="g-0">
         <Col lg="auto" className="admin-sidebar p-3">
           <p className="text-uppercase small text-muted fw-semibold mb-2">Painel da loja</p>

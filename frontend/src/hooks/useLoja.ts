@@ -8,6 +8,7 @@ import type {
   ConfigLoja,
   Cor,
   CupomAplicado,
+  Especificacao,
   DadosEntrega,
   OpcaoFrete,
   Pedido,
@@ -42,27 +43,50 @@ export const useCores = () =>
     queryFn: async () => (await api.get<Cor[]>("/cores")).data,
   });
 
+export const useEspecificacoes = () =>
+  useQuery({
+    queryKey: ["especificacoes"],
+    queryFn: async () => (await api.get<Especificacao[]>("/especificacoes")).data,
+    staleTime: 60_000,
+  });
+
 export interface FiltrosProdutos {
   categoria_id?: number | string;
   busca?: string;
   promocao?: boolean;
   destaque?: boolean;
   ordenar?: string;
+  cor_id?: number | string;
+  tamanho?: string;
+  /** {"<id da especificação>": ["Seda", "Chiffon"]} */
+  esp?: Record<string, string[]>;
 }
 
 function limparFiltros(filtros: FiltrosProdutos) {
-  return Object.fromEntries(
-    Object.entries(filtros)
+  const { esp, ...simples } = filtros;
+  const params: Record<string, unknown> = Object.fromEntries(
+    Object.entries(simples)
       .filter(([, v]) => v !== undefined && v !== "" && v !== false)
       .map(([k, v]) => [k, v === true ? 1 : v])
   );
+  // esp[3][]=Seda&esp[3][]=Chiffon (formato que o Laravel entende)
+  Object.entries(esp ?? {}).forEach(([id, valores]) => {
+    if (valores.length) params[`esp[${id}][]`] = valores;
+  });
+  return params;
 }
 
 export const useProdutos = (filtros: FiltrosProdutos = {}) =>
   useQuery({
     queryKey: ["produtos", filtros],
     queryFn: async () =>
-      (await api.get<Produto[]>("/produtos", { params: limparFiltros(filtros) })).data,
+      (
+        await api.get<Produto[]>("/produtos", {
+          params: limparFiltros(filtros),
+          // arrays sem índice: esp[3][]=a&esp[3][]=b
+          paramsSerializer: { indexes: null },
+        })
+      ).data,
     placeholderData: keepPreviousData,
   });
 

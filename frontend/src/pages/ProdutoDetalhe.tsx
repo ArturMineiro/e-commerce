@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { Alert, Badge, Breadcrumb, Button, Col, Container, Form, Row } from "react-bootstrap";
+import { Alert, Badge, Breadcrumb, Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { FaHeart, FaRegHeart, FaShieldHalved, FaTruckFast, FaWhatsapp } from "react-icons/fa6";
+import { FaHeart, FaRegHeart, FaRulerHorizontal, FaShieldHalved, FaTruckFast, FaWhatsapp } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import {
   useAdicionarCarrinho,
@@ -50,9 +50,9 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
   const alternarFavorito = useAlternarFavorito();
   const adicionar = useAdicionarCarrinho();
 
-  const imagens = produto.imagens?.length ? produto.imagens : [null];
   const [fotoAtual, setFotoAtual] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
+  const [guiaAberto, setGuiaAberto] = useState(false);
 
   // ---- Variações: primeiro a cor, depois o tamanho ----
   const modelos = produto.modelos;
@@ -63,6 +63,15 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
   }, [modelos]);
 
   const [corId, setCorId] = useState<number | null>(cores.length === 1 ? cores[0].id : null);
+
+  // Fotos: com uma cor escolhida, mostra as fotos dessa cor (e as que valem para todas)
+  const todasFotos = produto.imagens ?? [];
+  const fotosDaCor =
+    corId && produto.imagens_cores
+      ? todasFotos.filter((f) => !produto.imagens_cores?.[f] || produto.imagens_cores[f] === corId)
+      : todasFotos;
+  const imagens: (string | null)[] = fotosDaCor.length ? fotosDaCor : todasFotos.length ? todasFotos : [null];
+  const foto = imagens[Math.min(fotoAtual, imagens.length - 1)];
   const modelosDaCor = cores.length ? modelos.filter((m) => m.cor_id === corId) : modelos;
   const tamanhos = [...new Set(modelosDaCor.map((m) => m.tamanho).filter((t): t is string => !!t))];
   const [tamanho, setTamanho] = useState<string | null>(null);
@@ -119,14 +128,14 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
 
       <Row className="g-4 painel-produto p-3 p-md-4 mx-0">
         <Col md={6}>
-          <img src={imagemUrl(imagens[fotoAtual])} alt={produto.nome} className="galeria-principal mb-2" />
+          <img src={imagemUrl(foto)} alt={produto.nome} className="galeria-principal mb-2" />
           {imagens.length > 1 && (
             <div className="d-flex gap-2 flex-wrap">
               {imagens.map((img, i) => (
                 <button
                   key={i}
                   type="button"
-                  className={`galeria-miniatura ${i === fotoAtual ? "ativa" : ""}`}
+                  className={`galeria-miniatura ${img === foto ? "ativa" : ""}`}
                   onClick={() => setFotoAtual(i)}
                   aria-label={`Ver foto ${i + 1}`}
                 >
@@ -182,6 +191,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                       onClick={() => {
                         setCorId(cor.id);
                         setTamanho(null);
+                        setFotoAtual(0);
                       }}
                       disabled={semEstoque}
                       aria-pressed={corId === cor.id}
@@ -199,7 +209,14 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
 
           {tamanhos.length > 0 && (
             <fieldset className="mb-3">
-              <legend className="fs-6 fw-semibold">Tamanho</legend>
+              <div className="d-flex justify-content-between align-items-center">
+                <legend className="fs-6 fw-semibold w-auto mb-2">Tamanho</legend>
+                {config?.guia_medidas && (
+                  <Button variant="link" size="sm" className="p-0 mb-2" onClick={() => setGuiaAberto(true)}>
+                    <FaRulerHorizontal className="me-1" aria-hidden /> Guia de tamanhos
+                  </Button>
+                )}
+              </div>
               <div className="d-flex flex-wrap gap-2">
                 {tamanhos.map((t) => {
                   const modelo = modelosDaCor.find((m) => m.tamanho === t);
@@ -282,8 +299,53 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
               <p style={{ whiteSpace: "pre-line" }}>{produto.descricao}</p>
             </>
           )}
+
+          {!!produto.detalhes?.length && (
+            <>
+              <h2 className="h6 fw-semibold mt-4">Detalhes</h2>
+              <dl className="tabela-detalhes">
+                {produto.detalhes.map((d) => (
+                  <div key={d.id}>
+                    <dt>{d.nome}</dt>
+                    <dd>{d.valores.join(", ")}</dd>
+                  </div>
+                ))}
+              </dl>
+            </>
+          )}
         </Col>
       </Row>
+
+      {config?.guia_medidas && (
+        <Modal show={guiaAberto} onHide={() => setGuiaAberto(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title className="h5">Guia de tamanhos</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Table responsive striped size="sm" className="mb-2 text-center">
+              <thead>
+                <tr>
+                  <th>Tamanho</th>
+                  {config.guia_medidas.colunas.map((c) => (
+                    <th key={c}>{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {config.guia_medidas.linhas.map((linha, i) => (
+                  <tr key={i}>
+                    {linha.map((celula, j) => (j === 0 ? <th key={j}>{celula}</th> : <td key={j}>{celula}</td>))}
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+            <p className="small text-muted mb-0">
+              Medidas do corpo. Na dúvida entre dois tamanhos, escolha o maior
+              {config.whatsapp ? " ou fale com a gente pelo WhatsApp." : "."}
+            </p>
+          </Modal.Body>
+        </Modal>
+      )}
     </Container>
   );
 }

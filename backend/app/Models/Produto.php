@@ -23,12 +23,16 @@ class Produto extends Model
         'comprimento',
         'categoria_id',
         'imagens',
+        'especificacoes',
+        'imagens_cores',
         'ativo',
         'destaque',
     ];
 
     protected $casts = [
         'imagens' => 'array',
+        'especificacoes' => 'array',
+        'imagens_cores' => 'array',
         'preco' => 'float',
         'desconto_percentual' => 'float',
         'quantidade' => 'integer',
@@ -54,6 +58,25 @@ class Produto extends Model
     }
 
     /** Promoção vale se houver desconto e (sem data limite ou data no futuro). */
+    /**
+     * Especificações preenchidas, na ordem definida pela loja:
+     * [['id' => 3, 'nome' => 'Tecido', 'valores' => ['Seda']], ...]
+     */
+    public function getDetalhesAttribute(): array
+    {
+        $valores = $this->especificacoes ?? [];
+
+        return Especificacao::daLojaAtual()
+            ->map(fn (Especificacao $e) => [
+                'id' => $e->id,
+                'nome' => $e->nome,
+                'valores' => array_values((array) ($valores[(string) $e->id] ?? $valores[$e->id] ?? [])),
+            ])
+            ->filter(fn ($d) => count($d['valores']) > 0)
+            ->values()
+            ->all();
+    }
+
     public function getEmPromocaoAttribute(): bool
     {
         return $this->desconto_percentual > 0

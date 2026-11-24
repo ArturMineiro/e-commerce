@@ -22,6 +22,36 @@ export interface Categoria {
   produtos_count?: number;
 }
 
+export type TipoEspecificacao = "unica" | "multipla" | "texto";
+
+export interface Especificacao {
+  id: number;
+  nome: string;
+  tipo: TipoEspecificacao;
+  opcoes: string[];
+  filtravel: boolean;
+  ordem: number;
+}
+
+/** Especificação preenchida de um produto (na ordem da loja). */
+export interface DetalheProduto {
+  id: number;
+  nome: string;
+  valores: string[];
+}
+
+export interface GradeTamanho {
+  nome: string;
+  valores: string[];
+}
+
+export interface GuiaMedidas {
+  colunas: string[];
+  linhas: string[][];
+}
+
+export type EstiloCantos = "reto" | "suave" | "arredondado";
+
 export interface Modelo {
   id: number;
   produto_id: number;
@@ -46,6 +76,12 @@ export interface Produto {
   comprimento: number | null;
   categoria_id: number | null;
   imagens: string[] | null;
+  /** {"caminho/da/foto.jpg": cor_id} */
+  imagens_cores: Record<string, number> | null;
+  /** {"<id da especificação>": ["Seda"]} */
+  especificacoes: Record<string, string[]> | null;
+  /** Só na página do produto */
+  detalhes?: DetalheProduto[];
   ativo: boolean;
   destaque: boolean;
   em_promocao: boolean;
@@ -194,6 +230,15 @@ export interface ConfigLoja {
   frete_modo: FreteModo;
   mp_public_key: string;
   pagamento_online: boolean;
+  fonte_titulos: string;
+  fonte_texto: string;
+  fonte_titulos_css: string;
+  fonte_texto_css: string;
+  fontes_url: string | null;
+  estilo_cantos: EstiloCantos;
+  modelo_loja: string;
+  grades_tamanho: GradeTamanho[];
+  guia_medidas: GuiaMedidas | null;
 }
 
 export interface ConfigAdmin extends ConfigLoja {
@@ -229,6 +274,38 @@ export interface Paginado<T> {
   current_page: number;
   last_page: number;
   total: number;
+}
+
+/* ---------- Modelos de loja e aparência ---------- */
+
+export interface TemaModelo {
+  cor_primaria: string;
+  cor_secundaria: string;
+  fonte_titulos: string;
+  fonte_texto: string;
+  estilo_cantos: EstiloCantos;
+  fonte_titulos_css: string;
+  fonte_texto_css: string;
+}
+
+export interface ModeloLoja {
+  chave: string;
+  nome: string;
+  descricao: string;
+  segmento: string;
+  icone: string;
+  tema: TemaModelo;
+  slogan: string;
+  categorias: string[];
+  cores: { nome: string; hex: string }[];
+  especificacoes: string[];
+  exemplos: { nome: string; preco: number }[];
+}
+
+export interface OpcoesAparencia {
+  fontes: { nome: string; categoria: string }[];
+  fontes_url: string | null;
+  modelos: ModeloLoja[];
 }
 
 /* ---------- Plataforma (várias lojas) ---------- */

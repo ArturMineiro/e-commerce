@@ -38,6 +38,8 @@ const Banners = lazy(() => import("./admin/Banners"));
 const Cupons = lazy(() => import("./admin/Cupons"));
 const PedidosAdmin = lazy(() => import("./admin/PedidosAdmin"));
 const Usuarios = lazy(() => import("./admin/Usuarios"));
+const Aparencia = lazy(() => import("./admin/Aparencia"));
+const OpcoesProduto = lazy(() => import("./admin/OpcoesProduto"));
 
 function NaoEncontrado() {
   return (
@@ -121,6 +123,8 @@ function App() {
               <Route path="cupons" element={<Cupons />} />
               <Route path="usuarios" element={<Usuarios />} />
               <Route path="configuracoes" element={<Configuracoes />} />
+              <Route path="aparencia" element={<Aparencia />} />
+              <Route path="opcoes-produto" element={<OpcoesProduto />} />
             </Route>
 
             {/* Endereços antigos */}

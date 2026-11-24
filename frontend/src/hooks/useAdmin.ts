@@ -7,7 +7,11 @@ import type {
   Cor,
   Cupom,
   Dashboard,
+  Especificacao,
+  GradeTamanho,
+  GuiaMedidas,
   Modelo,
+  OpcoesAparencia,
   Paginado,
   Pedido,
   Produto,
@@ -54,6 +58,67 @@ export const useSalvarConfig = () => {
   });
 };
 
+/** Salva configurações enviando JSON (para listas: grades, guia de medidas, faixas de entrega...). */
+export const useSalvarConfigJson = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (dados: Record<string, unknown>) =>
+      (await api.post<ConfigAdmin>("/admin/configuracoes", dados)).data,
+    onSuccess: (dados) => {
+      qc.setQueryData(["admin", "configuracoes"], dados);
+      qc.invalidateQueries({ queryKey: ["configuracoes"] });
+    },
+  });
+};
+
+export type DadosOpcoesProduto = { grades_tamanho?: GradeTamanho[]; guia_medidas?: GuiaMedidas | null };
+
+export const useAparencia = () =>
+  useQuery({
+    queryKey: ["admin", "aparencia"],
+    queryFn: async () => (await api.get<OpcoesAparencia>("/admin/aparencia")).data,
+    staleTime: 10 * 60 * 1000,
+  });
+
+export const useAplicarModelo = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (dados: { modelo: string; visual?: boolean; catalogo?: boolean }) =>
+      (await api.post<ConfigAdmin>("/admin/aparencia/modelo", dados)).data,
+    onSuccess: (dados) => {
+      qc.setQueryData(["admin", "configuracoes"], dados);
+      ["configuracoes", "categorias", "cores", "especificacoes"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+    },
+  });
+};
+
+/* ---------- Especificações ---------- */
+
+export const useSalvarEspecificacao = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: async ({ id, ...dados }: Partial<Especificacao>) =>
+      (id ? await api.put<Especificacao>(`/admin/especificacoes/${id}`, dados) : await api.post<Especificacao>("/admin/especificacoes", dados)).data,
+    onSuccess: () => invalidar(["especificacoes"], ["admin", "produto"]),
+  });
+};
+
+export const useExcluirEspecificacao = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/especificacoes/${id}`),
+    onSuccess: () => invalidar(["especificacoes"], ["admin", "produto"]),
+  });
+};
+
+export const useReordenarEspecificacoes = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: number[]) => (await api.post<Especificacao[]>("/admin/especificacoes/reordenar", { ids })).data,
+    onSuccess: (lista) => qc.setQueryData(["especificacoes"], lista),
+  });
+};
+
 /* ---------- Produtos ---------- */
 
 export const useProdutosAdmin = (busca = "") =>
@@ -70,7 +135,7 @@ export const useProdutoAdmin = (id?: number) =>
     enabled: !!id,
   });
 
-function useMutacaoProduto<TVars>(fn: (vars: TVars) => Promise<unknown>) {
+function useMutacaoProduto<TVars, TData = unknown>(fn: (vars: TVars) => Promise<TData>) {
   const invalidar = useInvalidar();
   return useMutation({
     mutationFn: fn,
@@ -86,13 +151,19 @@ export const useAtualizarProduto = () =>
     (await api.put<Produto>(`/admin/produtos/${id}`, dados)).data
   );
 
+export const useDuplicarProduto = () =>
+  useMutacaoProduto(async (id: number) => (await api.post<Produto>(`/admin/produtos/${id}/duplicar`)).data);
+
 export const useExcluirProduto = () =>
   useMutacaoProduto((id: number) => api.delete(`/admin/produtos/${id}`));
 
 export const useAdicionarImagens = () =>
-  useMutacaoProduto(({ id, arquivos }: { id: number; arquivos: File[] }) => {
+  useMutacaoProduto(({ id, arquivos, cores = [] }: { id: number; arquivos: File[]; cores?: (number | null)[] }) => {
     const form = new FormData();
-    arquivos.forEach((arquivo) => form.append("imagens[]", arquivo));
+    arquivos.forEach((arquivo, i) => {
+      form.append(`imagens[${i}]`, arquivo);
+      if (cores[i]) form.append(`imagens_cor[${i}]`, String(cores[i]));
+    });
     return api.post(`/admin/produtos/${id}/imagens`, form, multipart);
   });
 
@@ -108,6 +179,11 @@ type DadosModelo = Pick<Modelo, "cor_id" | "tamanho" | "preco" | "quantidade">;
 export const useSalvarModelo = () =>
   useMutacaoProduto(({ id, produto_id, ...dados }: DadosModelo & { id?: number; produto_id: number }) =>
     id ? api.put(`/admin/modelos/${id}`, dados) : api.post("/admin/modelos", { produto_id, ...dados })
+  );
+
+export const useGerarVariacoes = () =>
+  useMutacaoProduto(async ({ produtoId, modelos }: { produtoId: number; modelos: DadosModelo[] }) =>
+    (await api.post<{ criadas: number; ignoradas: number }>(`/admin/produtos/${produtoId}/modelos/lote`, { modelos })).data
   );
 
 export const useExcluirModelo = () =>

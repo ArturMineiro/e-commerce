@@ -249,30 +249,49 @@ main {
    Design da vitrine (cliente)
    ===================================================================== */
 :root {
+  /* Substituídos pela aparência escolhida pelo dono (TemaLoja.tsx) */
+  --fonte-sistema: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fonte-titulos: var(--fonte-sistema);
+  --fonte-texto: var(--fonte-sistema);
   --raio: 14px;
+  --raio-botao: 10px;
+  --raio-campo: 10px;
   --sombra-suave: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
   --sombra-media: 0 10px 30px rgba(16, 24, 40, 0.12);
 }
 
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--fonte-texto);
   color: #1f2937;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, .h1, .h2, .h3, .h4, .h5 {
+h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
+.titulo-secao, .nome-loja-texto, .hero-loja h1 {
+  font-family: var(--fonte-titulos);
   letter-spacing: -0.01em;
 }
 
 .btn {
-  border-radius: 10px;
+  border-radius: var(--raio-botao);
   font-weight: 500;
 }
 
 .form-control,
 .form-select {
-  border-radius: 10px;
+  border-radius: var(--raio-campo);
 }
+
+/* O painel do dono usa sempre a fonte do sistema e cantos suaves (mais legível no celular) */
+.painel-admin,
+.painel-admin h1, .painel-admin h2, .painel-admin h3, .painel-admin h4, .painel-admin h5,
+.painel-admin .h1, .painel-admin .h2, .painel-admin .h3, .painel-admin .h4, .painel-admin .h5 {
+  font-family: var(--fonte-sistema);
+}
+
+.painel-admin .btn { border-radius: 10px; }
+.painel-admin .form-control, .painel-admin .form-select { border-radius: 10px; }
+.painel-admin .card { border-radius: 14px; }
 
 .card {
   border-radius: var(--raio);
@@ -646,4 +665,205 @@ h1, h2, h3, .h1, .h2, .h3, .h4, .h5 {
 .seguranca-compra {
   font-size: 0.85rem;
   color: #6b7280;
+}
+
+/* =====================================================================
+   Painel: aparência, opções de produto, formulário de produto
+   ===================================================================== */
+.modelos-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.modelo-opcao {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 0.6rem 0.75rem 0.25rem;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modelo-opcao.ativo {
+  border-color: var(--cor-secundaria);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cor-secundaria) 18%, transparent);
+}
+
+.modelo-opcao-topo {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+.modelo-opcao-icone {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 1.15rem;
+}
+
+.opcao-cantos {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 110px;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 0.9rem;
+}
+
+.opcao-cantos .amostra {
+  width: 72px;
+  height: 28px;
+  background: var(--cor-secundaria);
+}
+
+.opcao-cantos.ativo {
+  border-color: var(--cor-secundaria);
+  font-weight: 600;
+}
+
+/* Opção tocável (especificações, cores do gerador): área grande para o dedo */
+.chip-opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.chip-opcao:hover {
+  border-color: var(--cor-secundaria);
+}
+
+.chip-opcao.ativo {
+  background: var(--cor-secundaria);
+  border-color: var(--cor-secundaria);
+  color: var(--cor-secundaria-texto);
+}
+
+.gerador-variacoes {
+  border: 1.5px dashed #d1d5db;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #fafafa;
+}
+
+.foto-produto {
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.foto-produto .preview-imagem {
+  width: 120px;
+  height: 120px;
+}
+
+.selo-capa {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  background: rgba(17, 24, 39, 0.8);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+
+.barra-salvar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1020;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid #e5e7eb;
+  backdrop-filter: blur(6px);
+}
+
+@media (max-width: 991.98px) {
+  .form-produto {
+    padding-bottom: 5.5rem;
+  }
+}
+
+/* Especificações na página do produto */
+.tabela-detalhes {
+  border: 1px solid #eceef1;
+  border-radius: var(--raio);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.tabela-detalhes > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 38%) 1fr;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #eceef1;
+}
+
+.tabela-detalhes > div:last-child { border-bottom: none; }
+.tabela-detalhes > div:nth-child(odd) { background: #fafafb; }
+.tabela-detalhes dt { font-weight: 600; color: #4b5563; }
+.tabela-detalhes dd { margin: 0; }
+
+/* Filtros do catálogo */
+.filtro-chip {
+  min-height: 36px;
+  padding: 0.3rem 0.8rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--raio-botao);
+  background: #fff;
+  font-size: 0.88rem;
+  color: #374151;
+}
+
+.filtro-chip.ativo {
+  background: var(--cor-secundaria);
+  border-color: var(--cor-secundaria);
+  color: var(--cor-secundaria-texto);
+}
+
+.filtro-cor {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.filtro-cor .bolinha-cor { width: 26px; height: 26px; }
+.filtro-cor.ativo { border-color: var(--cor-secundaria); }
+
+.filtros-celular.offcanvas-bottom {
+  height: auto;
+  max-height: 85vh;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
