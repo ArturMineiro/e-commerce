@@ -8,6 +8,7 @@ import { useToast } from "../components/Toast";
 import { Carregando, StatusBadge } from "../components/Ui";
 import { formatarPreco, mensagemErro } from "../lib/api";
 import { formatarPrazo, linkWhatsapp } from "../lib/utils";
+import { useTituloPagina } from "../lib/titulo";
 
 /** Copia um texto; sem a API de área de transferência (ex.: http na rede local), seleciona e copia. */
 async function copiarTexto(texto: string, campoId: string): Promise<boolean> {
@@ -34,9 +35,7 @@ function PagamentoPix() {
   const notificar = useToast();
   const [copiado, setCopiado] = useState(false);
 
-  useEffect(() => {
-    document.title = `Pagar com Pix · ${config?.nome_loja ?? "Loja"}`;
-  }, [config?.nome_loja]);
+  useTituloPagina("Pagar com Pix");
 
   // Quando a loja confirma, a tela troca de conteúdo: volta ao topo para o cliente ver a confirmação
   const statusPedido = data?.pedido.status;

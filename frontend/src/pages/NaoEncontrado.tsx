@@ -1,7 +1,9 @@
 import { Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { useTituloPagina } from "../lib/titulo";
 
 function NaoEncontrado() {
+  useTituloPagina("Página não encontrada");
   return (
     <Container className="py-5 text-center">
       <h1 className="h3">Página não encontrada</h1>

@@ -13,6 +13,7 @@ import { useToast } from "../components/Toast";
 import { Carregando } from "../components/Ui";
 import { imagemUrl, mensagemErro } from "../lib/api";
 import type { Banner } from "../types";
+import { comprimirImagem } from "../lib/imagens";
 
 function Banners() {
   const { data: banners = [], isLoading } = useBannersAdmin();
@@ -27,15 +28,20 @@ function Banners() {
   const [arquivos, setArquivos] = useState<File[]>([]);
   const inputArquivos = useRef<HTMLInputElement>(null);
   const [paraExcluir, setParaExcluir] = useState<Banner | null>(null);
+  const [preparando, setPreparando] = useState(false);
 
-  const enviar = (e: React.FormEvent) => {
+  const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!arquivos.length) return notificar("Selecione ao menos uma imagem.", "warning");
 
     const form = new FormData();
     form.append("bannerName", nome);
     if (link.trim()) form.append("link", link.trim());
-    arquivos.forEach((a) => form.append("bannerImages[]", a));
+    // Fotos de celular passam fácil do limite de 4 MB: reduz antes de enviar
+    setPreparando(true);
+    const imagens = await Promise.all(arquivos.map((a) => comprimirImagem(a, 2000)));
+    setPreparando(false);
+    imagens.forEach((a) => form.append("bannerImages[]", a));
 
     criar.mutate(form, {
       onSuccess: () => {
@@ -88,8 +94,8 @@ function Banners() {
                 </Form.Group>
               </Col>
             </Row>
-            <Button type="submit" className="btn-loja mt-3" disabled={criar.isPending}>
-              {criar.isPending ? "Enviando..." : "Cadastrar banner"}
+            <Button type="submit" className="btn-loja mt-3" disabled={preparando || criar.isPending}>
+              {preparando ? "Preparando fotos..." : criar.isPending ? "Enviando..." : "Cadastrar banner"}
             </Button>
           </Form>
         </Card.Body>

@@ -8,6 +8,7 @@ import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api
 import { formatarPrazo, linkWhatsapp } from "../lib/utils";
 import type { FormaPagamentoId, Pedido } from "../types";
 import { diasUteis } from "../lib/entrega";
+import { useTituloPagina } from "../lib/titulo";
 
 const NOME_FORMA: Record<FormaPagamentoId, string> = {
   pix: "Pix",
@@ -164,6 +165,7 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
 }
 
 function MeusPedidos() {
+  useTituloPagina("Meus pedidos");
   const { data: pedidos = [], isLoading, isError } = useMeusPedidos();
   const [params] = useSearchParams();
   const aberto = params.get("pedido") ?? undefined;

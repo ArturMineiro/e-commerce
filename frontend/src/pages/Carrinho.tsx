@@ -9,6 +9,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import { Carregando } from "../components/Ui";
 import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import type { ItemCarrinho } from "../types";
+import { useTituloPagina } from "../lib/titulo";
 
 export function ResumoValores({
   subtotal,
@@ -116,6 +117,7 @@ function LinhaItem({ item, onRemover }: { item: ItemCarrinho; onRemover: (item: 
 }
 
 function CarrinhoPage() {
+  useTituloPagina("Carrinho");
   const { loggedIn } = useAuth();
   const navigate = useNavigate();
   const { data: config } = useConfigLoja();

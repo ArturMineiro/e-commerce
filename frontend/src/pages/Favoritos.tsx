@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import ProdutoCard from "../components/ProdutoCard";
 import { Carregando } from "../components/Ui";
 import { useFavoritos } from "../hooks/useLoja";
+import { useTituloPagina } from "../lib/titulo";
 
 function Favoritos() {
+  useTituloPagina("Favoritos");
   const { data: produtos = [], isLoading, isError } = useFavoritos();
 
   if (isLoading) return <Carregando />;

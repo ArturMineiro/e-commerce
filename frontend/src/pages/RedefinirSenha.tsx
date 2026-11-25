@@ -3,9 +3,11 @@ import { Alert, Button, Card, Container, Form } from "react-bootstrap";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "../components/Toast";
 import api, { mensagemErro } from "../lib/api";
+import { useTituloPagina } from "../lib/titulo";
 
 /** Tela aberta pelo link do e-mail: /redefinir-senha?token=...&email=... */
 function RedefinirSenha() {
+  useTituloPagina("Nova senha");
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const notificar = useToast();

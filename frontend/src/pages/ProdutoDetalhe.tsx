@@ -23,6 +23,7 @@ import ProdutosRelacionados from "../components/ProdutosRelacionados";
 import { linkCompartilhar } from "../lib/compartilhar";
 import { linhaEntrega } from "../lib/entrega";
 import { precoNoPix } from "../lib/pagamento";
+import { resumo, useTituloPagina } from "../lib/titulo";
 
 function aplicarDesconto(produto: Produto, valor: number | null) {
   if (valor === null) return null;
@@ -102,6 +103,12 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
   const precoFinal = aplicarDesconto(produto, precoBase);
 
   const favorito = favoritos.includes(produto.id);
+
+  useTituloPagina(
+    produto.nome,
+    resumo(produto.descricao) ||
+      `${produto.nome}${produto.preco_final ? ` por ${formatarPreco(produto.preco_final)}` : ""}${config ? ` na ${config.nome_loja}` : ""}.`
+  );
 
   const exigirLogin = () => {
     navigate("/login", { state: { from: location.pathname } });

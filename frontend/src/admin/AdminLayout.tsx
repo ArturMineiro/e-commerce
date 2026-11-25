@@ -19,6 +19,7 @@ import {
   FaUsers,
   FaStore,
 } from "react-icons/fa6";
+import { useTituloPagina } from "../lib/titulo";
 
 const itens = [
   { to: "/admin", texto: "Visão geral", Icone: FaGauge, end: true },
@@ -59,6 +60,7 @@ function MenuCompleto({ aoEscolher }: { aoEscolher?: () => void }) {
  * e o resto em "Mais". No formulário de produto a barra sai para dar lugar ao botão de salvar.
  */
 function AdminLayout() {
+  useTituloPagina("Painel");
   const [maisAberto, setMaisAberto] = useState(false);
   const noFormularioDeProduto = !!useMatch("/admin/produtos/:id");
 

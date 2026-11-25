@@ -3,8 +3,10 @@ import { Alert, Button, Card, Container, Form } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
 import api, { mensagemErro } from "../lib/api";
+import { useTituloPagina } from "../lib/titulo";
 
 function Register() {
+  useTituloPagina("Criar conta");
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

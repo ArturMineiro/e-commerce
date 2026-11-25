@@ -5,6 +5,7 @@ import { FaSliders, FaXmark } from "react-icons/fa6";
 import ProdutoCard from "../components/ProdutoCard";
 import { GradeEsqueleto } from "../components/Ui";
 import { useCategorias, useConfigLoja, useCores, useEspecificacoes, useProdutos } from "../hooks/useLoja";
+import { resumo, useTituloPagina } from "../lib/titulo";
 
 /**
  * Catálogo com filtros na URL: ?busca= &categoria_id= &promocao=1 &destaque=1 &ordenar=
@@ -74,6 +75,7 @@ function Produtos() {
   const titulo = filtros.busca
     ? `Resultados para "${filtros.busca}"`
     : categoriaAtual?.nome ?? (filtros.promocao ? "Promoções" : filtros.destaque ? "Destaques" : "Todos os produtos");
+  useTituloPagina(titulo, categoriaAtual?.descricao ? resumo(categoriaAtual.descricao) : null);
 
   const painelFiltros = (
     <>

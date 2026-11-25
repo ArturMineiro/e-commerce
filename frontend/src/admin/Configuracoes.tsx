@@ -7,6 +7,7 @@ import { Carregando } from "../components/Ui";
 import { imagemUrl, mensagemErro } from "../lib/api";
 import { POLITICAS, textoSugerido, type TipoPolitica } from "../lib/politicas";
 import type { ConfigAdmin } from "../types";
+import { comprimirImagem } from "../lib/imagens";
 
 type CamposTexto = Omit<
   ConfigAdmin,
@@ -36,7 +37,7 @@ function Configuracoes() {
   const alterar = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setCampos({ ...campos, [e.target.name]: e.target.value });
 
-  const enviar = (e: React.FormEvent, extras: Record<string, string> = {}) => {
+  const enviar = async (e: React.FormEvent, extras: Record<string, string> = {}) => {
     e.preventDefault();
     const form = new FormData();
     const chaves: (keyof CamposTexto)[] = [
@@ -44,7 +45,7 @@ function Configuracoes() {
       "endereco", "instagram", "facebook", "tiktok", "texto_rodape", "politica_trocas", "politica_privacidade",
     ];
     chaves.forEach((chave) => form.append(chave, String(campos[chave] ?? "")));
-    if (logo) form.append("logo", logo);
+    if (logo) form.append("logo", await comprimirImagem(logo, 800));
     if (removerLogo) form.append("remover_logo", "1");
     Object.entries(extras).forEach(([k, v]) => form.append(k, v));
 

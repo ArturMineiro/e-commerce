@@ -13,13 +13,14 @@ import {
   FaXmark,
 } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
-import { useCarrinho, useConfigLoja, useCotarFrete, useCriarPedido, useValidarCupom } from "../hooks/useLoja";
+import { useCarrinho, useConfigLoja, useCotarFrete, useCriarPedido, useMeusPedidos, useValidarCupom } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import { Carregando } from "../components/Ui";
 import { formatarPreco, mensagemErro } from "../lib/api";
 import { ResumoValores } from "./Carrinho";
 import type { CupomAplicado, DadosEntrega, FormaPagamentoId, OpcaoFrete } from "../types";
 import { detalheFrete } from "../lib/entrega";
+import { useTituloPagina } from "../lib/titulo";
 
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 
@@ -77,6 +78,7 @@ const PAGAMENTO: Record<FormaPagamentoId, { Icone: typeof FaPix; botao: string; 
 };
 
 function Checkout() {
+  useTituloPagina("Finalizar compra");
   const { user } = useAuth();
   const navigate = useNavigate();
   const notificar = useToast();
@@ -113,11 +115,37 @@ function Checkout() {
     observacoes: "",
   });
 
+  // Quem já comprou: telefone, CPF e endereço do último pedido (só em campos vazios). Se o cliente
+  // calculou o frete para outro CEP na página do produto, o endereço antigo fica de fora.
+  const { data: pedidosAnteriores } = useMeusPedidos();
+  const preenchidoDoPedido = useRef(false);
+  useEffect(() => {
+    if (preenchidoDoPedido.current || !pedidosAnteriores?.length) return;
+    preenchidoDoPedido.current = true;
+    const ultimo = pedidosAnteriores.find((p) => p.logradouro) ?? pedidosAnteriores[0];
+    setDados((d) => {
+      const novo = { ...d };
+      const vazio = (v: string) => !v.trim();
+      if (vazio(novo.telefone) && ultimo.telefone) novo.telefone = ultimo.telefone;
+      if (vazio(novo.cpf) && ultimo.cpf) novo.cpf = ultimo.cpf;
+      const mesmoCep = vazio(d.cep) || (ultimo.cep ?? "").replace(/\D/g, "") === d.cep.replace(/\D/g, "");
+      if (mesmoCep && ultimo.logradouro) {
+        for (const campo of ["cep", "logradouro", "numero", "complemento", "bairro", "cidade", "uf"] as const) {
+          const valor = ultimo[campo];
+          if (vazio(novo[campo]) && valor) novo[campo] = valor;
+        }
+      }
+      return novo;
+    });
+  }, [pedidosAnteriores]);
+
   // CEP lembrado do "Calcular frete": busca o endereço uma vez ao abrir (sem esperar o campo perder o foco)
   const enderecoInicialBuscado = useRef(false);
   useEffect(() => {
-    if (enderecoInicialBuscado.current || !cepValido(dados.cep) || dados.logradouro) return;
+    // Só o CEP com que a página abriu: depois, quem decide é o cliente (apagar a rua não a preenche de novo)
+    if (enderecoInicialBuscado.current) return;
     enderecoInicialBuscado.current = true;
+    if (!cepValido(dados.cep) || dados.logradouro) return;
     enderecoDoCep(dados.cep).then((endereco) => endereco && setDados((d) => mesclarEndereco(d, endereco)));
   });
 

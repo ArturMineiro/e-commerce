@@ -7,8 +7,10 @@ import api, { mensagemErro } from "../lib/api";
 import apiPlataforma, { TOKEN_PLATAFORMA } from "../lib/plataforma";
 import { urlPlataforma } from "../lib/loja";
 import axios from "axios";
+import { useTituloPagina } from "../lib/titulo";
 
 function Login() {
+  useTituloPagina("Entrar");
   const { login, loggedIn, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

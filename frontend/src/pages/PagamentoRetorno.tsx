@@ -5,6 +5,7 @@ import { FaCircleCheck, FaClock, FaCircleXmark } from "react-icons/fa6";
 import { useSincronizarPedido } from "../hooks/useLoja";
 import { Carregando, StatusBadge } from "../components/Ui";
 import { formatarPreco } from "../lib/api";
+import { useTituloPagina } from "../lib/titulo";
 
 /**
  * Página para onde a Stripe ou o Mercado Pago devolvem o cliente após o pagamento
@@ -12,6 +13,7 @@ import { formatarPreco } from "../lib/api";
  * O status exibido vem do backend, que consulta o meio de pagamento, e não da URL.
  */
 function PagamentoRetorno() {
+  useTituloPagina("Pagamento");
   const [params] = useSearchParams();
   const pedidoId = params.get("pedido");
   const paymentId = params.get("payment_id") ?? params.get("collection_id");

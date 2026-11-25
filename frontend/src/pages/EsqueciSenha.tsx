@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Alert, Button, Card, Container, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import api, { mensagemErro } from "../lib/api";
+import { useTituloPagina } from "../lib/titulo";
 
 function EsqueciSenha() {
+  useTituloPagina("Esqueci minha senha");
   const [email, setEmail] = useState("");
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);

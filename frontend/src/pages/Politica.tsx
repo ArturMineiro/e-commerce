@@ -1,10 +1,10 @@
-import { useEffect } from "react";
 import { Card, Container } from "react-bootstrap";
 import { Link, useParams } from "react-router-dom";
 import { useConfigLoja } from "../hooks/useLoja";
 import { Carregando } from "../components/Ui";
 import { POLITICAS, textoPolitica, type TipoPolitica } from "../lib/politicas";
 import NaoEncontrado from "./NaoEncontrado";
+import { useTituloPagina } from "../lib/titulo";
 
 /** Trocas e devoluções / Política de privacidade (texto do dono ou o sugerido). */
 function Politica() {
@@ -12,9 +12,7 @@ function Politica() {
   const { data: config, isLoading } = useConfigLoja();
   const politica = tipo && tipo in POLITICAS ? POLITICAS[tipo as TipoPolitica] : null;
 
-  useEffect(() => {
-    if (politica && config) document.title = `${politica.titulo} · ${config.nome_loja}`;
-  }, [politica, config]);
+  useTituloPagina(politica?.titulo);
 
   if (!politica) return <NaoEncontrado />;
   if (isLoading || !config) return <Carregando />;

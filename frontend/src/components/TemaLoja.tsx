@@ -4,6 +4,7 @@ import { imagemUrl } from "../lib/api";
 import { corDeContraste } from "../lib/utils";
 import { carregarFontes } from "../lib/fontes";
 import type { EstiloCantos } from "../types";
+import { definirTituloLoja } from "../lib/titulo";
 
 /** Raio dos cartões e dos botões para cada estilo de cantos. */
 const CANTOS: Record<EstiloCantos, { raio: string; botao: string; campo: string }> = {
@@ -36,7 +37,7 @@ function TemaLoja() {
     raiz.setProperty("--raio-botao", cantos.botao);
     raiz.setProperty("--raio-campo", cantos.campo);
 
-    document.title = config.slogan ? `${config.nome_loja} | ${config.slogan}` : config.nome_loja;
+    definirTituloLoja(config.nome_loja, config.slogan, config.descricao);
 
     if (config.logo) {
       let icone = document.querySelector<HTMLLinkElement>("link[rel='icon']");
