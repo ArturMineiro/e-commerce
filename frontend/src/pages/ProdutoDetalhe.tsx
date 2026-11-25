@@ -16,6 +16,9 @@ import { Carregando, Preco } from "../components/Ui";
 import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { linkWhatsapp } from "../lib/utils";
 import type { Produto } from "../types";
+import BotaoCompartilhar from "../components/BotaoCompartilhar";
+import { linkCompartilhar } from "../lib/compartilhar";
+import { textoEntrega } from "../lib/entrega";
 
 function aplicarDesconto(produto: Produto, valor: number | null) {
   if (valor === null) return null;
@@ -161,6 +164,16 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
             </Button>
           </div>
 
+          {config?.slug && (
+            <div className="mb-2">
+              <BotaoCompartilhar
+                titulo={produto.nome}
+                texto={`${produto.nome}${produto.preco_final ? ` por ${formatarPreco(produto.preco_final)}` : ""} na ${config.nome_loja}:`}
+                url={linkCompartilhar(config.slug, produto.id)}
+              />
+            </div>
+          )}
+
           {produto.em_promocao && (
             <Badge bg="danger" className="mb-2">
               {Math.round(produto.desconto_percentual)}% OFF
@@ -273,11 +286,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                 </li>
                 <li>
                   <FaTruckFast className="me-2" aria-hidden />
-                  {config && config.frete_gratis_acima > 0
-                    ? `Frete grátis acima de ${formatarPreco(config.frete_gratis_acima)}`
-                    : config && config.frete_fixo > 0
-                    ? `Frete fixo de ${formatarPreco(config.frete_fixo)}`
-                    : "Frete grátis"}
+                  {config ? `${textoEntrega(config).titulo}: ${textoEntrega(config).texto.toLowerCase()}` : "Entrega para todo o Brasil"}
                 </li>
               </ul>
             </>

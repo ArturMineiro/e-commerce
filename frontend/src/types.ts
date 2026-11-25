@@ -286,6 +286,8 @@ export interface ConfigLoja {
   formas_pagamento: FormaPagamento[];
   /** entrega local por distância pronta para uso */
   entrega_local: boolean;
+  /** endereço da loja (usado nos links de compartilhamento) */
+  slug?: string | null;
   retirada_ativa: boolean;
   retirada_instrucoes: string;
   fonte_titulos: string;

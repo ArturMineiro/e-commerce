@@ -41,6 +41,7 @@ class ConfiguracaoController extends Controller
             'formas_pagamento' => $formas,
             'pagamento_online' => count($formas) > 0,
             'entrega_local' => $this->frete->entregaLocalAtiva(),
+            'slug' => app(LojaAtual::class)->get()?->slug,
         ]));
     }
 

@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Alert, Badge, Button, Form, InputGroup, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { FaPen, FaPlus, FaTrash } from "react-icons/fa6";
+import { FaPen, FaPlus, FaTrash, FaWhatsapp } from "react-icons/fa6";
 import { useAtualizarProduto, useExcluirProduto, useProdutosAdmin } from "../hooks/useAdmin";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useToast } from "../components/Toast";
 import { Carregando, Preco } from "../components/Ui";
-import { imagemUrl, mensagemErro } from "../lib/api";
+import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
+import { linkCompartilhar, linkWhatsappTexto } from "../lib/compartilhar";
+import { useConfigLoja } from "../hooks/useLoja";
 import type { Produto } from "../types";
 
 function ProdutosAdmin() {
+  const { data: config } = useConfigLoja();
   const [busca, setBusca] = useState("");
   const [termo, setTermo] = useState("");
   const { data: produtos = [], isLoading, isError } = useProdutosAdmin(termo);
@@ -114,6 +117,20 @@ function ProdutosAdmin() {
                     />
                   </td>
                   <td className="text-end text-nowrap">
+                    {config?.slug && p.ativo && (
+                      <a
+                        className="btn btn-sm btn-outline-success me-1"
+                        href={linkWhatsappTexto(
+                          `${p.nome}${p.preco_final ? ` por ${formatarPreco(p.preco_final)}` : ""}: ${linkCompartilhar(config.slug, p.id)}`
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Enviar ${p.nome} no WhatsApp`}
+                        title="Enviar no WhatsApp (com foto e preço)"
+                      >
+                        <FaWhatsapp />
+                      </a>
+                    )}
                     <Link to={`/admin/produtos/${p.id}`} className="btn btn-sm btn-outline-secondary me-1" aria-label={`Editar ${p.nome}`}>
                       <FaPen />
                     </Link>

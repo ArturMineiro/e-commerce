@@ -3,6 +3,7 @@
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\CompartilharController;
 use App\Http\Controllers\ConfiguracaoController;
 use App\Http\Controllers\CorController;
 use App\Http\Controllers\CupomController;
@@ -46,6 +47,10 @@ Route::middleware('plataforma')->prefix('plataforma')->group(function () {
 | (header X-Loja, domínio, subdomínio...) e filtra todos os dados por ela.
 |--------------------------------------------------------------------------
 */
+// Links de compartilhamento com prévia (WhatsApp/Instagram): a loja vem no próprio endereço
+Route::get('/compartilhar/{loja}', [CompartilharController::class, 'loja'])->where('loja', '[a-z0-9-]+');
+Route::get('/compartilhar/{loja}/produto/{id}', [CompartilharController::class, 'produto'])->where(['loja' => '[a-z0-9-]+', 'id' => '[0-9]+']);
+
 Route::middleware('loja')->group(function () {
     /*
     | Públicas (vitrine)
