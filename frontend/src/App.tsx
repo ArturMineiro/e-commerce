@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Container } from "react-bootstrap";
 import Navbar from "./components/Navbar";
@@ -23,6 +23,7 @@ import RedefinirSenha from "./pages/RedefinirSenha";
 import { useConfigLoja } from "./hooks/useLoja";
 import { urlPlataforma } from "./lib/loja";
 import ScrollParaTopo from "./components/ScrollParaTopo";
+import NaoEncontrado from "./pages/NaoEncontrado";
 
 // O painel só é baixado por quem acessa /admin
 const AdminLayout = lazy(() => import("./admin/AdminLayout"));
@@ -42,17 +43,7 @@ const Pagamentos = lazy(() => import("./admin/Pagamentos"));
 const Entrega = lazy(() => import("./admin/Entrega"));
 // Tela do Pix (traz a biblioteca do QR Code só quando usada)
 const PagamentoPix = lazy(() => import("./pages/PagamentoPix"));
-
-function NaoEncontrado() {
-  return (
-    <Container className="py-5 text-center">
-      <h1 className="h3">Página não encontrada</h1>
-      <Link to="/" className="btn btn-loja mt-3">
-        Voltar para a loja
-      </Link>
-    </Container>
-  );
-}
+const Politica = lazy(() => import("./pages/Politica"));
 
 /** Loja inexistente ou desativada pela plataforma. */
 function LojaIndisponivel({ inativa }: { inativa: boolean }) {
@@ -121,6 +112,7 @@ function App() {
             <Route path="/meus-pedidos" element={<ProtectedRoute><MeusPedidos /></ProtectedRoute>} />
             <Route path="/pedido/:id/pix" element={<ProtectedRoute><PagamentoPix /></ProtectedRoute>} />
             <Route path="/favoritos" element={<ProtectedRoute><Favoritos /></ProtectedRoute>} />
+            <Route path="/politicas/:tipo" element={<Politica />} />
 
             {/* Painel do dono da loja */}
             <Route path="/admin" element={<ProtectedRoute admin><AdminLayout /></ProtectedRoute>}>

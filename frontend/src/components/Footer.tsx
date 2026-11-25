@@ -60,6 +60,12 @@ function Footer() {
           <Col md={4}>
             <h2>Atendimento</h2>
             <ul className="list-unstyled mb-3">
+              <li>
+                <Link to="/politicas/trocas">Trocas e devoluções</Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/politicas/privacidade">Privacidade</Link>
+              </li>
               {config.email && (
                 <li>
                   <a href={`mailto:${config.email}`}>{config.email}</a>

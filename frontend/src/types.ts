@@ -292,6 +292,9 @@ export interface ConfigLoja {
   slug?: string | null;
   /** desconto (%) para quem paga com Pix; 0 = sem desconto */
   pix_desconto: number;
+  /** textos do dono (em branco = texto sugerido) */
+  politica_trocas: string;
+  politica_privacidade: string;
   retirada_ativa: boolean;
   retirada_instrucoes: string;
   fonte_titulos: string;

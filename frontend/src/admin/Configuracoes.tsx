@@ -5,6 +5,7 @@ import { useConfigAdmin, useSalvarConfig } from "../hooks/useAdmin";
 import { useToast } from "../components/Toast";
 import { Carregando } from "../components/Ui";
 import { imagemUrl, mensagemErro } from "../lib/api";
+import { POLITICAS, textoSugerido, type TipoPolitica } from "../lib/politicas";
 import type { ConfigAdmin } from "../types";
 
 type CamposTexto = Omit<
@@ -40,7 +41,7 @@ function Configuracoes() {
     const form = new FormData();
     const chaves: (keyof CamposTexto)[] = [
       "nome_loja", "slogan", "descricao", "cor_primaria", "cor_secundaria", "email", "telefone", "whatsapp",
-      "endereco", "instagram", "facebook", "tiktok", "texto_rodape",
+      "endereco", "instagram", "facebook", "tiktok", "texto_rodape", "politica_trocas", "politica_privacidade",
     ];
     chaves.forEach((chave) => form.append(chave, String(campos[chave] ?? "")));
     if (logo) form.append("logo", logo);
@@ -175,6 +176,50 @@ function Configuracoes() {
               <Link to="/admin/pagamentos" className="btn btn-outline-secondary btn-sm">
                 Abrir Pagamentos
               </Link>
+            </Card.Body>
+          </Card>
+
+          <Card className="border-0 shadow-sm mt-4">
+            <Card.Body>
+              <h2 className="h5 mb-1">Políticas da loja</h2>
+              <p className="small text-muted">
+                Toda loja online precisa informar como funcionam trocas e devoluções (inclusive o direito de desistir em 7 dias)
+                e como usa os dados dos clientes. Em branco, a loja mostra um texto sugerido com os seus contatos. Os links ficam
+                no rodapé e no checkout.
+              </p>
+              {(Object.keys(POLITICAS) as TipoPolitica[]).map((tipo) => {
+                const { titulo, chave } = POLITICAS[tipo];
+                return (
+                  <Form.Group key={tipo} className="mb-3" controlId={`cfg-${chave}`}>
+                    <div className="d-flex justify-content-between align-items-center gap-2 mb-1 flex-wrap">
+                      <Form.Label className="mb-0">{titulo}</Form.Label>
+                      <div className="d-flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="link"
+                          className="p-0"
+                          onClick={() => setCampos({ ...campos, [chave]: textoSugerido(tipo, { ...config, whatsapp: campos.whatsapp, email: campos.email }) })}
+                        >
+                          Usar texto sugerido
+                        </Button>
+                        <Link to={`/politicas/${tipo}`} target="_blank" className="small">
+                          Ver na loja
+                        </Link>
+                      </div>
+                    </div>
+                    <Form.Control
+                      as="textarea"
+                      rows={6}
+                      name={chave}
+                      value={campos[chave] ?? ""}
+                      onChange={alterar}
+                      maxLength={8000}
+                      placeholder="Em branco: a loja mostra o texto sugerido."
+                    />
+                    <Form.Text>Separe os assuntos com uma linha em branco; a primeira linha de cada bloco vira o título.</Form.Text>
+                  </Form.Group>
+                );
+              })}
             </Card.Body>
           </Card>
         </Col>

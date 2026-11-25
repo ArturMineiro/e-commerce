@@ -54,6 +54,9 @@ class Configuracao extends Model
         'retirada_instrucoes' => '',
         // Desconto (%) para quem paga com Pix: aparece nos preços e vale no pedido
         'pix_desconto' => '0',
+        // Políticas (texto simples); em branco, a loja mostra o texto sugerido
+        'politica_trocas' => '',
+        'politica_privacidade' => '',
     ];
 
     /** Chaves guardadas como JSON (a API devolve já decodificadas). */

@@ -91,6 +91,8 @@ class ConfiguracaoController extends Controller
             'facebook' => 'nullable|string|max:255',
             'tiktok' => 'nullable|string|max:255',
             'texto_rodape' => 'nullable|string|max:500',
+            'politica_trocas' => 'nullable|string|max:8000',
+            'politica_privacidade' => 'nullable|string|max:8000',
             'frete_fixo' => 'nullable|numeric|min:0',
             'frete_gratis_acima' => 'nullable|numeric|min:0',
             'frete_modo' => 'nullable|in:fixo,melhor_envio,nenhum',

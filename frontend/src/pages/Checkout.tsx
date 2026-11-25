@@ -538,6 +538,10 @@ function Checkout() {
                   {criarPedido.isPending ? "Processando..." : PAGAMENTO[forma].botao}
                 </Button>
                 <p className="small text-muted mt-2 mb-0">{PAGAMENTO[forma].ajuda}</p>
+                <p className="small text-muted text-center mb-2">
+                  Ao finalizar, você concorda com a <Link to="/politicas/trocas">política de trocas</Link> e a{" "}
+                  <Link to="/politicas/privacidade">política de privacidade</Link>.
+                </p>
                 <Link to="/carrinho" className="btn btn-link w-100 mt-1">
                   Voltar ao carrinho
                 </Link>
