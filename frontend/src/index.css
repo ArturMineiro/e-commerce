@@ -236,11 +236,98 @@ main {
   padding: 0 0.4rem;
 }
 
+/* Celular: barra de atalhos fixa embaixo + gaveta "Mais" com o menu completo */
+.admin-abas {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1030;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: end;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -6px 18px rgba(17, 24, 39, 0.06);
+  padding: 0.3rem 0.25rem calc(0.3rem + env(safe-area-inset-bottom));
+}
+
+.admin-abas a,
+.admin-abas button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  min-height: 50px;
+  padding: 0.2rem 0;
+  border: 0;
+  background: none;
+  color: #6b7280;
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+
+.admin-abas a > svg,
+.admin-abas button > svg {
+  font-size: 1.2rem;
+}
+
+.admin-abas a.active {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.admin-aba-circulo {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: var(--cor-secundaria);
+  color: var(--cor-secundaria-texto);
+  font-size: 1.15rem;
+  box-shadow: 0 6px 14px rgba(17, 24, 39, 0.22);
+}
+
+.admin-mais.offcanvas-bottom {
+  height: auto;
+  max-height: 85vh;
+  border-radius: 18px 18px 0 0;
+}
+
+.admin-mais-grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.admin-mais-grade hr {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0;
+}
+
+.admin-mais-grade .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 12px;
+  background: #f8f9fa;
+  color: #374151;
+  font-size: 0.92rem;
+}
+
+.admin-mais-grade .nav-link.active {
+  background: var(--cor-secundaria);
+  color: var(--cor-secundaria-texto);
+}
+
 @media (max-width: 991.98px) {
-  .admin-sidebar {
-    min-width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
+  .painel-admin.com-abas {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
 }
 

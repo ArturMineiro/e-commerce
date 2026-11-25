@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Badge, Button, Container, Form, InputGroup, Nav, Navbar as BsNavbar, NavDropdown } from "react-bootstrap";
-import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { FaBagShopping, FaGauge, FaHeart, FaMagnifyingGlass, FaUser } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import { useCarrinho, useConfigLoja } from "../hooks/useLoja";
@@ -8,6 +8,8 @@ import { formatarPreco, imagemUrl } from "../lib/api";
 import { fundoEhClaro } from "../lib/utils";
 
 function Navbar() {
+  const { pathname } = useLocation();
+  const noPainel = pathname === "/admin" || pathname.startsWith("/admin/");
   const { loggedIn, isAdmin, user, logout } = useAuth();
   const { data: config } = useConfigLoja();
   const { data: carrinho } = useCarrinho();
@@ -37,7 +39,7 @@ function Navbar() {
 
   return (
     <header className="sticky-top shadow-sm">
-      {aviso && <div className="barra-aviso">{aviso}</div>}
+      {aviso && !noPainel && <div className="barra-aviso">{aviso}</div>}
       <BsNavbar
         expand="lg"
         className="bg-loja navbar-loja py-2 py-lg-3"

@@ -85,6 +85,7 @@ function IrParaPlataforma({ caminho }: { caminho: string }) {
 function App() {
   const { pathname } = useLocation();
   const { error } = useConfigLoja();
+  const noPainel = pathname === "/admin" || pathname.startsWith("/admin/");
 
   if (pathname.startsWith("/plataforma")) {
     return <IrParaPlataforma caminho="/plataforma" />;
@@ -150,8 +151,8 @@ function App() {
           </Routes>
         </Suspense>
       </main>
-      <Footer />
-      <WhatsappFlutuante />
+      {!noPainel && <Footer />}
+      {!noPainel && <WhatsappFlutuante />}
     </>
   );
 }

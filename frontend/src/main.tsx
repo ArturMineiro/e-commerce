@@ -11,6 +11,19 @@ import { AuthProvider } from "./hooks/AuthContext";
 import { ToastProvider } from "./components/Toast";
 import { BASE_ROTAS, MODO, receberSessaoDaUrl } from "./lib/loja";
 
+// Ferramentas do React Query só sob pedido (abra uma vez com ?devtools=1; ?devtools=0 desliga):
+// o botão flutuante cobria a barra de atalhos do painel no celular.
+const devtoolsLigado = (() => {
+  if (!import.meta.env.DEV) return false;
+  try {
+    const pedido = new URLSearchParams(window.location.search).get("devtools");
+    if (pedido !== null) localStorage.setItem("devtools", pedido === "1" ? "1" : "0");
+    return localStorage.getItem("devtools") === "1";
+  } catch {
+    return false;
+  }
+})();
+
 // Site da plataforma (página de vendas, cadastro de loja, painel da plataforma): baixado só quando usado
 // eslint-disable-next-line react-refresh/only-export-components
 const Site = lazy(() => import("./site/Site"));
@@ -50,7 +63,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           </AuthProvider>
         )}
       </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {devtoolsLigado && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </React.StrictMode>
 );
