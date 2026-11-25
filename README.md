@@ -5,13 +5,13 @@ frete, banners, produtos, variações, promoções) e recebe os pagamentos pelo 
 
 | Pasta       | Tecnologia                                                   | Porta padrão |
 | ----------- | ------------------------------------------------------------ | ------------ |
-| `backend/`  | Laravel 8, API REST, autenticação JWT (`tymon/jwt-auth`)      | 8000         |
+| `backend/`  | Laravel 12, API REST, autenticação JWT (`tymon/jwt-auth` 2)   | 8000         |
 | `frontend/` | React 18 + Vite + TypeScript + React Query + React Bootstrap | 5173         |
 
 ## Requisitos
 
-- PHP 8.0+ com as extensões `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `gd` e `curl`
-  (o XAMPP já traz; confira em `php -m`)
+- PHP 8.2+ com as extensões `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `gd` e `curl`
+  (o XAMPP já traz; confira em `php -m`). A hospedagem também precisa de PHP 8.2 ou mais novo.
 - Composer 2
 - MySQL ou MariaDB (o do XAMPP serve)
 - Node.js 18+ e npm
@@ -24,7 +24,7 @@ Se não tiver MySQL instalado, o `docker-compose.yml` da raiz sobe um MariaDB j�
 ```bash
 docker compose up -d                       # na raiz do projeto
 cd backend
-composer install --ignore-platform-req=php # o lock trava tymon/jwt-auth 1.0.2, que declara só PHP 7 (funciona no 8.x)
+composer install
 cp .env.example .env && sed -i 's/^DB_PORT=3306$/DB_PORT=3307/' .env
 php artisan key:generate && php artisan jwt:secret
 php artisan migrate && php artisan db:seed && php artisan storage:link

@@ -213,14 +213,14 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
             </Badge>
           )}
 
-          <p className="preco-destaque mb-1">
+          <div className="preco-destaque mb-1">
             <Preco base={precoBase} final={precoFinal} promocao={produto.em_promocao} />
             {precoNoPix(precoFinal, config) !== null && (
               <div className="preco-pix mt-1">
                 ou <strong>{formatarPreco(precoNoPix(precoFinal, config) ?? 0)}</strong> no Pix ({config?.pix_desconto}% de desconto)
               </div>
             )}
-          </p>
+          </div>
           {produto.em_promocao && precoBase !== null && precoFinal !== null && (
             <p className="text-success small fw-semibold mb-3">
               Você economiza {formatarPreco(precoBase - precoFinal)}
