@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge, Button, Container, Form, InputGroup, Nav, Navbar as BsNavbar, NavDropdown } from "react-bootstrap";
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { FaBagShopping, FaGauge, FaHeart, FaMagnifyingGlass, FaUser } from "react-icons/fa6";
@@ -18,6 +18,22 @@ function Navbar() {
   const [params] = useSearchParams();
   const [busca, setBusca] = useState(params.get("busca") ?? "");
   const [logoQuebrado, setLogoQuebrado] = useState(false);
+  const topoRef = useRef<HTMLElement>(null);
+
+  // A altura do topo muda com a faixa de avisos (só existe quando a loja tem avisos, e chega depois).
+  // Fica em --altura-topo para o que gruda logo abaixo dele (resumo do checkout, filtros) e para a
+  // rolagem até uma seção não parar escondida embaixo dele
+  useEffect(() => {
+    const topo = topoRef.current;
+    if (!topo || typeof ResizeObserver === "undefined") return;
+    const raiz = document.documentElement.style;
+    const observador = new ResizeObserver(() => raiz.setProperty("--altura-topo", `${topo.offsetHeight}px`));
+    observador.observe(topo);
+    return () => {
+      observador.disconnect();
+      raiz.removeProperty("--altura-topo");
+    };
+  }, []);
 
   const qtdCarrinho = carrinho?.itens.reduce((soma, item) => soma + item.quantidade, 0) ?? 0;
   const nomeLoja = config?.nome_loja ?? "Minha Loja";
@@ -35,7 +51,7 @@ function Navbar() {
   };
 
   return (
-    <header className="sticky-top shadow-sm">
+    <header ref={topoRef} className="sticky-top shadow-sm">
       {!noPainel && <BarraAvisos naHome={pathname === "/"} />}
       <BsNavbar
         expand="lg"

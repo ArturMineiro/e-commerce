@@ -553,8 +553,8 @@ function Checkout() {
           </Col>
 
           <Col lg={4}>
-            {/* O "top" só vale no computador (onde o resumo acompanha a rolagem); no celular empurrava o cartão */}
-            <Card className="shadow-sm border-0 sticky-lg-top resumo-checkout">
+            {/* No computador o resumo acompanha a rolagem logo abaixo do topo (.resumo-checkout); no celular fica no lugar */}
+            <Card className="shadow-sm border-0 resumo-checkout">
               <Card.Body>
                 <h2 className="h5">Resumo do pedido</h2>
                 <ul className="list-unstyled small mb-3">

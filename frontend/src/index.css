@@ -6,6 +6,12 @@
   --cor-secundaria-texto: #ffffff;
 }
 
+/* Rolagem até uma seção (avaliações, formulário do painel, link com #): o alvo para logo abaixo do
+   topo fixo em vez de embaixo dele. --altura-topo é medida pelo Navbar */
+html {
+  scroll-padding-top: calc(var(--altura-topo, 0px) + 1rem);
+}
+
 body {
   background-color: #f6f7f9;
   min-height: 100vh;
@@ -1752,10 +1758,6 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
 .avaliacao-escondida {
   opacity: 0.65;
 }
-/* Ao rolar até as avaliações, o título não fica embaixo do cabeçalho fixo */
-.avaliacoes-produto {
-  scroll-margin-top: 110px;
-}
 
 /* Carrinho: quanto falta para o frete grátis */
 .frete-gratis-progresso .progress {
@@ -2056,10 +2058,23 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
   max-width: calc(100% - 64px);
 }
 
+/* Computador: o resumo do pedido acompanha a rolagem logo abaixo do topo fixo. Sem z-index próprio,
+   quando a coluna acaba ele passa por baixo do topo (com o do sticky-lg-top, igual ao do topo, passava por cima) */
 @media (min-width: 992px) {
   .resumo-checkout {
-    top: 120px;
+    position: sticky;
+    top: calc(var(--altura-topo, 7.5rem) + 1rem);
   }
+}
+
+/* Filtros do catálogo (só no computador): grudam abaixo do topo e, por serem mais altos que a tela,
+   rolam por dentro; senão os últimos filtros só apareciam no fim da lista de produtos */
+.filtros-laterais {
+  position: sticky;
+  top: calc(var(--altura-topo, 7.5rem) + 1rem);
+  max-height: calc(100vh - var(--altura-topo, 7.5rem) - 2rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 /* Setas do carrossel estreitas (não cobrem o texto do banner); no celular, desliza com o dedo */

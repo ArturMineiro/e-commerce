@@ -235,7 +235,7 @@ function Produtos() {
 
       <Row className="g-4">
         <Col lg={3} className="d-none d-lg-block">
-          <div className="bg-white rounded-4 shadow-sm p-3 position-sticky" style={{ top: 120 }}>
+          <div className="bg-white rounded-4 shadow-sm p-3 filtros-laterais">
             {painelFiltros}
           </div>
         </Col>

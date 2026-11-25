@@ -80,7 +80,7 @@ function AvaliacoesProduto({ produtoId }: { produtoId: number }) {
   if (!data || (data.total === 0 && !data.pode_avaliar)) return null;
 
   return (
-    <section id="avaliacoes" ref={secao} className="mt-5 avaliacoes-produto" aria-labelledby="titulo-avaliacoes">
+    <section id="avaliacoes" ref={secao} className="mt-5" aria-labelledby="titulo-avaliacoes">
       <h2 id="titulo-avaliacoes" className="h4 titulo-secao mb-3">
         Avaliações
       </h2>
