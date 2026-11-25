@@ -1059,3 +1059,9 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
 }
 
 .simulador-entrega { background: #f8f9fa; border-radius: 12px; padding: 0.85rem 1rem; }
+
+/* Preço com desconto no Pix (cartão de produto e página do produto) */
+.preco-pix {
+  color: #0f766e;
+  font-size: 0.85rem;
+}

@@ -19,6 +19,7 @@ import type { Produto } from "../types";
 import BotaoCompartilhar from "../components/BotaoCompartilhar";
 import { linkCompartilhar } from "../lib/compartilhar";
 import { textoEntrega } from "../lib/entrega";
+import { precoNoPix } from "../lib/pagamento";
 
 function aplicarDesconto(produto: Produto, valor: number | null) {
   if (valor === null) return null;
@@ -183,6 +184,11 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
 
           <p className="preco-destaque mb-1">
             <Preco base={precoBase} final={precoFinal} promocao={produto.em_promocao} />
+            {precoNoPix(precoFinal, config) !== null && (
+              <div className="preco-pix mt-1">
+                ou <strong>{formatarPreco(precoNoPix(precoFinal, config) ?? 0)}</strong> no Pix ({config?.pix_desconto}% de desconto)
+              </div>
+            )}
           </p>
           {produto.em_promocao && precoBase !== null && precoFinal !== null && (
             <p className="text-success small fw-semibold mb-3">

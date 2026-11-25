@@ -15,6 +15,7 @@ export function ResumoValores({
   frete,
   total,
   desconto = 0,
+  descontoPix = 0,
   cupom,
   textoFretePendente = "Calculado no checkout",
 }: {
@@ -22,6 +23,7 @@ export function ResumoValores({
   frete: number | null;
   total: number;
   desconto?: number;
+  descontoPix?: number;
   cupom?: string | null;
   textoFretePendente?: string;
 }) {
@@ -35,6 +37,12 @@ export function ResumoValores({
         <div className="d-flex justify-content-between text-success">
           <dt className="fw-normal">Desconto{cupom && ` (${cupom})`}</dt>
           <dd className="mb-1">-{formatarPreco(desconto)}</dd>
+        </div>
+      )}
+      {descontoPix > 0 && (
+        <div className="d-flex justify-content-between text-success">
+          <dt className="fw-normal">Desconto no Pix</dt>
+          <dd className="mb-1">-{formatarPreco(descontoPix)}</dd>
         </div>
       )}
       <div className="d-flex justify-content-between">

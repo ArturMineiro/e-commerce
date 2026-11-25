@@ -20,3 +20,10 @@ export function textoMeios(config?: Pick<ConfigLoja, "formas_pagamento"> | null,
   const texto = lista.length === 1 ? lista[0] : `${lista.slice(0, -1).join(", ")} ou ${lista[lista.length - 1]}`;
   return capitalizar ? texto.charAt(0).toUpperCase() + texto.slice(1) : texto;
 }
+
+/** Preço com o desconto do Pix (null se a loja não dá desconto no Pix). */
+export function precoNoPix(preco: number | null | undefined, config: ConfigLoja | null | undefined): number | null {
+  const percentual = config?.pix_desconto ?? 0;
+  if (!preco || percentual <= 0) return null;
+  return Math.round(preco * (100 - percentual)) / 100;
+}

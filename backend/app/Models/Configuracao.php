@@ -52,6 +52,8 @@ class Configuracao extends Model
         // Retirada na loja (o texto aparece no checkout: onde e como retirar)
         'retirada_ativa' => '0',
         'retirada_instrucoes' => '',
+        // Desconto (%) para quem paga com Pix: aparece nos preços e vale no pedido
+        'pix_desconto' => '0',
     ];
 
     /** Chaves guardadas como JSON (a API devolve já decodificadas). */
@@ -164,6 +166,7 @@ class Configuracao extends Model
 
         $resultado['frete_fixo'] = (float) $resultado['frete_fixo'];
         $resultado['retirada_ativa'] = (bool) $resultado['retirada_ativa'];
+        $resultado['pix_desconto'] = (float) $resultado['pix_desconto'];
         $resultado['frete_gratis_acima'] = (float) $resultado['frete_gratis_acima'];
         $resultado['guia_medidas'] = $resultado['guia_medidas'] ?: null;
 

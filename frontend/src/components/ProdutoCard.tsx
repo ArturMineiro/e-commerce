@@ -2,8 +2,9 @@ import { Badge, Card } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaRegHeart } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
-import { useAlternarFavorito, useFavoritosIds } from "../hooks/useLoja";
-import { imagemUrl } from "../lib/api";
+import { useAlternarFavorito, useConfigLoja, useFavoritosIds } from "../hooks/useLoja";
+import { formatarPreco, imagemUrl } from "../lib/api";
+import { precoNoPix } from "../lib/pagamento";
 import { Preco } from "./Ui";
 import type { Cor, Produto } from "../types";
 
@@ -19,6 +20,8 @@ function ProdutoCard({ produto }: { produto: Produto }) {
   const imagens = produto.imagens ?? [];
   const temVariacoesComPrecoDiferente =
     produto.preco === null && new Set(produto.modelos.map((m) => m.preco)).size > 1;
+  const { data: config } = useConfigLoja();
+  const pix = precoNoPix(produto.preco_final, config);
 
   // Cores disponíveis (até 5 bolinhas)
   const cores = [...new Map(produto.modelos.filter((m) => m.cor).map((m) => [m.cor!.id, m.cor as Cor])).values()];
@@ -94,6 +97,7 @@ function ProdutoCard({ produto }: { produto: Produto }) {
             promocao={produto.em_promocao}
             aPartirDe={temVariacoesComPrecoDiferente}
           />
+          {pix !== null && <small className="d-block preco-pix">{formatarPreco(pix)} no Pix</small>}
         </div>
       </Card.Body>
     </Card>

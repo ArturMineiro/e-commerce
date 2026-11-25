@@ -42,6 +42,7 @@ class ConfiguracaoController extends Controller
             'pagamento_online' => count($formas) > 0,
             'entrega_local' => $this->frete->entregaLocalAtiva(),
             'slug' => app(LojaAtual::class)->get()?->slug,
+            'pix_desconto' => $this->pix->desconto(),
         ]));
     }
 
@@ -95,6 +96,7 @@ class ConfiguracaoController extends Controller
             'frete_modo' => 'nullable|in:fixo,melhor_envio,nenhum',
             'frete_fixo_nome' => 'nullable|string|max:60',
             'pedido_expira_horas' => 'nullable|integer|min:0|max:168',
+            'pix_desconto' => 'nullable|numeric|min:0|max:30',
             'frete_fixo_prazo' => 'nullable|integer|min:0|max:90',
 
             // Entrega local por distância e retirada na loja

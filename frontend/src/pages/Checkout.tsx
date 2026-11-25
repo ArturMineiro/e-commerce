@@ -134,7 +134,10 @@ function Checkout() {
   const opcaoEscolhida = retirada ? null : (opcoesFrete?.find((o) => o.id === freteId) ?? null);
   const desconto = cupom?.desconto ?? 0;
   const frete = retirada ? 0 : opcaoEscolhida ? opcaoEscolhida.preco : freteDinamico ? null : carrinho.frete;
-  const total = Math.max(carrinho.subtotal - desconto, 0) + (frete ?? 0);
+  // Desconto do Pix sobre os produtos (depois do cupom), igual ao calculado pelo servidor
+  const baseProdutos = Math.max(carrinho.subtotal - desconto, 0);
+  const descontoPix = forma === "pix" && (config?.pix_desconto ?? 0) > 0 ? Math.round(baseProdutos * (config?.pix_desconto ?? 0)) / 100 : 0;
+  const total = baseProdutos - descontoPix + (frete ?? 0);
   const faltaFrete = !retirada && freteDinamico && !opcaoEscolhida;
 
   const alterar = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -438,7 +441,12 @@ function Checkout() {
                           />
                           <Icone className={`opcao-pagamento-icone opcao-${f.id}`} aria-hidden />
                           <span className="flex-grow-1">
-                            <span className="fw-semibold d-block">{f.nome}</span>
+                            <span className="fw-semibold d-block">
+                              {f.nome}
+                              {f.id === "pix" && (config?.pix_desconto ?? 0) > 0 && (
+                                <span className="badge text-bg-success ms-2">{config?.pix_desconto}% de desconto</span>
+                              )}
+                            </span>
                             <span className="small text-muted">{f.descricao}</span>
                           </span>
                         </label>
@@ -508,6 +516,7 @@ function Checkout() {
                 <ResumoValores
                   subtotal={carrinho.subtotal}
                   desconto={desconto}
+                  descontoPix={descontoPix}
                   cupom={cupom?.codigo}
                   frete={frete}
                   total={total}

@@ -58,6 +58,16 @@ class PixService
     }
 
     /** Identificador do pedido no Pix (aparece no comprovante e no extrato de muitos bancos). */
+    /** Desconto (%) para quem paga com Pix; 0 se o Pix não estiver ativo e configurado. */
+    public function desconto(): float
+    {
+        if (!$this->ativo() || !$this->configurado()) {
+            return 0.0;
+        }
+
+        return round(min(30.0, max(0.0, (float) Configuracao::obter('pix_desconto', 0))), 2);
+    }
+
     public static function identificador(Pedido $pedido): string
     {
         return 'PEDIDO' . $pedido->id;

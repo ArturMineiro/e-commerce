@@ -23,7 +23,7 @@ class Pedido extends Model
     public const STATUS_PAGOS = ['pago', 'em_separacao', 'enviado', 'entregue'];
 
     protected $fillable = [
-        'user_id', 'status', 'subtotal', 'cupom_id', 'cupom_codigo', 'desconto', 'frete', 'frete_servico', 'frete_prazo', 'total',
+        'user_id', 'status', 'subtotal', 'cupom_id', 'cupom_codigo', 'desconto', 'desconto_pagamento', 'frete', 'frete_servico', 'frete_prazo', 'total',
         'forma_pagamento', 'tipo_entrega', 'distancia_km',
         'nome', 'email', 'telefone', 'cpf', 'cep', 'logradouro', 'numero',
         'complemento', 'bairro', 'cidade', 'uf', 'observacoes',
@@ -35,6 +35,7 @@ class Pedido extends Model
         'subtotal' => 'float',
         'frete' => 'float',
         'desconto' => 'float',
+        'desconto_pagamento' => 'float',
         'frete_prazo' => 'integer',
         'distancia_km' => 'float',
         'total' => 'float',

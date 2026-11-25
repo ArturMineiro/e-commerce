@@ -65,6 +65,9 @@ class PedidoAtualizado extends Notification
             if ($p->desconto > 0) {
                 $mensagem->line('Desconto' . ($p->cupom_codigo ? " ({$p->cupom_codigo})" : '') . ': -' . $this->real($p->desconto));
             }
+            if ($p->desconto_pagamento > 0) {
+                $mensagem->line('Desconto no Pix: -' . $this->real($p->desconto_pagamento));
+            }
             $mensagem->line('Frete' . ($p->frete_servico ? " ({$p->frete_servico})" : '') . ': ' . ($p->frete > 0 ? $this->real($p->frete) : 'grátis'));
             $mensagem->line('**Total: ' . $this->real($p->total) . '**');
             if ($p->tipo_entrega === 'retirada') {

@@ -24,7 +24,7 @@ use Illuminate\Validation\ValidationException;
  */
 class PedidoService
 {
-    public function __construct(private FreteService $frete)
+    public function __construct(private FreteService $frete, private PixService $pix)
     {
     }
 
@@ -177,6 +177,7 @@ class PedidoService
             if ($cupom) {
                 $cupom->increment('usos');
             }
+            $descontoPagamento = $this->descontoPagamento($dados['forma_pagamento'] ?? null, $subtotal - $desconto);
 
             $pedido = Pedido::create(array_merge($dados, [
                 'user_id' => $user->id,
@@ -185,12 +186,13 @@ class PedidoService
                 'cupom_id' => $cupom->id ?? null,
                 'cupom_codigo' => $cupom->codigo ?? null,
                 'desconto' => $desconto,
+                'desconto_pagamento' => $descontoPagamento,
                 'frete' => $opcaoFrete['preco'],
                 'frete_servico' => $opcaoFrete['nome'],
                 'frete_prazo' => $opcaoFrete['prazo'],
                 'tipo_entrega' => $opcaoFrete['tipo'] ?? 'envio',
                 'distancia_km' => $opcaoFrete['distancia_km'] ?? null,
-                'total' => round($subtotal - $desconto + $opcaoFrete['preco'], 2),
+                'total' => round($subtotal - $desconto - $descontoPagamento + $opcaoFrete['preco'], 2),
             ]));
 
             $pedido->itens()->createMany($linhas);
@@ -407,6 +409,26 @@ class PedidoService
         } catch (\Throwable $e) {
             Log::error('Falha ao enviar e-mail', ['para' => $email, 'erro' => $e->getMessage()]);
         }
+    }
+
+    /** Desconto da forma de pagamento sobre os produtos (depois do cupom; o frete não entra). */
+    public function descontoPagamento(?string $forma, float $base): float
+    {
+        $percentual = $forma === 'pix' ? $this->pix->desconto() : 0.0;
+
+        return $percentual > 0 && $base > 0 ? round($base * $percentual / 100, 2) : 0.0;
+    }
+
+    /** Cliente troca a forma de pagamento de um pedido em aberto: o desconto e o total acompanham. */
+    public function trocarForma(Pedido $pedido, string $forma): Pedido
+    {
+        $pedido->forma_pagamento = $forma;
+        $pedido->pagamento_informado_em = null;
+        $pedido->desconto_pagamento = $this->descontoPagamento($forma, $pedido->subtotal - $pedido->desconto);
+        $pedido->total = round($pedido->subtotal - $pedido->desconto - $pedido->desconto_pagamento + $pedido->frete, 2);
+        $pedido->save();
+
+        return $pedido;
     }
 
     /**

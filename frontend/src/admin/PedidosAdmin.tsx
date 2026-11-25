@@ -181,6 +181,14 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
                 <td className="text-end">-{formatarPreco(pedido.desconto)}</td>
               </tr>
             )}
+            {pedido.desconto_pagamento > 0 && (
+              <tr className="text-success">
+                <td colSpan={3} className="text-end">
+                  Desconto no Pix
+                </td>
+                <td className="text-end">-{formatarPreco(pedido.desconto_pagamento)}</td>
+              </tr>
+            )}
             <tr>
               <td colSpan={3} className="text-end">
                 Frete{pedido.frete_servico && ` (${pedido.frete_servico}${pedido.frete_prazo ? `, até ${pedido.frete_prazo} dias úteis` : ""})`}

@@ -224,6 +224,8 @@ export interface Pedido extends Omit<DadosEntrega, "cep" | "logradouro" | "numer
   metodo_pagamento: string | null;
   pago_em: string | null;
   pagamento_informado_em: string | null;
+  /** desconto da forma de pagamento (ex.: Pix) */
+  desconto_pagamento: number;
   /** até quando pagar; depois o pedido é cancelado e as peças voltam para a loja */
   pagar_ate: string | null;
   codigo_rastreio: string | null;
@@ -288,6 +290,8 @@ export interface ConfigLoja {
   entrega_local: boolean;
   /** endereço da loja (usado nos links de compartilhamento) */
   slug?: string | null;
+  /** desconto (%) para quem paga com Pix; 0 = sem desconto */
+  pix_desconto: number;
   retirada_ativa: boolean;
   retirada_instrucoes: string;
   fonte_titulos: string;

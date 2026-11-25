@@ -92,9 +92,7 @@ class PedidoController extends Controller
         ], self::MSG_FORMA);
 
         if (!empty($dados['forma_pagamento']) && $dados['forma_pagamento'] !== $pedido->forma_pagamento) {
-            $pedido->forma_pagamento = $dados['forma_pagamento'];
-            $pedido->pagamento_informado_em = null;
-            $pedido->save();
+            $this->pedidos->trocarForma($pedido, $dados['forma_pagamento']);
         }
 
         $pagamento = $this->pagamentos->iniciar($pedido);

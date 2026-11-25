@@ -74,6 +74,7 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
   const [chave, setChave] = useState(config.pix_chave);
   const [nome, setNome] = useState(config.pix_nome);
   const [cidade, setCidade] = useState(config.pix_cidade);
+  const [desconto, setDesconto] = useState(config.pix_desconto ? String(config.pix_desconto) : "");
   const [testar, setTestar] = useState(false);
   const teste = usePixTeste(testar && !!config.pix_chave);
 
@@ -85,7 +86,7 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
     salvar.mutate(
-      { pix_ativo: ativo, pix_tipo: tipo, pix_chave: chave.trim(), pix_nome: nome.trim(), pix_cidade: cidade.trim() },
+      { pix_ativo: ativo, pix_tipo: tipo, pix_chave: chave.trim(), pix_nome: nome.trim(), pix_cidade: cidade.trim(), pix_desconto: Number(desconto || 0) },
       {
         onSuccess: () => {
           notificar(ativo ? "Pix ativado! Seus clientes já podem pagar com Pix." : "Configurações do Pix salvas.");
@@ -161,6 +162,21 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
               <Form.Group controlId="pix-cidade">
                 <Form.Label>Cidade</Form.Label>
                 <Form.Control value={cidade} onChange={(e) => setCidade(e.target.value)} maxLength={15} placeholder="Rio de Janeiro" />
+              </Form.Group>
+            </Col>
+            <Col sm={7}>
+              <Form.Group controlId="pix-desconto">
+                <Form.Label>Desconto para quem paga no Pix (%)</Form.Label>
+                <Form.Control
+                  type="number"
+                  min={0}
+                  max={30}
+                  step={0.5}
+                  value={desconto}
+                  onChange={(e) => setDesconto(e.target.value)}
+                  placeholder="0 = sem desconto"
+                />
+                <Form.Text>Ex.: 5. Aparece nos preços da loja (“R$ 95,00 no Pix”) e vale só nos produtos, não no frete.</Form.Text>
               </Form.Group>
             </Col>
           </Row>
