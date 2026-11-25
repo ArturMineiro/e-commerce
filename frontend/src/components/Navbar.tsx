@@ -3,8 +3,9 @@ import { Badge, Button, Container, Form, InputGroup, Nav, Navbar as BsNavbar, Na
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { FaBagShopping, FaGauge, FaHeart, FaMagnifyingGlass, FaUser } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
+import BarraAvisos from "./BarraAvisos";
 import { useCarrinho, useConfigLoja } from "../hooks/useLoja";
-import { formatarPreco, imagemUrl } from "../lib/api";
+import { imagemUrl } from "../lib/api";
 import { fundoEhClaro } from "../lib/utils";
 
 function Navbar() {
@@ -21,10 +22,6 @@ function Navbar() {
   const qtdCarrinho = carrinho?.itens.reduce((soma, item) => soma + item.quantidade, 0) ?? 0;
   const nomeLoja = config?.nome_loja ?? "Minha Loja";
 
-  const aviso =
-    config && config.frete_gratis_acima > 0
-      ? `Frete grátis em compras acima de ${formatarPreco(config.frete_gratis_acima)}`
-      : config?.slogan;
 
   const pesquisar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +36,7 @@ function Navbar() {
 
   return (
     <header className="sticky-top shadow-sm">
-      {aviso && !noPainel && <div className="barra-aviso">{aviso}</div>}
+      {!noPainel && <BarraAvisos naHome={pathname === "/"} />}
       <BsNavbar
         expand="lg"
         className="bg-loja navbar-loja py-2 py-lg-3"

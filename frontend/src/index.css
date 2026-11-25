@@ -187,8 +187,89 @@ main {
 /* ---------- Vitrine ---------- */
 .banner-img {
   width: 100%;
-  height: clamp(180px, 38vw, 480px);
+  height: clamp(220px, 38vw, 480px);
   object-fit: cover;
+}
+
+/* Banner com texto por cima: degradê para o texto ficar legível em qualquer foto */
+.banner-slide {
+  position: relative;
+}
+
+.banner-texto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.5rem clamp(1.25rem, 5vw, 4rem) 2.75rem;
+  color: #fff;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0) 75%);
+}
+
+.banner-texto-centro {
+  align-items: center;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.banner-texto-direita {
+  align-items: flex-end;
+  text-align: right;
+  background: linear-gradient(270deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0) 75%);
+}
+
+.banner-texto h2 {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--fonte-titulos);
+  font-size: clamp(1.6rem, 4vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.banner-texto p {
+  margin: 0;
+  max-width: 38ch;
+  font-size: clamp(0.98rem, 1.6vw, 1.25rem);
+}
+
+.banner-botao {
+  margin-top: 0.5rem;
+  padding: 0.6rem 1.4rem;
+  font-weight: 600;
+  border-radius: var(--raio-botao, 999px);
+  text-shadow: none;
+}
+
+@media (max-width: 767.98px) {
+  /* No celular o banner fica mais alto (antes virava uma faixa de 180px) */
+  .banner-img {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  .banner-slide.com-mobile .banner-img {
+    aspect-ratio: 4 / 5;
+  }
+
+  .banner-texto,
+  .banner-texto-direita {
+    justify-content: flex-end;
+    align-items: flex-start;
+    text-align: left;
+    padding: 1rem 1.25rem 2.6rem;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.25) 55%, rgba(0, 0, 0, 0) 80%);
+  }
+
+  .banner-texto-centro {
+    align-items: center;
+    text-align: center;
+  }
 }
 
 .produto-card {
@@ -236,13 +317,132 @@ main {
 }
 
 .galeria-miniatura {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
   border-radius: 0.375rem;
   cursor: pointer;
   border: 2px solid transparent;
   padding: 0;
+  background: none;
+  overflow: hidden;
+}
+
+.galeria-miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.25rem;
+}
+
+/* Galeria: desliza com o dedo (scroll-snap); bolinhas só no celular */
+.galeria-trilho {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: var(--raio, 0.5rem);
+  overscroll-behavior-x: contain;
+}
+
+.galeria-trilho::-webkit-scrollbar {
+  display: none;
+}
+
+.galeria-trilho > .galeria-principal {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  border-radius: 0;
+}
+
+.galeria-pontos {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.galeria-pontos span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bs-border-color);
+  transition: width 0.2s, background 0.2s;
+}
+
+.galeria-pontos span.ativo {
+  width: 18px;
+  border-radius: 4px;
+  background: var(--cor-primaria);
+}
+
+.galeria-miniaturas {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+}
+
+@media (min-width: 768px) {
+  .galeria-pontos {
+    display: none;
+  }
+
+  .galeria-miniatura {
+    width: 72px;
+    height: 72px;
+  }
+
+  .galeria-miniaturas {
+    flex-wrap: wrap;
+  }
+}
+
+/* Barra "Comprar" fixa no celular */
+.barra-compra-fixa {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1035;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.12);
+  animation: barra-sobe 0.2s ease-out;
+}
+
+@keyframes barra-sobe {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (max-width: 767.98px) {
+  body.com-barra-compra {
+    padding-bottom: 72px;
+  }
+
+  body.com-barra-compra .whatsapp-flutuante {
+    bottom: calc(1.25rem + 68px);
+  }
+
+  /* No celular a trilha fica "Início / Categoria" (o nome já está no título) */
+  .trilha-produto .breadcrumb-item.active {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barra-compra-fixa {
+    animation: none;
+  }
 }
 
 .galeria-miniatura.ativa {
@@ -544,11 +744,59 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
 
 /* Barra de aviso acima do menu */
 .barra-aviso {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
   background: var(--cor-secundaria);
   color: var(--cor-secundaria-texto);
   font-size: 0.85rem;
   text-align: center;
-  padding: 0.4rem 1rem;
+  padding: 0.35rem 2.5rem;
+}
+
+.barra-aviso-texto {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  animation: aviso-entra 0.35s ease-out;
+}
+
+@keyframes aviso-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.barra-aviso-pausa {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.barra-aviso-pausa:hover,
+.barra-aviso-pausa:focus-visible {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barra-aviso-texto {
+    animation: none;
+  }
 }
 
 /* Menu */
@@ -675,34 +923,105 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
   text-decoration: underline;
 }
 
-/* Categorias em blocos */
-.categoria-tile {
+/* Categorias em bolhas com foto: rolam para o lado no celular */
+.categorias-bolhas {
+  /* relative: o texto escondido para leitor de tela fica preso à fileira (sem isso a página rolava para o lado) */
+  position: relative;
   display: flex;
+  gap: 12px;
+  margin: 0 -12px;
+  padding: 2px 12px 6px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.categorias-bolhas::-webkit-scrollbar {
+  display: none;
+}
+
+.categorias-bolhas li {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.categoria-bolha {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  background: #fff;
-  border-radius: var(--raio);
-  padding: 1rem 1.15rem;
-  font-weight: 600;
+  gap: 8px;
+  width: 78px;
   color: inherit;
   text-decoration: none;
-  box-shadow: var(--sombra-suave);
-  border: 1px solid transparent;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  text-align: center;
+}
+
+.categoria-bolha-foto {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--cor-secundaria) 18%, #fff);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cor-secundaria) 70%, transparent), var(--sombra-suave);
+  transition: transform 0.15s ease;
+  font-family: var(--fonte-titulos);
+  font-size: 1.6rem;
+  color: var(--cor-primaria);
+}
+
+.categoria-bolha-foto img {
+  width: 100%;
   height: 100%;
+  object-fit: cover;
+  transform: scale(1.35);
+  transform-origin: 50% 35%;
 }
 
-.categoria-tile:hover {
-  border-color: var(--cor-secundaria);
+.categoria-bolha:hover .categoria-bolha-foto,
+.categoria-bolha:focus-visible .categoria-bolha-foto {
   transform: translateY(-2px);
-  color: var(--cor-secundaria);
 }
 
-.categoria-tile small {
-  display: block;
-  font-weight: 400;
-  color: #6b7280;
+.categoria-bolha-nome {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .categorias-bolhas {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin: 0;
+    padding: 2px 0 6px;
+    overflow: visible;
+  }
+
+  .categoria-bolha {
+    width: 110px;
+  }
+
+  .categoria-bolha-foto {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+.hero-sobretitulo {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
 }
 
 /* Card de produto */
@@ -818,7 +1137,7 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
 
 @media (prefers-reduced-motion: reduce) {
   .esqueleto { animation: none; }
-  .produto-card, .produto-card .imagem, .categoria-tile { transition: none; }
+  .produto-card, .produto-card .imagem, .categoria-bolha-foto { transition: none; }
 }
 
 /* Chamada final da home */
@@ -1443,6 +1762,10 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
 
 .selo-promocao {
   display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--cor-secundaria);
@@ -1511,4 +1834,208 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
   border-radius: 6px;
   color: var(--cor-primaria);
   background: color-mix(in srgb, var(--cor-primaria) 6%, #fff);
+}
+
+/* Painel: prévia do banner no computador e no celular */
+.previas-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.previa-banner {
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: var(--sombra-suave, 0 4px 14px rgba(0, 0, 0, 0.08));
+  pointer-events: none;
+}
+
+.previa-computador {
+  min-width: 260px;
+  max-width: 560px;
+}
+
+.previa-computador .banner-img,
+.previa-computador .banner-slide.com-mobile .banner-img {
+  height: auto;
+  aspect-ratio: 8 / 3;
+}
+
+.previa-computador .banner-texto {
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem 1rem;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0) 75%);
+}
+
+.previa-computador .banner-texto-centro {
+  align-items: center;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.previa-computador .banner-texto-direita {
+  align-items: flex-end;
+  text-align: right;
+  background: linear-gradient(270deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0) 75%);
+}
+
+.previa-celular {
+  width: 180px;
+}
+
+.previa-celular .banner-img {
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.previa-celular .banner-slide.com-mobile .banner-img {
+  aspect-ratio: 4 / 5;
+}
+
+.previa-celular .banner-texto,
+.previa-celular .banner-texto-direita {
+  justify-content: flex-end;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.2rem;
+  padding: 0.5rem 0.6rem 0.7rem;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.25) 55%, rgba(0, 0, 0, 0) 80%);
+}
+
+.previa-celular .banner-texto-centro {
+  align-items: center;
+  text-align: center;
+}
+
+.previa-banner .banner-texto h2 {
+  font-size: 1.05rem;
+}
+
+.previa-computador .banner-texto h2 {
+  font-size: 1.35rem;
+}
+
+.previa-banner .banner-texto p {
+  font-size: 0.72rem;
+}
+
+.previa-banner .banner-botao {
+  margin-top: 0.2rem;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.7rem;
+}
+
+/* Checkout no celular: resumo recolhido no topo */
+.resumo-topo {
+  background: #fff;
+  border-radius: var(--raio, 12px);
+  box-shadow: var(--sombra-suave);
+  padding: 0 16px;
+}
+
+.resumo-topo summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.resumo-topo summary::-webkit-details-marker {
+  display: none;
+}
+
+.resumo-topo summary::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.2s;
+}
+
+.resumo-topo[open] summary::after {
+  transform: rotate(-135deg);
+}
+
+.resumo-topo[open] {
+  padding-bottom: 16px;
+}
+
+/* Catálogo: pílulas de categoria e filtros escolhidos */
+.pilulas-categorias {
+  display: flex;
+  gap: 8px;
+  margin: 0 -12px;
+  padding: 2px 12px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pilulas-categorias::-webkit-scrollbar {
+  display: none;
+}
+
+.pilulas-categorias .filtro-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (min-width: 992px) {
+  .pilulas-categorias {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.filtro-ativo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0.2rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--cor-primaria) 35%, #fff);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-primaria) 7%, #fff);
+  color: var(--cor-primaria);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.filtro-ativo svg {
+  font-size: 0.75rem;
+}
+
+/* Selos do cartão nunca ficam embaixo do botão de favorito */
+.produto-card .selo {
+  max-width: calc(100% - 64px);
+}
+
+@media (min-width: 992px) {
+  .resumo-checkout {
+    top: 120px;
+  }
+}
+
+/* Setas do carrossel estreitas (não cobrem o texto do banner); no celular, desliza com o dedo */
+.carousel-loja .carousel-control-prev,
+.carousel-loja .carousel-control-next {
+  width: 3rem;
+}
+
+@media (max-width: 767.98px) {
+  .carousel-loja .carousel-control-prev,
+  .carousel-loja .carousel-control-next {
+    display: none;
+  }
 }

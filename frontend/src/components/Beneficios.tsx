@@ -13,7 +13,11 @@ function Beneficios() {
   const itens = [
     { Icone: FaTruckFast, ...textoEntrega(config) },
     meios
-      ? { Icone: FaCreditCard, titulo: meios, texto: "Pague como preferir" }
+      ? {
+          Icone: FaCreditCard,
+          titulo: meios,
+          texto: meiosAceitos(config).pix && config.pix_desconto > 0 ? `${config.pix_desconto}% de desconto no Pix` : "Pague como preferir",
+        }
       : { Icone: FaCreditCard, titulo: "Pagamento facilitado", texto: "Combine direto com a loja" },
     { Icone: FaShieldHalved, titulo: "Compra segura", texto: meiosAceitos(config).ambienteSeguro ? "Pagamento em ambiente seguro" : "Seus dados protegidos" },
     {

@@ -266,6 +266,16 @@ export const useAtualizarBanner = () =>
 export const useExcluirBanner = () =>
   useMutacaoBanner((id: number) => api.delete(`/admin/banners/${id}`));
 
+export const useImagemMobileBanner = () =>
+  useMutacaoBanner(({ id, arquivo }: { id: number; arquivo: File }) => {
+    const form = new FormData();
+    form.append("imagem_mobile", arquivo);
+    return api.post(`/admin/banners/${id}/imagem-mobile`, form, multipart);
+  });
+
+export const useRemoverImagemMobileBanner = () =>
+  useMutacaoBanner((id: number) => api.delete(`/admin/banners/${id}/imagem-mobile`));
+
 export const useRemoverImagemBanner = () =>
   useMutacaoBanner(({ id, imageUrl }: { id: number; imageUrl: string }) =>
     api.post(`/admin/banners/${id}/remover-imagem`, { imageUrl })

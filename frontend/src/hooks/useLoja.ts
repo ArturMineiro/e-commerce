@@ -16,8 +16,7 @@ import type {
   RespostaPagamento,
   RespostaPixPedido,
   FormaPagamentoId,
-  AvaliacoesProduto,
-} from "../types";
+  AvaliacoesProduto, PromocaoVigente } from "../types";
 
 /* ---------------- Vitrine (público) ---------------- */
 
@@ -32,6 +31,14 @@ export const useBanners = () =>
   useQuery({
     queryKey: ["banners"],
     queryFn: async () => (await api.get<Banner[]>("/banners")).data,
+  });
+
+/** Promoções automáticas valendo agora (para os avisos da loja). */
+export const usePromocoesVigentes = () =>
+  useQuery({
+    queryKey: ["promocoes"],
+    queryFn: async () => (await api.get<PromocaoVigente[]>("/promocoes")).data,
+    staleTime: 5 * 60 * 1000,
   });
 
 export const useCategorias = () =>

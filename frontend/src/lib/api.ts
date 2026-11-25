@@ -43,7 +43,8 @@ export default api;
 /** URL completa de uma imagem salva no backend (ou placeholder). */
 export function imagemUrl(caminho?: string | null): string {
   if (!caminho) return "/assets/sem-foto.svg";
-  if (/^https?:\/\//.test(caminho)) return caminho;
+  // Endereço completo, ou prévia local de uma foto escolhida (blob:/data:)
+  if (/^(https?:\/\/|blob:|data:image\/)/.test(caminho)) return caminho;
   return `${STORAGE_URL}/${caminho.replace(/^\/+/, "")}`;
 }
 

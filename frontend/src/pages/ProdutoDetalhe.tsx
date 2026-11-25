@@ -1,5 +1,5 @@
 import { textoMeios } from "../lib/pagamento";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Badge, Breadcrumb, Button, Col, Container, Modal, Row, Table } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaHeart, FaRegHeart, FaRulerHorizontal, FaShieldHalved, FaTags, FaTruckFast, FaWhatsapp } from "react-icons/fa6";
@@ -13,12 +13,14 @@ import {
 } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import { Carregando, Preco } from "../components/Ui";
-import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
+import { formatarPreco, mensagemErro } from "../lib/api";
 import { linkWhatsapp } from "../lib/utils";
 import type { Produto } from "../types";
 import BotaoCompartilhar from "../components/BotaoCompartilhar";
 import AviseMe from "../components/AviseMe";
 import SeletorQuantidade from "../components/SeletorQuantidade";
+import GaleriaProduto from "../components/GaleriaProduto";
+import TempoRestante from "../components/TempoRestante";
 import CalcularFrete from "../components/CalcularFrete";
 import ProdutosRelacionados from "../components/ProdutosRelacionados";
 import { linkCompartilhar } from "../lib/compartilhar";
@@ -83,7 +85,6 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
       ? todasFotos.filter((f) => !produto.imagens_cores?.[f] || produto.imagens_cores[f] === corId)
       : todasFotos;
   const imagens: (string | null)[] = fotosDaCor.length ? fotosDaCor : todasFotos.length ? todasFotos : [null];
-  const foto = imagens[Math.min(fotoAtual, imagens.length - 1)];
   const modelosDaCor = cores.length ? modelos.filter((m) => m.cor_id === corId) : modelos;
   const tamanhos = [...new Set(modelosDaCor.map((m) => m.tamanho).filter((t): t is string => !!t))];
   const [tamanho, setTamanho] = useState<string | null>(null);
@@ -101,6 +102,23 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
   const nomeOpcao = modeloSelecionado
     ? [modeloSelecionado.cor?.nome, modeloSelecionado.tamanho].filter(Boolean).join(" / ")
     : undefined;
+
+  // Barra "Comprar" fixa no celular: aparece quando os botões de compra saem da tela
+  const podeComprar = !esgotado && !opcaoEsgotada;
+  const botoesCompra = useRef<HTMLDivElement>(null);
+  const [botoesVisiveis, setBotoesVisiveis] = useState(true);
+  useEffect(() => {
+    const el = botoesCompra.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observador = new IntersectionObserver(([e]) => setBotoesVisiveis(e.isIntersecting), { threshold: 0 });
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, [podeComprar]);
+  const barraVisivel = podeComprar && !botoesVisiveis;
+  useEffect(() => {
+    document.body.classList.toggle("com-barra-compra", barraVisivel);
+    return () => document.body.classList.remove("com-barra-compra");
+  }, [barraVisivel]);
 
   const precoBase = modeloSelecionado?.preco ?? produto.preco ?? produto.preco_base;
   const precoFinal = aplicarDesconto(produto, precoBase);
@@ -135,9 +153,19 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
     );
   };
 
+  /** Na barra fixa: sem cor/tamanho escolhidos, leva até as opções. */
+  const comprarPelaBarra = () => {
+    if (precisaEscolher) {
+      document.getElementById("opcoes-produto")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      notificar(cores.length && !corId ? "Escolha a cor e o tamanho." : "Escolha o tamanho.", "warning");
+      return;
+    }
+    adicionarAoCarrinho(true);
+  };
+
   return (
     <Container className="py-4">
-      <Breadcrumb>
+      <Breadcrumb className="trilha-produto">
         <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/" }}>
           Início
         </Breadcrumb.Item>
@@ -149,235 +177,240 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
         <Breadcrumb.Item active>{produto.nome}</Breadcrumb.Item>
       </Breadcrumb>
 
-      <Row className="g-4 painel-produto p-3 p-md-4 mx-0">
-        <Col md={6}>
-          <img src={imagemUrl(foto)} alt={produto.nome} className="galeria-principal mb-2" />
-          {imagens.length > 1 && (
-            <div className="d-flex gap-2 flex-wrap">
-              {imagens.map((img, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`galeria-miniatura ${img === foto ? "ativa" : ""}`}
-                  onClick={() => setFotoAtual(i)}
-                  aria-label={`Ver foto ${i + 1}`}
-                >
-                  <img src={imagemUrl(img)} alt="" className="w-100 h-100 rounded" style={{ objectFit: "cover" }} />
-                </button>
-              ))}
+      {/* O Row fica dentro do cartão: assim as margens negativas da grade não sobem por cima da trilha */}
+      <div className="painel-produto p-2 pb-3 p-md-4">
+        <Row className="g-3 g-md-4">
+          <Col md={6}>
+            <GaleriaProduto imagens={imagens} atual={Math.min(fotoAtual, imagens.length - 1)} onTrocar={setFotoAtual} nome={produto.nome} />
+          </Col>
+
+          <Col md={6}>
+            <div className="d-flex justify-content-between align-items-start gap-2">
+              <h1 className="h3">{produto.nome}</h1>
+              <Button
+                variant="link"
+                className="p-1 fs-4 text-danger"
+                onClick={() => (loggedIn ? alternarFavorito.mutate({ produtoId: produto.id, favorito }) : exigirLogin())}
+                aria-pressed={favorito}
+                aria-label={favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+              >
+                {favorito ? <FaHeart /> : <FaRegHeart />}
+              </Button>
             </div>
-          )}
-        </Col>
 
-        <Col md={6}>
-          <div className="d-flex justify-content-between align-items-start gap-2">
-            <h1 className="h3">{produto.nome}</h1>
-            <Button
-              variant="link"
-              className="p-1 fs-4 text-danger"
-              onClick={() => (loggedIn ? alternarFavorito.mutate({ produtoId: produto.id, favorito }) : exigirLogin())}
-              aria-pressed={favorito}
-              aria-label={favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-            >
-              {favorito ? <FaHeart /> : <FaRegHeart />}
-            </Button>
-          </div>
+            {!!produto.avaliacoes_total && produto.avaliacoes_media != null && (
+              <button
+                type="button"
+                className="btn btn-link p-0 mb-2 d-inline-flex align-items-center gap-2 text-decoration-none link-avaliacoes"
+                onClick={() => document.getElementById("avaliacoes")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              >
+                <Estrelas nota={produto.avaliacoes_media} />
+                <span className="small text-muted">
+                  {produto.avaliacoes_media.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} ({produto.avaliacoes_total}{" "}
+                  avaliaç{produto.avaliacoes_total === 1 ? "ão" : "ões"})
+                </span>
+              </button>
+            )}
 
-          {!!produto.avaliacoes_total && produto.avaliacoes_media != null && (
-            <button
-              type="button"
-              className="btn btn-link p-0 mb-2 d-inline-flex align-items-center gap-2 text-decoration-none link-avaliacoes"
-              onClick={() => document.getElementById("avaliacoes")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            >
-              <Estrelas nota={produto.avaliacoes_media} />
-              <span className="small text-muted">
-                {produto.avaliacoes_media.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} ({produto.avaliacoes_total}{" "}
-                avaliaç{produto.avaliacoes_total === 1 ? "ão" : "ões"})
-              </span>
-            </button>
-          )}
-
-          {config?.slug && (
-            <div className="mb-2">
-              <BotaoCompartilhar
-                titulo={produto.nome}
-                texto={`${produto.nome}${produto.preco_final ? ` por ${formatarPreco(produto.preco_final)}` : ""} na ${config.nome_loja}:`}
-                url={linkCompartilhar(config.slug, produto.id)}
-              />
-            </div>
-          )}
-
-          {produto.em_promocao && (
-            <Badge bg="danger" className="mb-2">
-              {Math.round(produto.desconto_percentual)}% OFF
-              {produto.promocao_ate && ` até ${new Date(produto.promocao_ate).toLocaleDateString("pt-BR")}`}
-            </Badge>
-          )}
-
-          <div className="preco-destaque mb-1">
-            <Preco base={precoBase} final={precoFinal} promocao={produto.em_promocao} />
-            {precoNoPix(precoFinal, config) !== null && (
-              <div className="preco-pix mt-1">
-                ou <strong>{formatarPreco(precoNoPix(precoFinal, config) ?? 0)}</strong> no Pix ({config?.pix_desconto}% de desconto)
+            {produto.em_promocao && (
+              <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                <Badge bg="danger">{Math.round(produto.desconto_percentual)}% OFF</Badge>
+                {produto.promocao_ate && (
+                  <span className="small text-danger fw-semibold">
+                    <TempoRestante ate={produto.promocao_ate} />
+                  </span>
+                )}
               </div>
             )}
-          </div>
-          {produto.selo_promocao && (
-            <div className="dica-promocao small mb-2">
-              <FaTags className="me-1" aria-hidden />
-              <strong>{produto.selo_promocao}</strong> — o desconto aparece sozinho no carrinho.
-            </div>
-          )}
-          {produto.em_promocao && precoBase !== null && precoFinal !== null && (
-            <p className="text-success small fw-semibold mb-3">
-              Você economiza {formatarPreco(precoBase - precoFinal)}
-            </p>
-          )}
-          {!produto.em_promocao && <div className="mb-3" />}
 
-          {cores.length > 0 && (
-            <fieldset className="mb-3">
-              <legend className="fs-6 fw-semibold">Cor</legend>
-              <div className="d-flex flex-wrap gap-2">
-                {cores.map((cor) => {
-                  const semEstoque = modelos.filter((m) => m.cor_id === cor.id).every((m) => m.quantidade <= 0);
-                  return (
-                    <Button
-                      key={cor.id}
-                      variant="outline-secondary"
-                      className={`opcao-variacao ${corId === cor.id ? "active" : ""} ${semEstoque ? "esgotada" : ""}`}
-                      onClick={() => {
-                        setCorId(cor.id);
-                        setTamanho(null);
-                        setFotoAtual(0);
-                      }}
-                      aria-pressed={corId === cor.id}
-                      aria-label={semEstoque ? `${cor.nome} (esgotada)` : undefined}
-                    >
-                      {cor.codigo_hex && (
-                        <span className="bolinha-cor me-2" style={{ backgroundColor: cor.codigo_hex }} />
-                      )}
-                      {cor.nome}
-                    </Button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          )}
-
-          {tamanhos.length > 0 && (
-            <fieldset className="mb-3">
-              <div className="d-flex justify-content-between align-items-center">
-                <legend className="fs-6 fw-semibold w-auto mb-2">Tamanho</legend>
-                {config?.guia_medidas && (
-                  <Button variant="link" size="sm" className="p-0 mb-2" onClick={() => setGuiaAberto(true)}>
-                    <FaRulerHorizontal className="me-1" aria-hidden /> Guia de tamanhos
-                  </Button>
-                )}
-              </div>
-              <div className="d-flex flex-wrap gap-2">
-                {tamanhos.map((t) => {
-                  const modelo = modelosDaCor.find((m) => m.tamanho === t);
-                  return (
-                    <Button
-                      key={t}
-                      variant="outline-secondary"
-                      className={`opcao-variacao ${tamanho === t ? "active" : ""} ${modelo && modelo.quantidade <= 0 ? "esgotada" : ""}`}
-                      onClick={() => setTamanho(t)}
-                      disabled={!modelo}
-                      aria-pressed={tamanho === t}
-                      aria-label={modelo && modelo.quantidade <= 0 ? `${t} (esgotado)` : undefined}
-                    >
-                      {t}
-                    </Button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          )}
-
-          {cores.length > 0 && corId === null && <p className="small text-muted">Selecione uma cor para ver os tamanhos.</p>}
-
-          {esgotado || opcaoEsgotada ? (
-            <AviseMe
-              key={modeloSelecionado?.id ?? "produto"}
-              produtoId={produto.id}
-              produtoNome={produto.nome}
-              modeloId={opcaoEsgotada ? modeloSelecionado?.id : null}
-              opcao={opcaoEsgotada ? nomeOpcao : undefined}
-            />
-          ) : (
-            <>
-              <div className="mb-3">
-                <div className="fw-semibold mb-2" id="rotulo-quantidade">
-                  Quantidade
+            <div className="preco-destaque mb-1">
+              <Preco base={precoBase} final={precoFinal} promocao={produto.em_promocao} />
+              {precoNoPix(precoFinal, config) !== null && (
+                <div className="preco-pix mt-1">
+                  ou <strong>{formatarPreco(precoNoPix(precoFinal, config) ?? 0)}</strong> no Pix ({config?.pix_desconto}% de desconto)
                 </div>
-                <SeletorQuantidade
-                  valor={quantidade}
-                  max={estoque || 1}
-                  onChange={(q) => setQuantidade(Math.max(1, Math.min(q, estoque || 1)))}
-                  rotulo="Quantidade"
-                />
-                {modeloSelecionado && estoque <= 5 && (
-                  <div className="small text-danger mt-1">{estoque === 1 ? "Resta só 1 unidade." : `Restam só ${estoque} unidades.`}</div>
-                )}
+              )}
+            </div>
+            {produto.selo_promocao && (
+              <div className="dica-promocao small mb-2">
+                <FaTags className="me-1" aria-hidden />
+                <strong>{produto.selo_promocao}</strong> — o desconto aparece sozinho no carrinho.
               </div>
+            )}
+            {produto.em_promocao && precoBase !== null && precoFinal !== null && (
+              <p className="text-success small fw-semibold mb-3">
+                Você economiza {formatarPreco(precoBase - precoFinal)}
+              </p>
+            )}
+            {!produto.em_promocao && <div className="mb-3" />}
 
-              <div className="d-grid d-sm-flex gap-2 mb-3">
-                <Button className="btn-loja px-4" size="lg" onClick={() => adicionarAoCarrinho(true)} disabled={adicionar.isPending}>
-                  Comprar
-                </Button>
-                <Button variant="outline-secondary" size="lg" onClick={() => adicionarAoCarrinho(false)} disabled={adicionar.isPending}>
-                  Adicionar ao carrinho
-                </Button>
-              </div>
-              <CalcularFrete produtoId={produto.id} quantidade={quantidade} modeloId={modeloSelecionado?.id} />
-              <ul className="list-unstyled seguranca-compra mb-4">
-                <li>
-                  <FaShieldHalved className="me-2" aria-hidden />
-                  {textoMeios(config) ? `Pague com ${textoMeios(config, false)} com segurança` : "Compra segura"}
-                </li>
-                <li>
-                  <FaTruckFast className="me-2" aria-hidden />
-                  {config ? linhaEntrega(config) : "Entrega para todo o Brasil"}
-                </li>
-              </ul>
-            </>
-          )}
+            <div id="opcoes-produto" />
+            {cores.length > 0 && (
+              <fieldset className="mb-3">
+                <legend className="fs-6 fw-semibold">Cor</legend>
+                <div className="d-flex flex-wrap gap-2">
+                  {cores.map((cor) => {
+                    const semEstoque = modelos.filter((m) => m.cor_id === cor.id).every((m) => m.quantidade <= 0);
+                    return (
+                      <Button
+                        key={cor.id}
+                        variant="outline-secondary"
+                        className={`opcao-variacao ${corId === cor.id ? "active" : ""} ${semEstoque ? "esgotada" : ""}`}
+                        onClick={() => {
+                          setCorId(cor.id);
+                          setTamanho(null);
+                          setFotoAtual(0);
+                        }}
+                        aria-pressed={corId === cor.id}
+                        aria-label={semEstoque ? `${cor.nome} (esgotada)` : undefined}
+                      >
+                        {cor.codigo_hex && (
+                          <span className="bolinha-cor me-2" style={{ backgroundColor: cor.codigo_hex }} />
+                        )}
+                        {cor.nome}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
 
-          {config?.whatsapp && (
-            <a
-              className="btn btn-outline-success mb-4"
-              href={linkWhatsapp(config.whatsapp, `Olá! Tenho interesse no produto "${produto.nome}".`)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <FaWhatsapp className="me-1" /> Tirar dúvidas no WhatsApp
-            </a>
-          )}
+            {tamanhos.length > 0 && (
+              <fieldset className="mb-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <legend className="fs-6 fw-semibold w-auto mb-2">Tamanho</legend>
+                  {config?.guia_medidas && (
+                    <Button variant="link" size="sm" className="p-0 mb-2" onClick={() => setGuiaAberto(true)}>
+                      <FaRulerHorizontal className="me-1" aria-hidden /> Guia de tamanhos
+                    </Button>
+                  )}
+                </div>
+                <div className="d-flex flex-wrap gap-2">
+                  {tamanhos.map((t) => {
+                    const modelo = modelosDaCor.find((m) => m.tamanho === t);
+                    return (
+                      <Button
+                        key={t}
+                        variant="outline-secondary"
+                        className={`opcao-variacao ${tamanho === t ? "active" : ""} ${modelo && modelo.quantidade <= 0 ? "esgotada" : ""}`}
+                        onClick={() => setTamanho(t)}
+                        disabled={!modelo}
+                        aria-pressed={tamanho === t}
+                        aria-label={modelo && modelo.quantidade <= 0 ? `${t} (esgotado)` : undefined}
+                      >
+                        {t}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
 
-          {produto.descricao && (
-            <>
-              <h2 className="h6 fw-semibold">Descrição</h2>
-              <p style={{ whiteSpace: "pre-line" }}>{produto.descricao}</p>
-            </>
-          )}
+            {cores.length > 0 && corId === null && <p className="small text-muted">Selecione uma cor para ver os tamanhos.</p>}
 
-          {!!produto.detalhes?.length && (
-            <>
-              <h2 className="h6 fw-semibold mt-4">Detalhes</h2>
-              <dl className="tabela-detalhes">
-                {produto.detalhes.map((d) => (
-                  <div key={d.id}>
-                    <dt>{d.nome}</dt>
-                    <dd>{d.valores.join(", ")}</dd>
+            {esgotado || opcaoEsgotada ? (
+              <AviseMe
+                key={modeloSelecionado?.id ?? "produto"}
+                produtoId={produto.id}
+                produtoNome={produto.nome}
+                modeloId={opcaoEsgotada ? modeloSelecionado?.id : null}
+                opcao={opcaoEsgotada ? nomeOpcao : undefined}
+              />
+            ) : (
+              <>
+                <div className="mb-3">
+                  <div className="fw-semibold mb-2" id="rotulo-quantidade">
+                    Quantidade
                   </div>
-                ))}
-              </dl>
-            </>
-          )}
-        </Col>
-      </Row>
+                  <SeletorQuantidade
+                    valor={quantidade}
+                    max={estoque || 1}
+                    onChange={(q) => setQuantidade(Math.max(1, Math.min(q, estoque || 1)))}
+                    rotulo="Quantidade"
+                  />
+                  {modeloSelecionado && estoque <= 5 && (
+                    <div className="small text-danger mt-1">{estoque === 1 ? "Resta só 1 unidade." : `Restam só ${estoque} unidades.`}</div>
+                  )}
+                </div>
+
+                <div className="d-grid d-sm-flex gap-2 mb-3" ref={botoesCompra}>
+                  <Button className="btn-loja px-4" size="lg" onClick={() => adicionarAoCarrinho(true)} disabled={adicionar.isPending}>
+                    Comprar
+                  </Button>
+                  <Button variant="outline-secondary" size="lg" onClick={() => adicionarAoCarrinho(false)} disabled={adicionar.isPending}>
+                    Adicionar ao carrinho
+                  </Button>
+                </div>
+                <CalcularFrete produtoId={produto.id} quantidade={quantidade} modeloId={modeloSelecionado?.id} />
+                <ul className="list-unstyled seguranca-compra mb-4">
+                  <li>
+                    <FaShieldHalved className="me-2" aria-hidden />
+                    {textoMeios(config) ? `Pague com ${textoMeios(config, false)} com segurança` : "Compra segura"}
+                  </li>
+                  <li>
+                    <FaTruckFast className="me-2" aria-hidden />
+                    {config ? linhaEntrega(config) : "Entrega para todo o Brasil"}
+                  </li>
+                </ul>
+              </>
+            )}
+
+            {config?.slug && (
+              <div className="mb-3">
+                <BotaoCompartilhar
+                  titulo={produto.nome}
+                  texto={`${produto.nome}${produto.preco_final ? ` por ${formatarPreco(produto.preco_final)}` : ""} na ${config.nome_loja}:`}
+                  url={linkCompartilhar(config.slug, produto.id)}
+                />
+              </div>
+            )}
+
+            {config?.whatsapp && (
+              <a
+                className="btn btn-outline-success mb-4"
+                href={linkWhatsapp(config.whatsapp, `Olá! Tenho interesse no produto "${produto.nome}".`)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <FaWhatsapp className="me-1" /> Tirar dúvidas no WhatsApp
+              </a>
+            )}
+
+            {produto.descricao && (
+              <>
+                <h2 className="h6 fw-semibold">Descrição</h2>
+                <p style={{ whiteSpace: "pre-line" }}>{produto.descricao}</p>
+              </>
+            )}
+
+            {!!produto.detalhes?.length && (
+              <>
+                <h2 className="h6 fw-semibold mt-4">Detalhes</h2>
+                <dl className="tabela-detalhes">
+                  {produto.detalhes.map((d) => (
+                    <div key={d.id}>
+                      <dt>{d.nome}</dt>
+                      <dd>{d.valores.join(", ")}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </>
+            )}
+          </Col>
+        </Row>
+      </div>
+
+      {podeComprar && !botoesVisiveis && (
+        <div className="barra-compra-fixa d-md-none" role="region" aria-label="Comprar">
+          <div style={{ minWidth: 0 }}>
+            <div className="fw-bold lh-sm">{precoFinal !== null ? formatarPreco(precoFinal) : ""}</div>
+            <div className="small text-muted text-truncate">{nomeOpcao || (precisaEscolher ? "Escolha as opções" : produto.nome)}</div>
+          </div>
+          <Button className="btn-loja px-4" onClick={comprarPelaBarra} disabled={adicionar.isPending}>
+            Comprar
+          </Button>
+        </div>
+      )}
 
       <AvaliacoesProduto produtoId={produto.id} />
       <ProdutosRelacionados produtoId={produto.id} />

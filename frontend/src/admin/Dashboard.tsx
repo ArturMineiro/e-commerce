@@ -4,6 +4,7 @@ import { useDashboard } from "../hooks/useAdmin";
 import { useConfigLoja } from "../hooks/useLoja";
 import { Carregando, StatusBadge } from "../components/Ui";
 import { formatarData, formatarPreco } from "../lib/api";
+import { plural } from "../lib/utils";
 
 function Indicador({ titulo, valor, link }: { titulo: string; valor: React.ReactNode; link?: string }) {
   const conteudo = (
@@ -160,7 +161,7 @@ function Dashboard() {
                 </Link>
               </div>
               <p className="small text-muted mt-3 mb-0">
-                {data.total_produtos} produto(s) · {data.total_pedidos} pedido(s) no total
+                {plural(data.total_produtos, "produto", "produtos")} · {plural(data.total_pedidos, "pedido", "pedidos")} no total
               </p>
             </Card.Body>
           </Card>

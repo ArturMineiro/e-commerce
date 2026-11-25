@@ -78,7 +78,8 @@ class ProdutoController extends Controller
         $produtos = $query->orderByDesc('id')->get();
 
         if ($request->boolean('promocao')) {
-            $produtos = $produtos->filter(fn (Produto $p) => $p->em_promocao)->values();
+            // Desconto no preço ou promoção automática (leve X pague Y etc.)
+            $produtos = $produtos->filter(fn (Produto $p) => $p->em_promocao || $p->selo_promocao !== null)->values();
         }
 
         switch ($request->query('ordenar')) {

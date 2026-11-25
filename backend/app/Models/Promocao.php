@@ -64,15 +64,15 @@ class Promocao extends Model
         };
     }
 
-    /** Texto do selo no produto: "Leve 2, pague 1", "2ª unidade com 50% OFF", "10% OFF levando 3+". */
+    /** Selo curto (cabe no cartão do produto no celular): "Leve 2, pague 1", "2ª com 50% OFF", "10% OFF em 3+". */
     public function getSeloAttribute(): string
     {
         $pct = rtrim(rtrim(number_format((float) $this->percentual, 2, ',', ''), '0'), ',');
 
         return match ($this->tipo) {
             'leve_pague' => "Leve {$this->quantidade}, pague {$this->pague}",
-            'unidade_desconto' => "{$this->quantidade}ª unidade com {$pct}% OFF",
-            default => "{$pct}% OFF levando {$this->quantidade}+",
+            'unidade_desconto' => "{$this->quantidade}ª com {$pct}% OFF",
+            default => "{$pct}% OFF em {$this->quantidade}+",
         };
     }
 

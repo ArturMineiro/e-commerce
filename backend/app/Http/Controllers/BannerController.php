@@ -6,6 +6,7 @@ use App\Models\Banner;
 use App\Support\Imagens;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class BannerController extends Controller
 {
@@ -26,14 +27,28 @@ class BannerController extends Controller
         return response()->json(Banner::orderBy('id')->get());
     }
 
+    /** Textos por cima da imagem (todos opcionais). */
+    private function regrasTexto(): array
+    {
+        return [
+            'titulo' => 'nullable|string|max:80',
+            'subtitulo' => 'nullable|string|max:160',
+            'botao_texto' => 'nullable|string|max:30',
+            'posicao_texto' => ['nullable', Rule::in(Banner::POSICOES)],
+        ];
+    }
+
+    private const MENSAGENS = ['link.regex' => 'Use um caminho da loja (ex.: /produtos) ou um endereço começando com https://.'];
+
     public function store(Request $request)
     {
-        $request->validate([
+        $dados = $request->validate([
             'bannerName' => 'required|string|max:255',
             'link' => self::REGRA_LINK,
             'bannerImages' => 'required|array|min:1',
             'bannerImages.*' => Imagens::regra(),
-        ], ['link.regex' => 'Use um caminho da loja (ex.: /produtos) ou um endereço começando com https://.']);
+            'imagem_mobile' => 'nullable|' . Imagens::regra(),
+        ] + $this->regrasTexto(), self::MENSAGENS);
 
         $caminhos = [];
         foreach ($request->file('bannerImages') as $imagem) {
@@ -41,9 +56,14 @@ class BannerController extends Controller
         }
 
         $banner = Banner::create([
-            'name' => $request->input('bannerName'),
-            'link' => $request->input('link'),
+            'name' => $dados['bannerName'],
+            'link' => $dados['link'] ?? null,
+            'titulo' => $dados['titulo'] ?? null,
+            'subtitulo' => $dados['subtitulo'] ?? null,
+            'botao_texto' => $dados['botao_texto'] ?? null,
+            'posicao_texto' => $dados['posicao_texto'] ?? 'esquerda',
             'image_urls' => $caminhos,
+            'imagem_mobile' => $request->hasFile('imagem_mobile') ? Imagens::salvar($request->file('imagem_mobile'), 'banners', 'imagem_mobile') : null,
             'ativo' => true,
         ]);
 
@@ -53,11 +73,41 @@ class BannerController extends Controller
     public function update(Request $request, $id)
     {
         $banner = Banner::findOrFail($id);
-        $banner->update($request->validate([
+        $dados = $request->validate([
             'name' => 'sometimes|string|max:255',
             'link' => self::REGRA_LINK,
             'ativo' => 'sometimes|boolean',
-        ], ['link.regex' => 'Use um caminho da loja (ex.: /produtos) ou um endereço começando com https://.']));
+        ] + $this->regrasTexto(), self::MENSAGENS);
+        if (array_key_exists('posicao_texto', $dados) && $dados['posicao_texto'] === null) {
+            $dados['posicao_texto'] = 'esquerda';
+        }
+        $banner->update($dados);
+
+        return response()->json($banner);
+    }
+
+    /** Imagem própria para o celular (em pé): troca a anterior. */
+    public function imagemMobile(Request $request, $id)
+    {
+        $banner = Banner::findOrFail($id);
+        $request->validate(['imagem_mobile' => 'required|' . Imagens::regra()]);
+
+        $antiga = $banner->imagem_mobile;
+        $banner->update(['imagem_mobile' => Imagens::salvar($request->file('imagem_mobile'), 'banners', 'imagem_mobile')]);
+        if ($antiga) {
+            Storage::disk('public')->delete($antiga);
+        }
+
+        return response()->json($banner);
+    }
+
+    public function removerImagemMobile($id)
+    {
+        $banner = Banner::findOrFail($id);
+        if ($banner->imagem_mobile) {
+            Storage::disk('public')->delete($banner->imagem_mobile);
+            $banner->update(['imagem_mobile' => null]);
+        }
 
         return response()->json($banner);
     }
@@ -66,7 +116,7 @@ class BannerController extends Controller
     {
         $banner = Banner::findOrFail($id);
 
-        foreach ($banner->image_urls ?? [] as $caminho) {
+        foreach (array_filter([...($banner->image_urls ?? []), $banner->imagem_mobile]) as $caminho) {
             Storage::disk('public')->delete($caminho);
         }
 

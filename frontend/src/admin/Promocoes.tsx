@@ -9,6 +9,7 @@ import { Carregando } from "../components/Ui";
 import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { useTituloPagina } from "../lib/titulo";
 import type { Promocao, TipoPromocao } from "../types";
+import { plural } from "../lib/utils";
 
 interface FormPromocao {
   id?: number;
@@ -390,7 +391,7 @@ function ProdutosComDesconto() {
       { produto_ids: selecionados, desconto_percentual: tirar ? 0 : Number(percentual), promocao_ate: tirar ? null : fimDoDia(ate) },
       {
         onSuccess: (r) => {
-          notificar(tirar ? `${r.data.atualizados} produto(s) saíram da promoção.` : `${r.data.atualizados} produto(s) em promoção!`);
+          notificar(tirar ? `${plural(r.data.atualizados, "produto saiu", "produtos saíram")} da promoção.` : `${plural(r.data.atualizados, "produto", "produtos")} em promoção!`);
           setSelecionados([]);
         },
         onError: (err) => notificar(mensagemErro(err), "danger"),
@@ -448,7 +449,7 @@ function ProdutosComDesconto() {
             </Col>
             <Col xs={12} md={6} className="d-flex gap-2 flex-wrap">
               <Button className="btn-loja" size="sm" disabled={!selecionados.length || !Number(percentual) || aplicar.isPending} onClick={() => enviar(false)}>
-                Aplicar em {selecionados.length || "0"} produto(s)
+                Aplicar em {plural(selecionados.length, "produto", "produtos")}
               </Button>
               <Button variant="outline-secondary" size="sm" disabled={!selecionados.length || aplicar.isPending} onClick={() => enviar(true)}>
                 Tirar da promoção

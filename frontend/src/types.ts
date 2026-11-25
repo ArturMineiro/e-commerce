@@ -99,10 +99,19 @@ export interface Produto {
   categoria?: { id: number; nome: string } | null;
 }
 
+export type PosicaoTextoBanner = "esquerda" | "centro" | "direita";
+
 export interface Banner {
   id: number;
   name: string;
+  /** textos por cima da imagem (opcionais) */
+  titulo: string | null;
+  subtitulo: string | null;
+  botao_texto: string | null;
+  posicao_texto: PosicaoTextoBanner;
   image_urls: string[];
+  /** imagem em pé para o celular (opcional) */
+  imagem_mobile: string | null;
   link: string | null;
   ativo: boolean;
 }

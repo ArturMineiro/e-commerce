@@ -157,6 +157,8 @@ Route::middleware('loja')->group(function () {
         Route::put('/banners/{id}', [BannerController::class, 'update']);
         Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
         Route::post('/banners/{id}/remover-imagem', [BannerController::class, 'removerImagem']);
+        Route::post('/banners/{id}/imagem-mobile', [BannerController::class, 'imagemMobile']);
+        Route::delete('/banners/{id}/imagem-mobile', [BannerController::class, 'removerImagemMobile']);
 
         Route::get('/avaliacoes', [AvaliacaoController::class, 'adminIndex']);
         Route::put('/avaliacoes/{id}', [AvaliacaoController::class, 'adminUpdate']);

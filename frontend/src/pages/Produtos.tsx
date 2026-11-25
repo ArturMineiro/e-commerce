@@ -6,6 +6,7 @@ import ProdutoCard from "../components/ProdutoCard";
 import { GradeEsqueleto } from "../components/Ui";
 import { useCategorias, useConfigLoja, useCores, useEspecificacoes, useProdutos } from "../hooks/useLoja";
 import { resumo, useTituloPagina } from "../lib/titulo";
+import { plural } from "../lib/utils";
 
 /**
  * Catálogo com filtros na URL: ?busca= &categoria_id= &promocao=1 &destaque=1 &ordenar=
@@ -72,6 +73,19 @@ function Produtos() {
     [filtros.promocao, filtros.destaque].filter(Boolean).length;
 
   const categoriaAtual = categorias.find((c) => String(c.id) === filtros.categoria_id);
+
+  // Filtros escolhidos, como etiquetas que saem com um toque
+  const ativos: { chave: string; rotulo: string; remover: () => void }[] = [];
+  if (filtros.cor_id) {
+    ativos.push({ chave: "cor", rotulo: cores.find((c) => String(c.id) === filtros.cor_id)?.nome ?? "Cor", remover: () => alterar("cor_id", "") });
+  }
+  if (filtros.tamanho) ativos.push({ chave: "tamanho", rotulo: `Tamanho ${filtros.tamanho}`, remover: () => alterar("tamanho", "") });
+  Object.entries(esp).forEach(([id, valores]) =>
+    valores.forEach((v) => ativos.push({ chave: `esp-${id}-${v}`, rotulo: v, remover: () => alternarEsp(Number(id), v) }))
+  );
+  if (filtros.promocao) ativos.push({ chave: "promocao", rotulo: "Promoções", remover: () => alterar("promocao", false) });
+  if (filtros.destaque) ativos.push({ chave: "destaque", rotulo: "Destaques", remover: () => alterar("destaque", false) });
+  const categoriasComProdutos = categorias.filter((c) => (c.produtos_count ?? 0) > 0);
   const titulo = filtros.busca
     ? `Resultados para "${filtros.busca}"`
     : categoriaAtual?.nome ?? (filtros.promocao ? "Promoções" : filtros.destaque ? "Destaques" : "Todos os produtos");
@@ -179,12 +193,45 @@ function Produtos() {
 
   return (
     <Container className="py-4">
-      <div className="d-flex justify-content-between align-items-center gap-2 mb-4">
+      <div className="d-flex justify-content-between align-items-center gap-2 mb-3">
         <h1 className="h3 fw-bold titulo-secao mb-0">{titulo}</h1>
         <Button variant="outline-secondary" className="d-lg-none flex-shrink-0" onClick={() => setFiltrosAbertos(true)}>
           <FaSliders className="me-1" aria-hidden /> Filtrar {qtdFiltros > 0 && <Badge bg="secondary">{qtdFiltros}</Badge>}
         </Button>
       </div>
+
+      {/* Categorias a um toque (no celular rolam para o lado) */}
+      {categoriasComProdutos.length > 1 && !filtros.busca && (
+        <nav className="pilulas-categorias mb-3" aria-label="Categorias">
+          <button type="button" className={`filtro-chip ${!filtros.categoria_id ? "ativo" : ""}`} onClick={() => alterar("categoria_id", "")} aria-pressed={!filtros.categoria_id}>
+            Tudo
+          </button>
+          {categoriasComProdutos.map((c) => {
+            const ativa = filtros.categoria_id === String(c.id);
+            return (
+              <button type="button" key={c.id} className={`filtro-chip ${ativa ? "ativo" : ""}`} onClick={() => alterar("categoria_id", ativa ? "" : String(c.id))} aria-pressed={ativa}>
+                {c.nome}
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
+      {ativos.length > 0 && (
+        <div className="d-flex flex-wrap align-items-center gap-2 mb-3" aria-label="Filtros escolhidos">
+          {ativos.map((f) => (
+            <button type="button" key={f.chave} className="filtro-ativo" onClick={f.remover} aria-label={`Tirar o filtro ${f.rotulo}`}>
+              {f.rotulo}
+              <FaXmark aria-hidden />
+            </button>
+          ))}
+          {ativos.length > 1 && (
+            <button type="button" className="btn btn-link btn-sm p-0" onClick={limparTudo}>
+              Limpar tudo
+            </button>
+          )}
+        </div>
+      )}
 
       <Row className="g-4">
         <Col lg={3} className="d-none d-lg-block">
@@ -213,7 +260,7 @@ function Produtos() {
           ) : (
             <>
               <p className="text-muted small" aria-live="polite">
-                {produtos.length} produto(s) {isFetching && "· atualizando..."}
+                {plural(produtos.length, "produto", "produtos")} {isFetching && "· atualizando..."}
               </p>
               <Row xs={2} md={3} className="g-3 g-md-4">
                 {produtos.map((p) => (
@@ -237,7 +284,7 @@ function Produtos() {
         <Offcanvas.Body>{painelFiltros}</Offcanvas.Body>
         <div className="p-3 border-top">
           <Button className="btn-loja w-100" size="lg" onClick={() => setFiltrosAbertos(false)}>
-            Ver {produtos.length} produto(s)
+            Ver {plural(produtos.length, "produto", "produtos")}
           </Button>
         </div>
       </Offcanvas>

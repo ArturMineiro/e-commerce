@@ -56,8 +56,11 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting()
     {
+        // Cada página da loja faz várias chamadas, e no celular muitos clientes saem pelo mesmo
+        // IP da operadora: 60 por minuto bloqueava gente navegando de verdade. Login, cadastro,
+        // cupom e frete têm limites próprios bem menores.
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+            return Limit::perMinute(300)->by(optional($request->user())->id ?: $request->ip());
         });
     }
 }

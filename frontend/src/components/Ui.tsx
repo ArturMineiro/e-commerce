@@ -32,10 +32,10 @@ export function Preco({
   return (
     <span className={className}>
       {promocao && base !== null && base !== final && (
-        <small className="text-muted text-decoration-line-through me-2">{formatarPreco(base)}</small>
+        <small className="text-muted text-decoration-line-through text-nowrap me-2">{formatarPreco(base)}</small>
       )}
       {aPartirDe && <small className="text-muted me-1">a partir de</small>}
-      <strong className={promocao ? "text-danger" : ""}>{formatarPreco(final)}</strong>
+      <strong className={`text-nowrap ${promocao ? "text-danger" : ""}`}>{formatarPreco(final)}</strong>
     </span>
   );
 }
@@ -88,11 +88,13 @@ export function GradeEsqueleto({ quantidade = 8 }: { quantidade?: number }) {
 }
 
 /** Título de seção com traço na cor da loja e link "ver todos". */
-export function TituloSecao({ titulo, link, subtitulo }: { titulo: string; link?: string; subtitulo?: string }) {
+export function TituloSecao({ titulo, link, subtitulo, id }: { titulo: string; link?: string; subtitulo?: string; id?: string }) {
   return (
     <div className="d-flex justify-content-between align-items-end gap-3 mb-3 mb-md-4">
       <div>
-        <h2 className="h4 titulo-secao mb-1">{titulo}</h2>
+        <h2 className="h4 titulo-secao mb-1" id={id}>
+          {titulo}
+        </h2>
         {subtitulo && <p className="text-muted small mb-0 mt-2">{subtitulo}</p>}
       </div>
       {link && (

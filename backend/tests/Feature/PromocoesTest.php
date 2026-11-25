@@ -74,6 +74,10 @@ class PromocoesTest extends TestCase
         $this->assertSame('Leve 2, pague 1', $produtos[$this->kurtiA->id]['selo_promocao']);
         $this->assertNull($produtos[$this->sari->id]['selo_promocao']);
 
+        // "Promoções" da vitrine inclui os produtos das promoções automáticas
+        $emPromocao = collect($this->getJson('/api/produtos?promocao=1')->json())->pluck('id')->all();
+        $this->assertEqualsCanonicalizing([$this->kurtiA->id, $this->kurtiB->id], $emPromocao);
+
         $pedido = $this->fecharPedido($cliente)->assertStatus(201)->json('pedido');
         $this->assertEquals(149.9, $pedido['desconto_promocao']);
         $this->assertEquals(549.8, $pedido['total']);
@@ -184,8 +188,8 @@ class PromocoesTest extends TestCase
             ->assertJsonPath('selo', 'Leve 3, pague 2')
             ->json('id');
         $this->putJson("/api/admin/promocoes/{$id}", ['nome' => '2ª com 30%', 'tipo' => 'unidade_desconto', 'quantidade' => 2, 'percentual' => 30, 'escopo' => 'todos'])
-            ->assertOk()->assertJsonPath('pague', null)->assertJsonPath('alvo_ids', null)->assertJsonPath('selo', '2ª unidade com 30% OFF');
-        $this->getJson('/api/promocoes')->assertJsonPath('0.selo', '2ª unidade com 30% OFF');
+            ->assertOk()->assertJsonPath('pague', null)->assertJsonPath('alvo_ids', null)->assertJsonPath('selo', '2ª com 30% OFF');
+        $this->getJson('/api/promocoes')->assertJsonPath('0.selo', '2ª com 30% OFF');
 
         // Promoção por produto em lote: 20% até uma data; 0% tira da promoção
         $ate = now()->addDays(7)->format('Y-m-d 23:59:00');

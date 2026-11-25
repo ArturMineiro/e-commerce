@@ -10,6 +10,7 @@ import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { linkCompartilhar, linkWhatsappTexto } from "../lib/compartilhar";
 import { useConfigLoja } from "../hooks/useLoja";
 import type { Produto } from "../types";
+import { plural } from "../lib/utils";
 
 function ProdutosAdmin() {
   const { data: config } = useConfigLoja();
@@ -88,7 +89,7 @@ function ProdutosAdmin() {
                           {p.nome}
                         </Link>
                         <div className="small text-muted">
-                          {p.categoria?.nome ?? "Sem categoria"} · {p.modelos.length} variação(ões)
+                          {p.categoria?.nome ?? "Sem categoria"} · {plural(p.modelos.length, "variação", "variações")}
                           {p.destaque && (
                             <Badge bg="warning" text="dark" className="ms-2">
                               Destaque

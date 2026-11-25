@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Col, Container, Form, InputGroup, Row, Spinner } from "react-bootstrap";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
+  FaBagShopping,
   FaCreditCard,
   FaHandshake,
   FaMotorcycle,
@@ -16,7 +17,8 @@ import { useAuth } from "../hooks/AuthContext";
 import { useCarrinho, useConfigLoja, useCotarFrete, useCriarPedido, useMeusPedidos, useValidarCupom } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import { Carregando } from "../components/Ui";
-import { formatarPreco, mensagemErro } from "../lib/api";
+import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
+import { plural } from "../lib/utils";
 import { ResumoValores } from "./Carrinho";
 import type { CupomAplicado, DadosEntrega, FormaPagamentoId, OpcaoFrete } from "../types";
 import { detalheFrete } from "../lib/entrega";
@@ -202,6 +204,20 @@ function Checkout() {
   const descontoPix = forma === "pix" && (config?.pix_desconto ?? 0) > 0 ? Math.round(baseProdutos * (config?.pix_desconto ?? 0)) / 100 : 0;
   const total = baseProdutos - descontoPix + (frete ?? 0);
   const faltaFrete = !retirada && freteDinamico && !opcaoEscolhida;
+  const qtdItens = carrinho.itens.reduce((soma, item) => soma + item.quantidade, 0);
+  const resumoValores = (
+    <ResumoValores
+    promocoes={carrinho.promocoes}
+    freteGratisCupom={freteGratisCupom && (frete ?? 1) === 0}
+    subtotal={carrinho.subtotal}
+    desconto={desconto}
+    descontoPix={descontoPix}
+    cupom={cupom?.codigo}
+    frete={frete}
+    total={total}
+    textoFretePendente={retirada ? "Grátis" : "Informe o CEP"}
+    />
+  );
 
   const alterar = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setDados({ ...dados, [e.target.name]: e.target.value });
@@ -285,7 +301,36 @@ function Checkout() {
 
   return (
     <Container className="py-4">
-      <h1 className="h3 mb-4">Finalizar compra</h1>
+      <h1 className="h3 mb-3 mb-lg-4">Finalizar compra</h1>
+
+      {/* No celular o resumo fica no topo, recolhido, com o total sempre à vista */}
+      <details className="resumo-topo d-lg-none mb-3">
+        <summary>
+          <span>
+            <FaBagShopping className="me-2" aria-hidden />
+            Resumo do pedido <span className="text-muted small">({plural(qtdItens, "item", "itens")})</span>
+          </span>
+          <strong className="text-nowrap">
+            {formatarPreco(total)}
+            {faltaFrete && <small className="fw-normal text-muted"> + frete</small>}
+          </strong>
+        </summary>
+        <ul className="list-unstyled small mt-3 mb-3">
+          {carrinho.itens.map((item) => (
+            <li key={item.id} className="d-flex align-items-center gap-2 mb-2">
+              <img src={imagemUrl(item.produto.imagens?.[0])} alt="" width={44} height={44} className="rounded flex-shrink-0" style={{ objectFit: "cover" }} />
+              <span className="flex-grow-1" style={{ minWidth: 0 }}>
+                <span className="d-block text-truncate">{item.produto.nome}</span>
+                <span className="text-muted">
+                  {item.quantidade}x{item.variacao && ` · ${item.variacao}`}
+                </span>
+              </span>
+              <span className="text-nowrap">{formatarPreco(item.subtotal)}</span>
+            </li>
+          ))}
+        </ul>
+        {resumoValores}
+      </details>
       <Form onSubmit={enviar}>
         <Row className="g-4">
           <Col lg={8}>
@@ -508,7 +553,8 @@ function Checkout() {
           </Col>
 
           <Col lg={4}>
-            <Card className="shadow-sm border-0 sticky-lg-top" style={{ top: 120 }}>
+            {/* O "top" só vale no computador (onde o resumo acompanha a rolagem); no celular empurrava o cartão */}
+            <Card className="shadow-sm border-0 sticky-lg-top resumo-checkout">
               <Card.Body>
                 <h2 className="h5">Resumo do pedido</h2>
                 <ul className="list-unstyled small mb-3">
@@ -563,17 +609,7 @@ function Checkout() {
                   </Form.Group>
                 )}
 
-                <ResumoValores
-                  promocoes={carrinho.promocoes}
-                  freteGratisCupom={freteGratisCupom && (frete ?? 1) === 0}
-                  subtotal={carrinho.subtotal}
-                  desconto={desconto}
-                  descontoPix={descontoPix}
-                  cupom={cupom?.codigo}
-                  frete={frete}
-                  total={total}
-                  textoFretePendente={retirada ? "Grátis" : "Informe o CEP"}
-                />
+                {resumoValores}
 
                 {erro && (
                   <Alert variant="danger" className="mt-3 mb-0">

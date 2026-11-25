@@ -51,3 +51,8 @@ export function formatarPrazo(iso: string): string {
   if (dia(data) === dia(amanha)) return `amanhã às ${hora}`;
   return `${data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} às ${hora}`;
 }
+
+/** "1 produto", "3 produtos" (no lugar de "produto(s)"). */
+export function plural(quantidade: number, singular: string, pluralTexto: string): string {
+  return `${quantidade.toLocaleString("pt-BR")} ${quantidade === 1 ? singular : pluralTexto}`;
+}

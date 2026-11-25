@@ -723,7 +723,7 @@ function ProdutoForm() {
                     gerarVariacoes.mutate(
                       { produtoId, modelos: linhas.map(paraApiModelo) },
                       {
-                        onSuccess: (r) => notificar(`${r.criadas} variação(ões) criada(s).`),
+                        onSuccess: (r) => notificar(r.criadas === 1 ? "1 variação criada." : `${r.criadas} variações criadas.`),
                         onError: (err) => notificar(mensagemErro(err), "danger"),
                       }
                     );
