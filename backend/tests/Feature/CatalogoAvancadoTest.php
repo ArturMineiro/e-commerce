@@ -232,6 +232,27 @@ class CatalogoAvancadoTest extends TestCase
         $this->postJson('/api/admin/aparencia/modelo', ['modelo' => 'nao-existe'])->assertStatus(422);
     }
 
+    public function test_paletas_dos_modelos_e_logo_com_nome()
+    {
+        $this->actingAs($this->admin(), 'api');
+
+        // Cada modelo traz paletas prontas; a primeira é a do próprio tema
+        $modelos = collect($this->getJson('/api/admin/aparencia')->assertOk()->json('modelos'));
+        $this->assertTrue($modelos->every(fn ($m) => count($m['paletas']) >= 4), 'todo modelo tem ao menos 4 paletas');
+        $indiana = $modelos->firstWhere('chave', 'moda-indiana');
+        $this->assertSame(['nome' => 'Vinho e ouro', 'primaria' => $indiana['tema']['cor_primaria'], 'destaque' => $indiana['tema']['cor_secundaria']], $indiana['paletas'][0]);
+        foreach ($modelos->pluck('paletas')->flatten(1) as $paleta) {
+            $this->assertMatchesRegularExpression('/^#[0-9A-F]{6}$/', $paleta['primaria']);
+            $this->assertMatchesRegularExpression('/^#[0-9A-F]{6}$/', $paleta['destaque']);
+        }
+
+        // Nome ao lado do logo: desligado por padrão, liga pelo painel e aparece na config pública
+        $this->getJson('/api/configuracoes')->assertJsonPath('logo_com_nome', false);
+        $this->postJson('/api/admin/configuracoes', ['logo_com_nome' => true])->assertOk();
+        $this->getJson('/api/configuracoes')->assertJsonPath('logo_com_nome', true);
+        $this->postJson('/api/admin/configuracoes', ['logo_com_nome' => 'talvez'])->assertStatus(422);
+    }
+
     public function test_url_de_fontes_respeita_pesos_existentes()
     {
         $url = Fontes::url(['Bebas Neue', 'Inter', 'Sistema', 'Inter', 'Fonte Falsa']);

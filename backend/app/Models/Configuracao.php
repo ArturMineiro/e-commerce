@@ -25,6 +25,7 @@ class Configuracao extends Model
         'slogan' => '',
         'descricao' => 'Bem-vindo à nossa loja!',
         'logo' => null,
+        'logo_com_nome' => '0', // mostra o nome da loja ao lado do logo (símbolo) no topo
         'cor_primaria' => '#212529',
         'cor_secundaria' => '#0d6efd',
         'email' => '',
@@ -169,6 +170,7 @@ class Configuracao extends Model
 
         $resultado['frete_fixo'] = (float) $resultado['frete_fixo'];
         $resultado['retirada_ativa'] = (bool) $resultado['retirada_ativa'];
+        $resultado['logo_com_nome'] = (bool) $resultado['logo_com_nome'];
         $resultado['pix_desconto'] = (float) $resultado['pix_desconto'];
         $resultado['frete_gratis_acima'] = (float) $resultado['frete_gratis_acima'];
         $resultado['guia_medidas'] = $resultado['guia_medidas'] ?: null;

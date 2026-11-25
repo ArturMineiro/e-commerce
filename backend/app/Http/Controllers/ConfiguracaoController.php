@@ -138,6 +138,7 @@ class ConfiguracaoController extends Controller
             'remover_melhor_envio_token' => 'nullable|boolean',
             'logo' => 'nullable|' . Imagens::regra(2048),
             'remover_logo' => 'nullable|boolean',
+            'logo_com_nome' => 'nullable|boolean',
 
             // Aparência
             'fonte_titulos' => ['nullable', Rule::in(array_keys(Fontes::LISTA))],

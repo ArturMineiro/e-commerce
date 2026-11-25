@@ -7,10 +7,12 @@ import { useToast } from "../components/Toast";
 import { Carregando } from "../components/Ui";
 import ConfirmDialog from "../components/ConfirmDialog";
 import MiniLoja from "../components/MiniLoja";
+import CriadorLogo from "./CriadorLogo";
+import { PALETAS_GERAIS } from "../lib/paletas";
 import { carregarFontes } from "../lib/fontes";
 import { iconeModelo } from "../lib/icones";
 import { mensagemErro } from "../lib/api";
-import type { EstiloCantos, ModeloLoja } from "../types";
+import type { EstiloCantos, ModeloLoja, Paleta } from "../types";
 
 interface Visual {
   cor_primaria: string;
@@ -111,6 +113,34 @@ function Aparencia() {
     </Form.Group>
   );
 
+  const grupoPaletas = (titulo: string, paletas: Paleta[]) =>
+    paletas.length > 0 && (
+      <div className="mb-3">
+        {titulo && <div className="small fw-semibold mb-2">{titulo}</div>}
+        <div className="paletas" role="radiogroup" aria-label={titulo || "Paletas"}>
+          {paletas.map((p) => {
+            const ativa = visual.cor_primaria.toLowerCase() === p.primaria.toLowerCase() && visual.cor_secundaria.toLowerCase() === p.destaque.toLowerCase();
+            return (
+              <button
+                key={titulo + p.nome}
+                type="button"
+                role="radio"
+                aria-checked={ativa}
+                className={`paleta ${ativa ? "ativa" : ""}`}
+                onClick={() => setVisual({ ...visual, cor_primaria: p.primaria, cor_secundaria: p.destaque })}
+              >
+                <span className="paleta-amostra" aria-hidden>
+                  <span style={{ background: p.primaria }} />
+                  <span style={{ background: p.destaque }} />
+                </span>
+                <span className="paleta-nome">{p.nome}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
   const mudou =
     visual.cor_primaria !== config.cor_primaria ||
     visual.cor_secundaria !== config.cor_secundaria ||
@@ -172,8 +202,11 @@ function Aparencia() {
 
           <Card className="border-0 shadow-sm mb-4">
             <Card.Body>
-              <h2 className="h5 mb-3">Cores</h2>
-              <Row className="g-3">
+              <h2 className="h5 mb-1">Cores</h2>
+              <p className="small text-muted">Escolha uma paleta pronta ou ajuste as duas cores à mão.</p>
+              {grupoPaletas(modeloAtual ? `Sugestões para ${modeloAtual.nome.toLowerCase()}` : "", modeloAtual?.paletas ?? [])}
+              {grupoPaletas(modeloAtual?.paletas.length ? "Outras paletas" : "Paletas prontas", PALETAS_GERAIS)}
+              <Row className="g-3 mt-1">
                 <Col md={6}>{cor("cor_primaria", "Cor principal", "Topo, rodapé e títulos de preço.")}</Col>
                 <Col md={6}>{cor("cor_secundaria", "Cor de destaque", "Botões, etiquetas e links.")}</Col>
               </Row>
@@ -189,6 +222,15 @@ function Aparencia() {
               </Row>
             </Card.Body>
           </Card>
+
+          <CriadorLogo
+            nomeLoja={config.nome_loja}
+            slogan={config.slogan}
+            corPrimaria={visual.cor_primaria}
+            corDestaque={visual.cor_secundaria}
+            fonteTitulos={familia(visual.fonte_titulos)}
+            fonteTexto={familia(visual.fonte_texto)}
+          />
 
           <Card className="border-0 shadow-sm">
             <Card.Body>

@@ -49,7 +49,15 @@ function Navbar() {
         <Container>
           <BsNavbar.Brand as={Link} to="/" className="d-flex align-items-center gap-2 me-lg-4">
             {config?.logo && !logoQuebrado ? (
-              <img src={imagemUrl(config.logo)} alt={nomeLoja} className="logo-loja" onError={() => setLogoQuebrado(true)} />
+              <>
+                <img
+                  src={imagemUrl(config.logo)}
+                  alt={config.logo_com_nome ? "" : nomeLoja}
+                  className={config.logo_com_nome ? "logo-loja logo-simbolo" : "logo-loja"}
+                  onError={() => setLogoQuebrado(true)}
+                />
+                {config.logo_com_nome && <span className="nome-loja-texto">{nomeLoja}</span>}
+              </>
             ) : (
               <span className="nome-loja-texto">{nomeLoja}</span>
             )}

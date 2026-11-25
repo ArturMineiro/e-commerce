@@ -23,12 +23,14 @@ function Configuracoes() {
   const [campos, setCampos] = useState<CamposTexto | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
   const [removerLogo, setRemoverLogo] = useState(false);
+  const [logoComNome, setLogoComNome] = useState(false);
 
   useEffect(() => {
     if (config) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { frete_fixo, frete_gratis_acima, melhor_envio_sandbox, melhor_envio_token_definido, melhor_envio_ativo, ...resto } = config;
       setCampos({ ...resto, frete_fixo: String(frete_fixo || ""), frete_gratis_acima: String(frete_gratis_acima || "") });
+      setLogoComNome(!!config.logo_com_nome);
     }
   }, [config]);
 
@@ -47,6 +49,7 @@ function Configuracoes() {
     chaves.forEach((chave) => form.append(chave, String(campos[chave] ?? "")));
     if (logo) form.append("logo", await comprimirImagem(logo, 800));
     if (removerLogo) form.append("remover_logo", "1");
+    form.append("logo_com_nome", logoComNome ? "1" : "0");
     Object.entries(extras).forEach(([k, v]) => form.append(k, v));
 
     salvar.mutate(form, {
@@ -125,6 +128,18 @@ function Configuracoes() {
                         onChange={(e) => setRemoverLogo(e.target.checked)}
                       />
                     )}
+                    {(config.logo || logo) && !removerLogo && (
+                      <Form.Check
+                        className="mt-1"
+                        id="cfg-logo-com-nome"
+                        label="Mostrar o nome da loja ao lado do logo (para logos quadrados ou só com o símbolo)"
+                        checked={logoComNome}
+                        onChange={(e) => setLogoComNome(e.target.checked)}
+                      />
+                    )}
+                    <Form.Text>
+                      Não tem logo? <Link to="/admin/aparencia#criar-logo">Crie um em Aparência</Link>.
+                    </Form.Text>
                   </Form.Group>
                 </Col>
               </Row>

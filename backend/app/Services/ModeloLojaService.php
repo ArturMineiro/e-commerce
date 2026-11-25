@@ -56,6 +56,7 @@ class ModeloLojaService
                 'cores' => array_map(fn ($c) => ['nome' => $c[0], 'hex' => $c[1]], array_slice($m['cores'], 0, 8)),
                 'especificacoes' => array_map(fn ($e) => $e['nome'], $m['especificacoes']),
                 'exemplos' => $m['exemplos'],
+                'paletas' => array_map(fn ($p) => ['nome' => $p[0], 'primaria' => $p[1], 'destaque' => $p[2]], $m['paletas'] ?? []),
             ])
             ->values()
             ->all();

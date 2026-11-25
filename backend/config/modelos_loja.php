@@ -26,6 +26,8 @@ return [
         'segmento' => 'Moda',
         'icone' => 'vestido',
         'tema' => ['cor_primaria' => '#1F1A24', 'cor_secundaria' => '#D6336C', 'fonte_titulos' => 'Playfair Display', 'fonte_texto' => 'Inter', 'estilo_cantos' => 'suave'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Noite e pink', '#1F1A24', '#D6336C'], ['Nude elegante', '#F4E9E1', '#9C5B4A'], ['Oliva e caramelo', '#3B4A2F', '#D9A066'], ['Marinho e coral', '#14213D', '#F2765A'], ['Lilás', '#2E1F3D', '#B98CD8']],
         'slogan' => 'Peças que contam a sua história',
         'descricao_loja' => 'Moda feminina com curadoria, conforto e muito estilo.',
         'categorias' => ['Vestidos', 'Blusas', 'Saias', 'Calças', 'Conjuntos', 'Moda praia', 'Acessórios'],
@@ -51,6 +53,8 @@ return [
         'segmento' => 'Moda',
         'icone' => 'lotus',
         'tema' => ['cor_primaria' => '#4A0E2B', 'cor_secundaria' => '#C8963E', 'fonte_titulos' => 'Cormorant Garamond', 'fonte_texto' => 'Montserrat', 'estilo_cantos' => 'suave'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Vinho e ouro', '#4A0E2B', '#C8963E'], ['Esmeralda e ouro', '#0B4F3C', '#C9A44C'], ['Rubi e rosa', '#7C1230', '#E39AAE'], ['Berinjela e açafrão', '#3B1D3F', '#E0892B'], ['Índigo e ouro', '#1E2A5A', '#D4AF37'], ['Turquesa e coral', '#0F4C5C', '#E36F55'], ['Marfim e vinho', '#F6EFE6', '#7B1E3A']],
         'slogan' => 'Elegância que atravessa culturas',
         'descricao_loja' => 'Vestidos indianos com bordados feitos à mão, tecidos nobres e caimento impecável.',
         'categorias' => ['Anarkali', 'Lehenga', 'Saree', 'Kurti', 'Salwar Kameez', 'Sharara', 'Conjuntos', 'Dupattas e acessórios'],
@@ -85,6 +89,8 @@ return [
         'segmento' => 'Moda',
         'icone' => 'camisa',
         'tema' => ['cor_primaria' => '#0F172A', 'cor_secundaria' => '#B45309', 'fonte_titulos' => 'Oswald', 'fonte_texto' => 'Inter', 'estilo_cantos' => 'reto'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Grafite e cobre', '#0F172A', '#B45309'], ['Petróleo e mostarda', '#0B3C49', '#D9A441'], ['Verde militar', '#2F3A2F', '#C2A878'], ['Café', '#2B1D14', '#C08552'], ['Branco e preto', '#FFFFFF', '#111111']],
         'slogan' => 'Estilo sem esforço',
         'descricao_loja' => 'Básicos de qualidade e peças que vão do trabalho ao fim de semana.',
         'categorias' => ['Camisetas', 'Camisas', 'Calças', 'Bermudas', 'Jaquetas', 'Acessórios'],
@@ -109,6 +115,8 @@ return [
         'segmento' => 'Calçados',
         'icone' => 'tenis',
         'tema' => ['cor_primaria' => '#0A0A0A', 'cor_secundaria' => '#FF4D00', 'fonte_titulos' => 'Bebas Neue', 'fonte_texto' => 'Inter', 'estilo_cantos' => 'arredondado'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Preto e laranja', '#0A0A0A', '#FF4D00'], ['Branco esportivo', '#FFFFFF', '#111111'], ['Azul elétrico', '#0B1F4D', '#22D3EE'], ['Verde neon', '#111111', '#A3E635'], ['Vermelho', '#141414', '#E11D48']],
         'slogan' => 'Cada passo conta',
         'descricao_loja' => 'Tênis para correr, treinar e ir para a rua com estilo.',
         'categorias' => ['Corrida', 'Casual', 'Basquete', 'Skate', 'Chuteiras', 'Infantil', 'Acessórios'],
@@ -134,6 +142,8 @@ return [
         'segmento' => 'Entretenimento',
         'icone' => 'controle',
         'tema' => ['cor_primaria' => '#0B0B1A', 'cor_secundaria' => '#8B5CF6', 'fonte_titulos' => 'Orbitron', 'fonte_texto' => 'Inter', 'estilo_cantos' => 'reto'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Roxo neon', '#0B0B1A', '#8B5CF6'], ['Verde gamer', '#0A0F0A', '#22C55E'], ['Ciano', '#0B1020', '#06B6D4'], ['Vermelho arcade', '#120A0A', '#EF4444']],
         'slogan' => 'Level up no seu setup',
         'descricao_loja' => 'Jogos, consoles e acessórios com entrega rápida e garantia.',
         'categorias' => ['Consoles', 'Jogos', 'Controles', 'Headsets', 'PC gamer', 'Colecionáveis', 'Camisetas geek'],
@@ -156,6 +166,8 @@ return [
         'segmento' => 'Tecnologia',
         'icone' => 'fone',
         'tema' => ['cor_primaria' => '#0F172A', 'cor_secundaria' => '#0EA5E9', 'fonte_titulos' => 'Space Grotesk', 'fonte_texto' => 'Inter', 'estilo_cantos' => 'suave'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Azul tecnologia', '#0F172A', '#0EA5E9'], ['Grafite e verde', '#111827', '#10B981'], ['Branco clean', '#FFFFFF', '#2563EB'], ['Laranja', '#1C1917', '#F97316']],
         'slogan' => 'Tecnologia que facilita o seu dia',
         'descricao_loja' => 'Acessórios e eletrônicos com garantia e envio para todo o Brasil.',
         'categorias' => ['Celulares', 'Fones', 'Carregadores', 'Smartwatches', 'Caixas de som', 'Informática', 'Acessórios'],
@@ -177,6 +189,8 @@ return [
         'segmento' => 'Beleza',
         'icone' => 'beleza',
         'tema' => ['cor_primaria' => '#2B2024', 'cor_secundaria' => '#B76E79', 'fonte_titulos' => 'DM Serif Display', 'fonte_texto' => 'DM Sans', 'estilo_cantos' => 'arredondado'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Rosé', '#2B2024', '#B76E79'], ['Nude', '#F5EBE6', '#B5838D'], ['Verde chá', '#2F3E36', '#C9A9A6'], ['Lavanda', '#2E2440', '#C3A6E0']],
         'slogan' => 'Sua rotina, do seu jeito',
         'descricao_loja' => 'Cosméticos selecionados para cuidar de você todos os dias.',
         'categorias' => ['Skincare', 'Maquiagem', 'Cabelos', 'Perfumes', 'Corpo e banho', 'Unhas', 'Kits'],
@@ -198,6 +212,8 @@ return [
         'segmento' => 'Acessórios',
         'icone' => 'joia',
         'tema' => ['cor_primaria' => '#111111', 'cor_secundaria' => '#C9A227', 'fonte_titulos' => 'Cinzel', 'fonte_texto' => 'Raleway', 'estilo_cantos' => 'reto'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Preto e ouro', '#111111', '#C9A227'], ['Champanhe', '#F7F1E8', '#9A7B4F'], ['Safira e ouro', '#0F1F3D', '#C9A227'], ['Prata', '#1F2937', '#CBD5E1'], ['Rosé gold', '#2B1F24', '#D4A59A']],
         'slogan' => 'Brilho para todos os momentos',
         'descricao_loja' => 'Joias e semijoias com acabamento impecável e garantia.',
         'categorias' => ['Anéis', 'Colares', 'Brincos', 'Pulseiras', 'Conjuntos', 'Relógios'],
@@ -222,6 +238,8 @@ return [
         'segmento' => 'Alimentação',
         'icone' => 'bolo',
         'tema' => ['cor_primaria' => '#4E2A1E', 'cor_secundaria' => '#E46A8F', 'fonte_titulos' => 'Baloo 2', 'fonte_texto' => 'Nunito', 'estilo_cantos' => 'arredondado'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Chocolate e morango', '#4E2A1E', '#E46A8F'], ['Baunilha', '#FFF6EC', '#C26A3D'], ['Menta', '#1F3B36', '#7FD1B9'], ['Caramelo', '#3D2314', '#E0A458']],
         'slogan' => 'Feito com carinho, do forno para você',
         'descricao_loja' => 'Doces artesanais para adoçar o seu dia e as suas festas.',
         'categorias' => ['Bolos', 'Brigadeiros', 'Doces finos', 'Tortas', 'Cestas', 'Encomendas'],
@@ -243,6 +261,8 @@ return [
         'segmento' => 'Pets',
         'icone' => 'pet',
         'tema' => ['cor_primaria' => '#1E3A5F', 'cor_secundaria' => '#F59E0B', 'fonte_titulos' => 'Quicksand', 'fonte_texto' => 'Nunito', 'estilo_cantos' => 'arredondado'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Azul e amarelo', '#1E3A5F', '#F59E0B'], ['Verde e laranja', '#1F3D2B', '#F2A541'], ['Uva e laranja', '#3A2E39', '#FF8C42'], ['Turquesa', '#0E3B43', '#4FD1C5']],
         'slogan' => 'Tudo para quem tem quatro patas',
         'descricao_loja' => 'Produtos para cães, gatos e outros pets com entrega rápida.',
         'categorias' => ['Rações', 'Petiscos', 'Brinquedos', 'Camas', 'Coleiras', 'Higiene', 'Roupinhas'],
@@ -266,6 +286,8 @@ return [
         'segmento' => 'Casa',
         'icone' => 'sofa',
         'tema' => ['cor_primaria' => '#2F3E36', 'cor_secundaria' => '#C47F5A', 'fonte_titulos' => 'Fraunces', 'fonte_texto' => 'Work Sans', 'estilo_cantos' => 'suave'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Verde e terracota', '#2F3E36', '#C47F5A'], ['Areia', '#F3EDE4', '#8A6A4F'], ['Azul e mostarda', '#1F3A4D', '#D9A441'], ['Grafite e ouro', '#262626', '#C9A227']],
         'slogan' => 'Sua casa com a sua cara',
         'descricao_loja' => 'Objetos e têxteis para deixar cada canto mais aconchegante.',
         'categorias' => ['Decoração', 'Cama', 'Mesa posta', 'Banho', 'Iluminação', 'Organização', 'Plantas'],
@@ -287,6 +309,8 @@ return [
         'segmento' => 'Infantil',
         'icone' => 'bebe',
         'tema' => ['cor_primaria' => '#2D3A8C', 'cor_secundaria' => '#FF7A59', 'fonte_titulos' => 'Baloo 2', 'fonte_texto' => 'Nunito', 'estilo_cantos' => 'arredondado'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Azul e coral', '#2D3A8C', '#FF7A59'], ['Roxo e amarelo', '#3A0CA3', '#FFBE0B'], ['Menta e laranja', '#1B4D4B', '#FF9F1C'], ['Uva e rosa', '#5A189A', '#FF70A6']],
         'slogan' => 'Para crescer brincando',
         'descricao_loja' => 'Roupas confortáveis e brinquedos que encantam os pequenos.',
         'categorias' => ['Bebê', 'Meninas', 'Meninos', 'Brinquedos', 'Calçados', 'Acessórios'],
@@ -311,6 +335,8 @@ return [
         'segmento' => 'Esportes',
         'icone' => 'haltere',
         'tema' => ['cor_primaria' => '#111111', 'cor_secundaria' => '#A3E635', 'fonte_titulos' => 'Oswald', 'fonte_texto' => 'Inter', 'estilo_cantos' => 'reto'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Preto e lima', '#111111', '#A3E635'], ['Azul energia', '#0B132B', '#3A86FF'], ['Laranja', '#121212', '#FB5607'], ['Rosa', '#1A1A1A', '#FF006E']],
         'slogan' => 'Treine com estilo',
         'descricao_loja' => 'Roupas e acessórios que acompanham o seu ritmo.',
         'categorias' => ['Leggings', 'Tops', 'Shorts', 'Camisetas', 'Conjuntos', 'Acessórios'],
@@ -335,6 +361,8 @@ return [
         'segmento' => 'Cultura',
         'icone' => 'livro',
         'tema' => ['cor_primaria' => '#1E293B', 'cor_secundaria' => '#B45309', 'fonte_titulos' => 'Libre Baskerville', 'fonte_texto' => 'Work Sans', 'estilo_cantos' => 'reto'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Azul e cobre', '#1E293B', '#B45309'], ['Verde biblioteca', '#1F3A2E', '#C9A227'], ['Vinho', '#3D0C11', '#D4A373'], ['Papel', '#F5F0E6', '#7F5539']],
         'slogan' => 'Histórias que ficam',
         'descricao_loja' => 'Livros novos e usados, HQs e papelaria criativa.',
         'categorias' => ['Romance', 'Ficção', 'Infantil', 'Autoajuda', 'Negócios', 'HQs e mangás', 'Papelaria'],
@@ -357,6 +385,8 @@ return [
         'segmento' => 'Feito à mão',
         'icone' => 'artesanato',
         'tema' => ['cor_primaria' => '#3D2B1F', 'cor_secundaria' => '#D97706', 'fonte_titulos' => 'Lora', 'fonte_texto' => 'Nunito', 'estilo_cantos' => 'suave'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Terra', '#3D2B1F', '#D97706'], ['Oliva', '#3A4A2B', '#E9C46A'], ['Barro', '#5C2E1F', '#F4A261'], ['Anil', '#1D3557', '#E9C46A']],
         'slogan' => 'Feito à mão, com alma',
         'descricao_loja' => 'Peças únicas, produzidas com carinho e técnica artesanal.',
         'categorias' => ['Crochê', 'Bordados', 'Cerâmica', 'Macramê', 'Velas e aromas', 'Presentes'],
@@ -378,6 +408,8 @@ return [
         'segmento' => 'Outros',
         'icone' => 'magica',
         'tema' => ['cor_primaria' => '#111827', 'cor_secundaria' => '#2563EB', 'fonte_titulos' => 'Plus Jakarta Sans', 'fonte_texto' => 'Inter', 'estilo_cantos' => 'suave'],
+        // Paletas prontas (nome, cor principal, cor de destaque); a primeira é a do tema
+        'paletas' => [['Azul', '#111827', '#2563EB'], ['Verde', '#064E3B', '#F59E0B'], ['Roxo', '#2E1065', '#F472B6'], ['Vermelho', '#1F1F1F', '#DC2626']],
         'slogan' => '',
         'descricao_loja' => 'Bem-vindo à nossa loja!',
         'categorias' => [],

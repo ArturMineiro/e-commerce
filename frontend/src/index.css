@@ -77,6 +77,113 @@ main {
   object-fit: contain;
 }
 
+/* Símbolo (logo quadrado) com o nome da loja ao lado */
+.logo-loja.logo-simbolo {
+  height: 44px;
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.navbar-brand .nome-loja-texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  .navbar-brand {
+    max-width: calc(100% - 64px);
+  }
+  .logo-simbolo + .nome-loja-texto {
+    font-size: 1.2rem;
+  }
+}
+
+/* Criador de logo (painel) */
+.estilos-logo {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.estilo-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #f6f6f7;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.estilo-logo.ativo {
+  border-color: var(--cor-secundaria);
+  background: #fff;
+  font-weight: 600;
+}
+
+.logo-previa-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 390px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Paletas de cores (painel) */
+.paletas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.paleta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  font-size: 0.8rem;
+  min-width: 0;
+}
+
+.paleta.ativa {
+  border-color: var(--cor-secundaria);
+  font-weight: 600;
+}
+
+.paleta-amostra {
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.paleta-amostra span {
+  width: 14px;
+  height: 28px;
+}
+
+.paleta-nome {
+  min-width: 0;
+  line-height: 1.2;
+}
+
 /* ---------- Vitrine ---------- */
 .banner-img {
   width: 100%;

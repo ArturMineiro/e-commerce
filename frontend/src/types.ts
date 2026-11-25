@@ -275,6 +275,8 @@ export interface ConfigLoja {
   slogan: string;
   descricao: string;
   logo: string | null;
+  /** mostra o nome da loja ao lado do logo no topo */
+  logo_com_nome: boolean;
   cor_primaria: string;
   cor_secundaria: string;
   email: string;
@@ -395,6 +397,13 @@ export interface ModeloLoja {
   cores: { nome: string; hex: string }[];
   especificacoes: string[];
   exemplos: { nome: string; preco: number }[];
+  paletas: Paleta[];
+}
+
+export interface Paleta {
+  nome: string;
+  primaria: string;
+  destaque: string;
 }
 
 export interface OpcoesAparencia {
