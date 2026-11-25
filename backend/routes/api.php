@@ -68,6 +68,7 @@ Route::middleware('loja')->group(function () {
     Route::get('/especificacoes', [EspecificacaoController::class, 'index']);
     Route::get('/produtos', [ProdutoController::class, 'index']);
     Route::get('/produtos/{id}', [ProdutoController::class, 'show']);
+    Route::post('/produtos/{id}/frete', [ProdutoController::class, 'frete'])->middleware('throttle:30,1');
     Route::get('/produtos/{produtoId}/modelos', [ModeloController::class, 'listarPorProduto']);
 
     // Notificações do Mercado Pago (sem auth; a validação é feita consultando a API do MP).

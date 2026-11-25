@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Col, Container, Form, InputGroup, Row, Spinner } from "react-bootstrap";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
@@ -19,20 +19,37 @@ import { Carregando } from "../components/Ui";
 import { formatarPreco, mensagemErro } from "../lib/api";
 import { ResumoValores } from "./Carrinho";
 import type { CupomAplicado, DadosEntrega, FormaPagamentoId, OpcaoFrete } from "../types";
+import { detalheFrete } from "../lib/entrega";
 
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 
 const cepValido = (cep: string) => cep.replace(/\D/g, "").length === 8;
 
-/** "≈ 3,2 km · No mesmo dia" / "Até 8 dias úteis" */
-function detalheFrete(o: OpcaoFrete): string {
-  const partes: string[] = [];
-  if (o.distancia_km !== null && o.distancia_km !== undefined)
-    partes.push(`≈ ${o.distancia_km.toLocaleString("pt-BR")} km`);
-  if (o.prazo === 0) partes.push("No mesmo dia");
-  else if (o.prazo !== null)
-    partes.push(`Até ${o.prazo} dia${o.prazo === 1 ? "" : "s"} úte${o.prazo === 1 ? "il" : "is"}`);
-  return partes.join(" · ");
+
+type EnderecoCep = { logradouro: string; bairro: string; cidade: string; uf: string };
+
+/** Endereço pelo CEP (ViaCEP, serviço público e gratuito); null se não achar ou sem internet. */
+async function enderecoDoCep(cep: string): Promise<EnderecoCep | null> {
+  const digitos = cep.replace(/\D/g, "");
+  if (digitos.length !== 8) return null;
+  try {
+    const json = await (await fetch(`https://viacep.com.br/ws/${digitos}/json/`)).json();
+    return json.erro ? null : { logradouro: json.logradouro ?? "", bairro: json.bairro ?? "", cidade: json.localidade ?? "", uf: json.uf ?? "" };
+  } catch {
+    return null; // o cliente preenche manualmente
+  }
+}
+
+function mesclarEndereco(d: DadosEntrega, e: EnderecoCep): DadosEntrega {
+  return { ...d, logradouro: e.logradouro || d.logradouro, bairro: e.bairro || d.bairro, cidade: e.cidade || d.cidade, uf: e.uf || d.uf };
+}
+
+function cepLembrado(): string {
+  try {
+    return localStorage.getItem("cep") ?? "";
+  } catch {
+    return "";
+  }
 }
 
 /** Ícone, texto do botão e explicação de cada forma de pagamento. */
@@ -85,7 +102,8 @@ function Checkout() {
     email: user?.email ?? "",
     telefone: "",
     cpf: "",
-    cep: "",
+    // CEP digitado no "Calcular frete" da página do produto
+    cep: cepLembrado(),
     logradouro: "",
     numero: "",
     complemento: "",
@@ -93,6 +111,14 @@ function Checkout() {
     cidade: "",
     uf: "",
     observacoes: "",
+  });
+
+  // CEP lembrado do "Calcular frete": busca o endereço uma vez ao abrir (sem esperar o campo perder o foco)
+  const enderecoInicialBuscado = useRef(false);
+  useEffect(() => {
+    if (enderecoInicialBuscado.current || !cepValido(dados.cep) || dados.logradouro) return;
+    enderecoInicialBuscado.current = true;
+    enderecoDoCep(dados.cep).then((endereco) => endereco && setDados((d) => mesclarEndereco(d, endereco)));
   });
 
   const formas = config?.formas_pagamento ?? [];
@@ -148,23 +174,9 @@ function Checkout() {
     const cep = dados.cep.replace(/\D/g, "");
     if (cep.length !== 8) return;
     setBuscandoCep(true);
-    try {
-      const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const json = await resposta.json();
-      if (!json.erro) {
-        setDados((d) => ({
-          ...d,
-          logradouro: json.logradouro || d.logradouro,
-          bairro: json.bairro || d.bairro,
-          cidade: json.localidade || d.cidade,
-          uf: json.uf || d.uf,
-        }));
-      }
-    } catch {
-      // Sem internet/serviço fora: o cliente preenche manualmente
-    } finally {
-      setBuscandoCep(false);
-    }
+    const endereco = await enderecoDoCep(cep);
+    if (endereco) setDados((d) => mesclarEndereco(d, endereco));
+    setBuscandoCep(false);
   };
 
   const aplicarCupom = () => {

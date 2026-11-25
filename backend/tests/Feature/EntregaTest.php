@@ -310,6 +310,34 @@ class EntregaTest extends TestCase
             ->assertStatus(422)->assertJsonValidationErrors('entrega_local_faixas.0.nome');
     }
 
+    public function test_frete_na_pagina_do_produto_antes_do_carrinho()
+    {
+        $this->configurarEntregaLocal();
+        Configuracao::definir('retirada_ativa', '1');
+        Configuracao::definir('retirada_instrucoes', 'Retire no Centro.');
+        $this->fakeCeps();
+        $produto = Produto::create(['nome' => 'Vestido', 'preco' => 100, 'quantidade' => 3, 'ativo' => true]);
+
+        // Sem login: mesma cotação do checkout para o produto e a quantidade
+        $this->postJson("/api/produtos/{$produto->id}/frete", ['cep' => '20550-000', 'quantidade' => 2])
+            ->assertOk()
+            ->assertJsonPath('opcoes.0.id', 'local')
+            ->assertJsonPath('opcoes.0.nome', 'Motoboy')
+            ->assertJsonPath('opcoes.0.distancia_km', 8)
+            ->assertJsonPath('opcoes.1.id', 'fixo')
+            ->assertJsonPath('retirada.id', 'retirada')
+            ->assertJsonPath('retirada.instrucoes', 'Retire no Centro.');
+
+        // "Frete grátis acima de" usa o valor do produto x quantidade
+        Configuracao::definir('frete_gratis_acima', '150');
+        $this->postJson("/api/produtos/{$produto->id}/frete", ['cep' => '20550-000', 'quantidade' => 2])->assertOk()->assertJsonPath('opcoes.0.preco', 0);
+        $this->postJson("/api/produtos/{$produto->id}/frete", ['cep' => '20550-000', 'quantidade' => 1])->assertOk()->assertJsonPath('opcoes.0.preco', 15);
+
+        $this->postJson("/api/produtos/{$produto->id}/frete", ['cep' => '123'])->assertStatus(422)->assertJsonValidationErrors('cep');
+        $produto->update(['ativo' => false]);
+        $this->postJson("/api/produtos/{$produto->id}/frete", ['cep' => '20550-000'])->assertNotFound();
+    }
+
     public function test_admin_simula_entrega_para_um_cep()
     {
         $admin = User::create(['name' => 'Dona', 'email' => 'dona@teste.com', 'password' => Hash::make('Senha1234'), 'role' => 'admin']);

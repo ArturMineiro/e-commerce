@@ -8,6 +8,7 @@ import { Carregando, STATUS_PEDIDO, StatusBadge } from "../components/Ui";
 import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { formatarPrazo, linkWhatsapp } from "../lib/utils";
 import type { FormaPagamentoId, Pedido, StatusPedido } from "../types";
+import { diasUteis } from "../lib/entrega";
 
 const FORMAS: Record<FormaPagamentoId, string> = {
   pix: "Pix",
@@ -191,7 +192,11 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
             )}
             <tr>
               <td colSpan={3} className="text-end">
-                Frete{pedido.frete_servico && ` (${pedido.frete_servico}${pedido.frete_prazo ? `, até ${pedido.frete_prazo} dias úteis` : ""})`}
+                Frete
+                {pedido.frete_servico &&
+                  ` (${pedido.frete_servico}${
+                    pedido.frete_prazo === 0 ? ", no mesmo dia" : pedido.frete_prazo ? `, até ${diasUteis(pedido.frete_prazo)}` : ""
+                  })`}
               </td>
               <td className="text-end">{formatarPreco(pedido.frete)}</td>
             </tr>

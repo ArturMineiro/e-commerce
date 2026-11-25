@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Configuracao;
 use App\Models\Cor;
 use App\Models\Especificacao;
 use App\Models\Produto;
+use App\Services\FreteService;
 use App\Support\Imagens;
 use App\Support\LojaAtual;
 use Illuminate\Http\Request;
@@ -103,6 +105,34 @@ class ProdutoController extends Controller
         }
 
         return response()->json($produto->append('detalhes'));
+    }
+
+    /**
+     * Frete na página do produto (antes de pôr no carrinho): as mesmas opções do checkout
+     * para este produto e quantidade, mais a retirada na loja se o dono oferecer.
+     */
+    public function frete(Request $request, FreteService $frete, $id)
+    {
+        $dados = $request->validate([
+            'cep' => ['required', 'string', 'regex:/^\d{5}-?\d{3}$/'],
+            'quantidade' => 'nullable|integer|min:1|max:99',
+            'modelo_id' => 'nullable|integer',
+        ], ['cep.regex' => 'Informe um CEP válido.']);
+
+        $produto = Produto::where('ativo', true)->findOrFail($id);
+        $modelo = !empty($dados['modelo_id']) ? $produto->modelos()->find($dados['modelo_id']) : null;
+        $preco = (float) ($produto->precoPara($modelo) ?? 0);
+        $quantidade = (int) ($dados['quantidade'] ?? 1);
+        $subtotal = round($preco * $quantidade, 2);
+
+        $item = (object) ['produto' => $produto, 'modelo' => $modelo, 'quantidade' => $quantidade, 'preco_unitario' => $preco, 'subtotal' => $subtotal];
+
+        return response()->json([
+            'opcoes' => $frete->cotar($dados['cep'], collect([$item]), $subtotal),
+            'retirada' => $frete->retiradaAtiva()
+                ? $frete->opcaoRetirada() + ['instrucoes' => (string) Configuracao::obter('retirada_instrucoes')]
+                : null,
+        ]);
     }
 
     private function regras(bool $criando): array

@@ -17,8 +17,9 @@ import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { linkWhatsapp } from "../lib/utils";
 import type { Produto } from "../types";
 import BotaoCompartilhar from "../components/BotaoCompartilhar";
+import CalcularFrete from "../components/CalcularFrete";
 import { linkCompartilhar } from "../lib/compartilhar";
-import { textoEntrega } from "../lib/entrega";
+import { linhaEntrega } from "../lib/entrega";
 import { precoNoPix } from "../lib/pagamento";
 
 function aplicarDesconto(produto: Produto, valor: number | null) {
@@ -285,6 +286,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                   Adicionar ao carrinho
                 </Button>
               </div>
+              <CalcularFrete produtoId={produto.id} quantidade={quantidade} modeloId={modeloSelecionado?.id} />
               <ul className="list-unstyled seguranca-compra mb-4">
                 <li>
                   <FaShieldHalved className="me-2" aria-hidden />
@@ -292,7 +294,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                 </li>
                 <li>
                   <FaTruckFast className="me-2" aria-hidden />
-                  {config ? `${textoEntrega(config).titulo}: ${textoEntrega(config).texto.toLowerCase()}` : "Entrega para todo o Brasil"}
+                  {config ? linhaEntrega(config) : "Entrega para todo o Brasil"}
                 </li>
               </ul>
             </>
