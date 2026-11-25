@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Banner;
+use App\Models\Categoria;
 use App\Models\Configuracao;
 use App\Models\Cor;
 use App\Models\Loja;
@@ -227,6 +229,41 @@ class MultiLojaTest extends TestCase
 
         $this->postJson('/api/admin/cupons', ['codigo' => 'PROMO', 'tipo' => 'fixo', 'valor' => 5])
             ->assertStatus(422)->assertJsonValidationErrors('codigo');
+    }
+
+    public function test_promocoes_e_banners_sao_separados_por_loja()
+    {
+        $categoriaA = $this->naLoja($this->lojaA, fn () => Categoria::create(['nome' => 'Saris', 'identificador_amigavel' => 'saris']));
+        $produtoA = $this->produto($this->lojaA, 'Sari A');
+        $produtoB = $this->produto($this->lojaB, 'Vestido B');
+
+        $this->actingAs($this->usuario($this->lojaA, 'admin'), 'api')->withHeaders(['X-Loja' => 'loja']);
+        $promocaoA = $this->postJson('/api/admin/promocoes', ['nome' => 'Leve 2 pague 1', 'tipo' => 'leve_pague', 'quantidade' => 2, 'pague' => 1, 'escopo' => 'todos'])
+            ->assertStatus(201)->json('id');
+        $bannerA = $this->naLoja($this->lojaA, fn () => Banner::create(['name' => 'Banner A', 'image_urls' => ['a.png'], 'ativo' => true]))->id;
+
+        // A loja B não vê a promoção nem o banner da A, e o carrinho dela não ganha desconto
+        $this->novaRequisicao();
+        $this->withHeaders(['X-Loja' => 'lojab'])->getJson('/api/promocoes')->assertOk()->assertJsonCount(0);
+        $this->withHeaders(['X-Loja' => 'lojab'])->getJson('/api/banners')->assertOk()->assertJsonCount(0);
+        $this->withHeaders(['X-Loja' => 'lojab'])->getJson("/api/produtos/{$produtoB->id}")->assertOk()->assertJsonPath('selo_promocao', null);
+
+        $this->novaRequisicao();
+        $this->actingAs($this->usuario($this->lojaB), 'api')->withHeaders(['X-Loja' => 'lojab'])
+            ->postJson('/api/carrinho', ['produto_id' => $produtoB->id, 'quantidade' => 2])->assertStatus(201);
+        $this->getJson('/api/carrinho')->assertJsonPath('desconto_promocao', 0)->assertJsonCount(0, 'promocoes');
+
+        // O admin da B não mexe na promoção nem no banner da A, nem mira categorias/produtos da A
+        $this->novaRequisicao();
+        $this->actingAs($this->usuario($this->lojaB, 'admin'), 'api')->withHeaders(['X-Loja' => 'lojab']);
+        $this->putJson("/api/admin/promocoes/{$promocaoA}", ['nome' => 'x', 'tipo' => 'progressivo', 'quantidade' => 2, 'percentual' => 90, 'escopo' => 'todos'])->assertNotFound();
+        $this->deleteJson("/api/admin/promocoes/{$promocaoA}")->assertNotFound();
+        $this->deleteJson("/api/admin/banners/{$bannerA}/imagem-mobile")->assertNotFound();
+        $this->postJson('/api/admin/promocoes', ['nome' => 'Mira na A', 'tipo' => 'leve_pague', 'quantidade' => 2, 'pague' => 1, 'escopo' => 'categorias', 'alvo_ids' => [$categoriaA->id]])
+            ->assertStatus(422)->assertJsonValidationErrors('alvo_ids');
+        $this->postJson('/api/admin/promocoes/produtos', ['produto_ids' => [$produtoA->id], 'desconto_percentual' => 50])
+            ->assertOk()->assertJsonPath('atualizados', 0);
+        $this->assertEquals(0, $this->naLoja($this->lojaA, fn () => $produtoA->fresh()->desconto_percentual));
     }
 
     public function test_webhook_usa_o_token_e_os_pedidos_da_loja_certa()
