@@ -17,7 +17,9 @@ import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { linkWhatsapp } from "../lib/utils";
 import type { Produto } from "../types";
 import BotaoCompartilhar from "../components/BotaoCompartilhar";
+import AviseMe from "../components/AviseMe";
 import CalcularFrete from "../components/CalcularFrete";
+import ProdutosRelacionados from "../components/ProdutosRelacionados";
 import { linkCompartilhar } from "../lib/compartilhar";
 import { linhaEntrega } from "../lib/entrega";
 import { precoNoPix } from "../lib/pagamento";
@@ -90,6 +92,11 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
   const precisaEscolher = modelos.length > 0 && !modeloSelecionado;
   const estoque = modelos.length ? modeloSelecionado?.quantidade ?? produto.estoque_total : produto.quantidade;
   const esgotado = produto.estoque_total <= 0;
+  // Cor/tamanho esgotado escolhido: mostra o "avise-me" no lugar dos botões de compra
+  const opcaoEsgotada = !!modeloSelecionado && modeloSelecionado.quantidade <= 0;
+  const nomeOpcao = modeloSelecionado
+    ? [modeloSelecionado.cor?.nome, modeloSelecionado.tamanho].filter(Boolean).join(" / ")
+    : undefined;
 
   const precoBase = modeloSelecionado?.preco ?? produto.preco ?? produto.preco_base;
   const precoFinal = aplicarDesconto(produto, precoBase);
@@ -208,14 +215,14 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                     <Button
                       key={cor.id}
                       variant="outline-secondary"
-                      className={`opcao-variacao ${corId === cor.id ? "active" : ""}`}
+                      className={`opcao-variacao ${corId === cor.id ? "active" : ""} ${semEstoque ? "esgotada" : ""}`}
                       onClick={() => {
                         setCorId(cor.id);
                         setTamanho(null);
                         setFotoAtual(0);
                       }}
-                      disabled={semEstoque}
                       aria-pressed={corId === cor.id}
+                      aria-label={semEstoque ? `${cor.nome} (esgotada)` : undefined}
                     >
                       {cor.codigo_hex && (
                         <span className="bolinha-cor me-2" style={{ backgroundColor: cor.codigo_hex }} />
@@ -245,10 +252,11 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
                     <Button
                       key={t}
                       variant="outline-secondary"
-                      className={`opcao-variacao ${tamanho === t ? "active" : ""}`}
+                      className={`opcao-variacao ${tamanho === t ? "active" : ""} ${modelo && modelo.quantidade <= 0 ? "esgotada" : ""}`}
                       onClick={() => setTamanho(t)}
-                      disabled={!modelo || modelo.quantidade <= 0}
+                      disabled={!modelo}
                       aria-pressed={tamanho === t}
+                      aria-label={modelo && modelo.quantidade <= 0 ? `${t} (esgotado)` : undefined}
                     >
                       {t}
                     </Button>
@@ -260,8 +268,14 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
 
           {cores.length > 0 && corId === null && <p className="small text-muted">Selecione uma cor para ver os tamanhos.</p>}
 
-          {esgotado ? (
-            <Alert variant="secondary">Produto esgotado no momento.</Alert>
+          {esgotado || opcaoEsgotada ? (
+            <AviseMe
+              key={modeloSelecionado?.id ?? "produto"}
+              produtoId={produto.id}
+              produtoNome={produto.nome}
+              modeloId={opcaoEsgotada ? modeloSelecionado?.id : null}
+              opcao={opcaoEsgotada ? nomeOpcao : undefined}
+            />
           ) : (
             <>
               <Form.Group className="mb-3" controlId="quantidade" style={{ maxWidth: 140 }}>
@@ -333,6 +347,8 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
           )}
         </Col>
       </Row>
+
+      <ProdutosRelacionados produtoId={produto.id} />
 
       {config?.guia_medidas && (
         <Modal show={guiaAberto} onHide={() => setGuiaAberto(false)} centered>

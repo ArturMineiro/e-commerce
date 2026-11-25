@@ -39,7 +39,7 @@ function privacidade(config: ConfigLoja): string {
 Para entregar seu pedido usamos seu nome, e-mail, telefone, endereço de entrega e, se você informar, CPF. Não guardamos dados de cartão: o pagamento com cartão acontece no ambiente seguro da empresa de pagamento.
 
 Para que usamos
-Para processar e entregar seus pedidos, falar com você sobre a compra e cumprir obrigações legais. Não vendemos seus dados.
+Para processar e entregar seus pedidos, falar com você sobre a compra e cumprir obrigações legais. Se você pedir para ser avisado quando um produto voltar, usamos seu e-mail só para esse aviso e o apagamos depois de enviar. Não vendemos seus dados.
 
 Com quem compartilhamos
 Só com quem precisa para concluir a compra: empresas de pagamento, de entrega (Correios, transportadoras e entregadores de aplicativo) e a plataforma ${MARCA.nome}, que hospeda esta loja.

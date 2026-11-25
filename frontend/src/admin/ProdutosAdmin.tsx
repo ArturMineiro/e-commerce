@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Alert, Badge, Button, Form, InputGroup, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { FaPen, FaPlus, FaTrash, FaWhatsapp } from "react-icons/fa6";
+import { FaBell, FaPen, FaPlus, FaTrash, FaWhatsapp } from "react-icons/fa6";
 import { useAtualizarProduto, useExcluirProduto, useProdutosAdmin } from "../hooks/useAdmin";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useToast } from "../components/Toast";
@@ -106,7 +106,20 @@ function ProdutosAdmin() {
                       </Badge>
                     )}
                   </td>
-                  <td className={p.estoque_total <= 0 ? "text-danger fw-semibold" : ""}>{p.estoque_total}</td>
+                  <td>
+                    <span className={p.estoque_total <= 0 ? "text-danger fw-semibold" : ""}>{p.estoque_total}</span>
+                    {!!p.avisos_count && (
+                      <Badge
+                        bg="warning"
+                        text="dark"
+                        className="ms-2"
+                        title="Clientes que pediram para ser avisados quando chegar. O e-mail sai sozinho quando você repõe."
+                      >
+                        <FaBell className="me-1" aria-hidden />
+                        {p.avisos_count} esperando
+                      </Badge>
+                    )}
+                  </td>
                   <td>
                     <Form.Check
                       type="switch"

@@ -99,6 +99,15 @@ export const useProduto = (id?: string | number) =>
     enabled: !!id,
   });
 
+/** "Você também pode gostar" da página do produto. */
+export const useRelacionados = (id?: number) =>
+  useQuery({
+    queryKey: ["produtos", "relacionados", id],
+    queryFn: async () => (await api.get<Produto[]>(`/produtos/${id}/relacionados`)).data,
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+
 /* ---------------- Carrinho ---------------- */
 
 export const useCarrinho = () => {

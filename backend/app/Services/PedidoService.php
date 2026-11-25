@@ -24,7 +24,7 @@ use Illuminate\Validation\ValidationException;
  */
 class PedidoService
 {
-    public function __construct(private FreteService $frete, private PixService $pix)
+    public function __construct(private FreteService $frete, private PixService $pix, private AvisoEstoqueService $avisos)
     {
     }
 
@@ -371,6 +371,9 @@ class PedidoService
         if ($pedido->status === $statusAnterior) {
             return;
         }
+        if ($pedido->status === 'cancelado') {
+            $this->avisarDevolvidos($pedido);
+        }
 
         $evento = [
             'pago' => 'pago',
@@ -460,6 +463,7 @@ class PedidoService
                     $pedido->save();
                 });
                 $this->enviarEmails($pedido, 'expirado');
+                $this->avisarDevolvidos($pedido);
                 $cancelados++;
             });
 
@@ -524,6 +528,15 @@ class PedidoService
             }
             $pedido->estoque_baixado = false;
         });
+    }
+
+    /**
+     * Pedido cancelado devolveu as peças: avisa quem pediu "avise-me". Chamado depois de
+     * salvar (fora de transação), para não mandar e-mail com as linhas de estoque travadas.
+     */
+    private function avisarDevolvidos(Pedido $pedido): void
+    {
+        $this->avisos->avisarDisponiveis($pedido->itens()->pluck('produto_id')->all());
     }
 
     private function ajustarEstoque(?int $modeloId, ?int $produtoId, int $delta): void

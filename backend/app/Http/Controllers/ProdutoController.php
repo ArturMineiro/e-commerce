@@ -6,6 +6,7 @@ use App\Models\Configuracao;
 use App\Models\Cor;
 use App\Models\Especificacao;
 use App\Models\Produto;
+use App\Services\AvisoEstoqueService;
 use App\Services\FreteService;
 use App\Support\Imagens;
 use App\Support\LojaAtual;
@@ -31,10 +32,10 @@ class ProdutoController extends Controller
         return response()->json($this->filtrar($query, $request));
     }
 
-    /** Listagem do painel (inclui inativos). */
+    /** Listagem do painel (inclui inativos), com quantas pessoas esperam cada produto voltar. */
     public function adminIndex(Request $request)
     {
-        $query = Produto::with(self::RELACOES);
+        $query = Produto::with(self::RELACOES)->withCount('avisos');
 
         return response()->json($this->filtrar($query, $request));
     }
@@ -105,6 +106,51 @@ class ProdutoController extends Controller
         }
 
         return response()->json($produto->append('detalhes'));
+    }
+
+    /**
+     * "Você também pode gostar": mesma categoria primeiro, depois destaques e novidades;
+     * produtos com estoque antes dos esgotados. No máximo 8.
+     */
+    public function relacionados($id)
+    {
+        $produto = Produto::ativos()->findOrFail($id);
+
+        $candidatos = Produto::with(self::RELACOES)->ativos()->whereKeyNot($produto->id)
+            ->when($produto->categoria_id, fn ($q) => $q->orderByRaw('categoria_id = ? desc', [$produto->categoria_id]))
+            ->orderByDesc('destaque')
+            ->orderByDesc('id')
+            ->limit(24)
+            ->get();
+
+        // sortBy é estável: dentro de cada grupo, mantém a ordem acima
+        return response()->json($candidatos->sortBy(fn (Produto $p) => $p->estoque_total > 0 ? 0 : 1)->take(8)->values());
+    }
+
+    /** "Avise-me quando chegar" (produto esgotado ou uma cor/tamanho esgotado). */
+    public function aviseMe(Request $request, AvisoEstoqueService $avisos, $id)
+    {
+        $dados = $request->validate([
+            'email' => 'required|email:rfc,filter|max:255',
+            'modelo_id' => 'nullable|integer',
+        ], ['email.required' => 'Informe seu e-mail.', 'email.email' => 'Informe um e-mail válido.']);
+
+        $produto = Produto::ativos()->with('modelos')->findOrFail($id);
+        $modelo = null;
+        if (!empty($dados['modelo_id'])) {
+            $modelo = $produto->modelos->firstWhere('id', (int) $dados['modelo_id']);
+            if (!$modelo) {
+                return response()->json(['message' => 'Opção do produto inválida.'], 422);
+            }
+        }
+
+        if ($modelo ? $modelo->quantidade > 0 : $produto->estoque_total > 0) {
+            return response()->json(['message' => 'Boa notícia: este produto já está disponível!'], 422);
+        }
+
+        $avisos->registrar($produto, $modelo, $dados['email']);
+
+        return response()->json(['message' => 'Pronto! Avisamos por e-mail quando chegar.'], 201);
     }
 
     /**
@@ -229,6 +275,7 @@ class ProdutoController extends Controller
         }
 
         $produto->update($dados);
+        app(AvisoEstoqueService::class)->avisarDisponiveis($produto->id);
 
         return response()->json($produto->fresh(self::RELACOES)->append('detalhes'));
     }

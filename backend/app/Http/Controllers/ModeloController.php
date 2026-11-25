@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Modelo;
 use App\Models\Produto;
+use App\Services\AvisoEstoqueService;
 use App\Support\LojaAtual;
 use Illuminate\Http\Request;
 
@@ -33,6 +34,7 @@ class ModeloController extends Controller
         $dados = $request->validate(['produto_id' => ['required', LojaAtual::existe('produtos')]] + $this->regras());
 
         $modelo = Modelo::create($dados);
+        app(AvisoEstoqueService::class)->avisarDisponiveis($modelo->produto_id);
 
         return response()->json($modelo->load('cor'), 201);
     }
@@ -68,6 +70,8 @@ class ModeloController extends Controller
             $criadas++;
         }
 
+        app(AvisoEstoqueService::class)->avisarDisponiveis($produto->id);
+
         return response()->json([
             'criadas' => $criadas,
             'ignoradas' => count($dados['modelos']) - $criadas,
@@ -79,6 +83,7 @@ class ModeloController extends Controller
     {
         $modelo = Modelo::findOrFail($id);
         $modelo->update($request->validate($this->regras()));
+        app(AvisoEstoqueService::class)->avisarDisponiveis($modelo->produto_id);
 
         return response()->json($modelo->load('cor'));
     }

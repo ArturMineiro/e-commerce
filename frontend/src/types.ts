@@ -88,6 +88,8 @@ export interface Produto {
   preco_base: number | null;
   preco_final: number | null;
   estoque_total: number;
+  /** painel: quantas pessoas pediram "avise-me" */
+  avisos_count?: number;
   modelos: Modelo[];
   categoria?: { id: number; nome: string } | null;
 }
