@@ -1,7 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import { Carousel } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { useBanners } from "../hooks/useLoja";
 import { imagemUrl } from "../lib/api";
+import { tipoLink } from "../lib/utils";
 
 /** Carrossel da home com as imagens de todos os banners ativos. Não renderiza nada sem banners. */
 function BannerCarousel() {
@@ -23,11 +25,14 @@ function BannerCarousel() {
     >
       {slides.map(({ chave, url, banner }) => {
         const imagem = <img src={imagemUrl(url)} alt={banner.name} className="banner-img d-block" />;
-        const externo = banner.link?.startsWith("http");
+        // Caminho interno pelo roteador (fica dentro da loja); externo em nova aba; o resto é ignorado
+        const tipo = tipoLink(banner.link);
         return (
           <Carousel.Item key={chave}>
-            {banner.link ? (
-              <a href={banner.link} {...(externo ? { target: "_blank", rel: "noreferrer" } : {})}>
+            {tipo === "interno" ? (
+              <Link to={banner.link!.trim()}>{imagem}</Link>
+            ) : tipo === "externo" ? (
+              <a href={banner.link!.trim()} target="_blank" rel="noreferrer">
                 {imagem}
               </a>
             ) : (

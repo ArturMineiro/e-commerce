@@ -71,6 +71,7 @@ function Banners() {
                 <Form.Group controlId="banner-link">
                   <Form.Label>Link ao clicar (opcional)</Form.Label>
                   <Form.Control value={link} onChange={(e) => setLink(e.target.value)} placeholder="/produtos?promocao=1" />
+                  <Form.Text>Uma página da loja (ex.: /produtos) ou um endereço com https://</Form.Text>
                 </Form.Group>
               </Col>
               <Col md={4}>

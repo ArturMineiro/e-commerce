@@ -81,6 +81,27 @@ class SegurancaTest extends TestCase
         $this->assertStringEndsWith('.png', $resposta->json('image_urls.0'));
     }
 
+    public function test_link_do_banner_so_aceita_caminho_da_loja_ou_https()
+    {
+        Storage::fake('public');
+        $this->actingAs($this->admin(), 'api');
+        $enviar = fn (string $link) => $this->post('/api/admin/banners', [
+            'bannerName' => 'Coleção',
+            'link' => $link,
+            'bannerImages' => [UploadedFile::fake()->createWithContent('b.png', base64_decode(self::PNG))],
+        ], ['Accept' => 'application/json']);
+
+        // As lojas dividem o domínio: um javascript: num banner rodaria no site de todas
+        foreach (['javascript:alert(document.cookie)', 'JaVaScRiPt:alert(1)', '//site-falso.com', '/\\site-falso.com', 'data:text/html,oi'] as $link) {
+            $enviar($link)->assertStatus(422)->assertJsonValidationErrors('link');
+        }
+
+        $id = $enviar('/produtos?promocao=1')->assertStatus(201)->json('id');
+        $enviar('https://instagram.com/loja')->assertStatus(201);
+
+        $this->putJson("/api/admin/banners/{$id}", ['link' => 'javascript:alert(1)'])->assertStatus(422);
+    }
+
     public function test_email_com_quebra_de_linha_e_recusado()
     {
         $this->postJson('/api/register', [

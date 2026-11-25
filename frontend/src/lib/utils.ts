@@ -28,3 +28,14 @@ export function linkWhatsapp(numero: string, mensagem = ""): string {
   if (digitos.length <= 11) digitos = "55" + digitos;
   return `https://wa.me/${digitos}${mensagem ? `?text=${encodeURIComponent(mensagem)}` : ""}`;
 }
+
+/**
+ * Link cadastrado pelo dono da loja (banner etc.): caminho interno da loja ou endereço http(s).
+ * Qualquer outra coisa (javascript:, data:, //outro-site) é ignorada: as lojas dividem o domínio.
+ */
+export function tipoLink(link: string | null | undefined): "interno" | "externo" | null {
+  const valor = (link ?? "").trim();
+  if (/^https?:\/\/\S+$/i.test(valor)) return "externo";
+  if (/^\/(?![/\\])\S*$/.test(valor)) return "interno";
+  return null;
+}

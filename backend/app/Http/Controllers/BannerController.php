@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class BannerController extends Controller
 {
+    /**
+     * Link do banner: caminho da loja (/produtos) ou endereço http(s). Nada de javascript:, data:
+     * ou //outro-site (as lojas dividem o mesmo domínio: um link malicioso afetaria todas).
+     */
+    private const REGRA_LINK = ['nullable', 'string', 'max:500', 'regex:#^(https?://[^\s]+|/(?![/\\\\])[^\s]*)$#i'];
+
     /** Banners ativos para a home. */
     public function index()
     {
@@ -24,10 +30,10 @@ class BannerController extends Controller
     {
         $request->validate([
             'bannerName' => 'required|string|max:255',
-            'link' => 'nullable|string|max:500',
+            'link' => self::REGRA_LINK,
             'bannerImages' => 'required|array|min:1',
             'bannerImages.*' => Imagens::regra(),
-        ]);
+        ], ['link.regex' => 'Use um caminho da loja (ex.: /produtos) ou um endereço começando com https://.']);
 
         $caminhos = [];
         foreach ($request->file('bannerImages') as $imagem) {
@@ -49,9 +55,9 @@ class BannerController extends Controller
         $banner = Banner::findOrFail($id);
         $banner->update($request->validate([
             'name' => 'sometimes|string|max:255',
-            'link' => 'nullable|string|max:500',
+            'link' => self::REGRA_LINK,
             'ativo' => 'sometimes|boolean',
-        ]));
+        ], ['link.regex' => 'Use um caminho da loja (ex.: /produtos) ou um endereço começando com https://.']));
 
         return response()->json($banner);
     }

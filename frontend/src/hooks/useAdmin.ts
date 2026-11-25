@@ -187,8 +187,10 @@ export const useRemoverImagem = () =>
 type DadosModelo = Pick<Modelo, "cor_id" | "tamanho" | "preco" | "quantidade">;
 
 export const useSalvarModelo = () =>
-  useMutacaoProduto(({ id, produto_id, ...dados }: DadosModelo & { id?: number; produto_id: number }) =>
-    id ? api.put(`/admin/modelos/${id}`, dados) : api.post("/admin/modelos", { produto_id, ...dados })
+  useMutacaoProduto(async ({ id, produto_id, ...dados }: DadosModelo & { id?: number; produto_id: number }) =>
+    id
+      ? (await api.put<Modelo>(`/admin/modelos/${id}`, dados)).data
+      : (await api.post<Modelo>("/admin/modelos", { produto_id, ...dados })).data
   );
 
 export const useGerarVariacoes = () =>

@@ -46,3 +46,4 @@ Thumbs.db        # Windows
 *.njsproj
 *.sln
 *.sw?
+vendor/
