@@ -1,24 +1,7 @@
 import { useState } from "react";
 import { Col, Container, Nav, Offcanvas, Row } from "react-bootstrap";
 import { NavLink, Outlet, useMatch } from "react-router-dom";
-import {
-  FaBars,
-  FaBoxOpen,
-  FaMoneyBillWave,
-  FaTruckFast,
-  FaListCheck,
-  FaWandMagicSparkles,
-  FaGauge,
-  FaGear,
-  FaImages,
-  FaPalette,
-  FaPlus,
-  FaReceipt,
-  FaTags,
-  FaTicket,
-  FaUsers,
-  FaStore,
-} from "react-icons/fa6";
+import { FaBars, FaBoxOpen, FaGauge, FaGear, FaImages, FaListCheck, FaMoneyBillWave, FaPalette, FaPlus, FaReceipt, FaStar, FaStore, FaTags, FaTicket, FaTruckFast, FaUsers, FaWandMagicSparkles } from "react-icons/fa6";
 import { useTituloPagina } from "../lib/titulo";
 
 const itens = [
@@ -30,6 +13,7 @@ const itens = [
   { to: "/admin/cores", texto: "Cores", Icone: FaPalette },
   { to: "/admin/banners", texto: "Banners", Icone: FaImages },
   { to: "/admin/cupons", texto: "Cupons", Icone: FaTicket },
+  { to: "/admin/avaliacoes", texto: "Avaliações", Icone: FaStar },
   { to: "/admin/usuarios", texto: "Clientes", Icone: FaUsers },
   { to: "/admin/pagamentos", texto: "Pagamentos", Icone: FaMoneyBillWave },
   { to: "/admin/entrega", texto: "Entrega", Icone: FaTruckFast },

@@ -90,6 +90,9 @@ export interface Produto {
   estoque_total: number;
   /** painel: quantas pessoas pediram "avise-me" */
   avisos_count?: number;
+  /** média e total das avaliações visíveis */
+  avaliacoes_media?: number | null;
+  avaliacoes_total?: number;
   modelos: Modelo[];
   categoria?: { id: number; nome: string } | null;
 }
@@ -427,4 +430,32 @@ export interface NovaLoja {
   dono_email: string;
   dono_senha: string;
   modelo?: string;
+}
+export interface AvaliacaoPublica {
+  id: number;
+  /** "Maria S." */
+  nome: string;
+  nota: number;
+  comentario: string | null;
+  data: string | null;
+}
+
+export interface AvaliacoesProduto {
+  media: number | null;
+  total: number;
+  distribuicao: { nota: number; quantidade: number }[];
+  avaliacoes: AvaliacaoPublica[];
+  /** cliente logado recebeu o produto (pedido enviado/entregue) */
+  pode_avaliar: boolean;
+  minha: { nota: number; comentario: string | null; visivel: boolean } | null;
+}
+
+export interface AvaliacaoAdmin {
+  id: number;
+  nota: number;
+  comentario: string | null;
+  visivel: boolean;
+  created_at: string;
+  produto: { id: number; nome: string; imagens: string[] | null } | null;
+  user: { id: number; name: string; email: string } | null;
 }

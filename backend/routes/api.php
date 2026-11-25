@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\CategoriaController;
@@ -71,6 +72,7 @@ Route::middleware('loja')->group(function () {
     Route::post('/produtos/{id}/frete', [ProdutoController::class, 'frete'])->middleware('throttle:30,1');
     Route::get('/produtos/{id}/relacionados', [ProdutoController::class, 'relacionados']);
     Route::post('/produtos/{id}/avise-me', [ProdutoController::class, 'aviseMe'])->middleware('throttle:10,1');
+    Route::get('/produtos/{id}/avaliacoes', [AvaliacaoController::class, 'index']);
     Route::get('/produtos/{produtoId}/modelos', [ModeloController::class, 'listarPorProduto']);
 
     // Notificações do Mercado Pago (sem auth; a validação é feita consultando a API do MP).
@@ -105,6 +107,8 @@ Route::middleware('loja')->group(function () {
         Route::post('/pedidos/{id}/sincronizar', [PedidoController::class, 'sincronizar']);
         Route::get('/pedidos/{id}/pix', [PedidoController::class, 'pix']);
         Route::post('/pedidos/{id}/pix/informar', [PedidoController::class, 'informarPix'])->middleware('throttle:10,1');
+
+        Route::post('/produtos/{id}/avaliacoes', [AvaliacaoController::class, 'salvar'])->middleware('throttle:10,1');
     });
 
     /*
@@ -151,6 +155,9 @@ Route::middleware('loja')->group(function () {
         Route::put('/banners/{id}', [BannerController::class, 'update']);
         Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
         Route::post('/banners/{id}/remover-imagem', [BannerController::class, 'removerImagem']);
+
+        Route::get('/avaliacoes', [AvaliacaoController::class, 'adminIndex']);
+        Route::put('/avaliacoes/{id}', [AvaliacaoController::class, 'adminUpdate']);
 
         Route::get('/cupons', [CupomController::class, 'index']);
         Route::post('/cupons', [CupomController::class, 'store']);

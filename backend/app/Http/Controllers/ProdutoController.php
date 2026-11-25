@@ -27,7 +27,7 @@ class ProdutoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Produto::with(self::RELACOES)->ativos();
+        $query = Produto::with(self::RELACOES)->ativos()->comAvaliacoes();
 
         return response()->json($this->filtrar($query, $request));
     }
@@ -98,7 +98,7 @@ class ProdutoController extends Controller
 
     public function show($id)
     {
-        $produto = Produto::with(self::RELACOES)->findOrFail($id);
+        $produto = Produto::with(self::RELACOES)->comAvaliacoes()->findOrFail($id);
 
         $user = auth('api')->user();
         if (!$produto->ativo && !($user && $user->isAdmin())) {
@@ -116,7 +116,7 @@ class ProdutoController extends Controller
     {
         $produto = Produto::ativos()->findOrFail($id);
 
-        $candidatos = Produto::with(self::RELACOES)->ativos()->whereKeyNot($produto->id)
+        $candidatos = Produto::with(self::RELACOES)->ativos()->comAvaliacoes()->whereKeyNot($produto->id)
             ->when($produto->categoria_id, fn ($q) => $q->orderByRaw('categoria_id = ? desc', [$produto->categoria_id]))
             ->orderByDesc('destaque')
             ->orderByDesc('id')

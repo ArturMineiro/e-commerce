@@ -1183,3 +1183,64 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
     font-size: 0.8rem;
   }
 }
+
+/* Avaliações */
+.estrelas {
+  display: inline-flex;
+  gap: 2px;
+  color: #f5a623;
+  vertical-align: middle;
+}
+.avaliacao-cartao {
+  font-size: 0.75rem;
+}
+.escolher-estrelas {
+  display: flex;
+  align-items: center;
+}
+.escolher-estrelas button {
+  background: none;
+  border: 0;
+  padding: 0 3px;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: #d1d5db;
+}
+.escolher-estrelas button.cheia {
+  color: #f5a623;
+}
+.escolher-estrelas button:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  border-radius: 6px;
+}
+.barra-nota {
+  display: grid;
+  grid-template-columns: 2.3rem 1fr 1.6rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+.barra-nota .progress {
+  height: 8px;
+}
+.barra-nota .progress-bar {
+  background-color: #f5a623;
+}
+.caixa-avaliacao {
+  background: #f8f6f2;
+  border: 1px solid #ece7df;
+  border-radius: 14px;
+  padding: 1rem;
+}
+.texto-avaliacao {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.avaliacao-escondida {
+  opacity: 0.65;
+}
+/* Ao rolar até as avaliações, o título não fica embaixo do cabeçalho fixo */
+.avaliacoes-produto {
+  scroll-margin-top: 110px;
+}

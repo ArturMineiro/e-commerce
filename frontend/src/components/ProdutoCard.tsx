@@ -7,6 +7,7 @@ import { formatarPreco, imagemUrl } from "../lib/api";
 import { precoNoPix } from "../lib/pagamento";
 import { Preco } from "./Ui";
 import type { Cor, Produto } from "../types";
+import { Estrelas } from "./Estrelas";
 
 function ProdutoCard({ produto }: { produto: Produto }) {
   const { loggedIn } = useAuth();
@@ -87,6 +88,13 @@ function ProdutoCard({ produto }: { produto: Produto }) {
               <span key={c.id} className="bolinha-cor" style={{ backgroundColor: c.codigo_hex ?? "#ddd" }} title={c.nome} />
             ))}
             {cores.length > 5 && <small className="text-muted">+{cores.length - 5}</small>}
+          </div>
+        )}
+
+        {!!produto.avaliacoes_total && produto.avaliacoes_media != null && (
+          <div className="d-flex align-items-center gap-1 mb-1 avaliacao-cartao">
+            <Estrelas nota={produto.avaliacoes_media} />
+            <span className="text-muted">({produto.avaliacoes_total})</span>
           </div>
         )}
 

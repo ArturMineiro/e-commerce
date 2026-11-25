@@ -30,6 +30,9 @@ class Produto extends Model
     ];
 
     protected $casts = [
+        // vêm de comAvaliacoes() (só quando carregados)
+        'avaliacoes_media' => 'float',
+        'avaliacoes_total' => 'integer',
         'imagens' => 'array',
         'especificacoes' => 'array',
         'imagens_cores' => 'array',
@@ -50,6 +53,20 @@ class Produto extends Model
     public function categoria()
     {
         return $this->belongsTo(Categoria::class);
+    }
+
+    public function avaliacoes()
+    {
+        return $this->hasMany(Avaliacao::class);
+    }
+
+    /** Média e total das avaliações visíveis (estrelas nos cartões e na página). */
+    public function scopeComAvaliacoes($query)
+    {
+        $visiveis = fn ($q) => $q->where('visivel', true);
+
+        return $query->withCount(['avaliacoes as avaliacoes_total' => $visiveis])
+            ->withAvg(['avaliacoes as avaliacoes_media' => $visiveis], 'nota');
     }
 
     public function avisos()

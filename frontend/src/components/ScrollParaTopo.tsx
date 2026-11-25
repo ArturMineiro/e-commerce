@@ -6,12 +6,13 @@ import { useLocation, useNavigationType } from "react-router-dom";
  * Voltar e avançar mantêm a posição em que a pessoa estava.
  */
 function ScrollParaTopo() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const navegacao = useNavigationType();
 
   useEffect(() => {
-    if (navegacao !== "POP") window.scrollTo(0, 0);
-  }, [pathname, navegacao]);
+    // Com âncora (ex.: #avaliacoes), a própria página rola até a seção
+    if (navegacao !== "POP" && !hash) window.scrollTo(0, 0);
+  }, [pathname, navegacao, hash]);
 
   return null;
 }

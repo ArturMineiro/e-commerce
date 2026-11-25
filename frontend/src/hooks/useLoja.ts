@@ -16,6 +16,7 @@ import type {
   RespostaPagamento,
   RespostaPixPedido,
   FormaPagamentoId,
+  AvaliacoesProduto,
 } from "../types";
 
 /* ---------------- Vitrine (público) ---------------- */
@@ -107,6 +108,28 @@ export const useRelacionados = (id?: number) =>
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
+
+/** Avaliações do produto (logado: inclui a do cliente e se ele pode avaliar). */
+export const useAvaliacoes = (produtoId?: number) => {
+  const { loggedIn } = useAuth();
+  return useQuery({
+    queryKey: ["avaliacoes", produtoId, loggedIn],
+    queryFn: async () => (await api.get<AvaliacoesProduto>(`/produtos/${produtoId}/avaliacoes`)).data,
+    enabled: !!produtoId,
+  });
+};
+
+export const useSalvarAvaliacao = (produtoId: number) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dados: { nota: number; comentario: string }) => api.post(`/produtos/${produtoId}/avaliacoes`, dados),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["avaliacoes", produtoId] });
+      qc.invalidateQueries({ queryKey: ["produto", String(produtoId)] });
+      qc.invalidateQueries({ queryKey: ["produtos"] });
+    },
+  });
+};
 
 /* ---------------- Carrinho ---------------- */
 

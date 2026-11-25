@@ -24,6 +24,8 @@ import { linkCompartilhar } from "../lib/compartilhar";
 import { linhaEntrega } from "../lib/entrega";
 import { precoNoPix } from "../lib/pagamento";
 import { resumo, useTituloPagina } from "../lib/titulo";
+import AvaliacoesProduto from "../components/AvaliacoesProduto";
+import { Estrelas } from "../components/Estrelas";
 
 function aplicarDesconto(produto: Produto, valor: number | null) {
   if (valor === null) return null;
@@ -179,6 +181,20 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
               {favorito ? <FaHeart /> : <FaRegHeart />}
             </Button>
           </div>
+
+          {!!produto.avaliacoes_total && produto.avaliacoes_media != null && (
+            <button
+              type="button"
+              className="btn btn-link p-0 mb-2 d-inline-flex align-items-center gap-2 text-decoration-none link-avaliacoes"
+              onClick={() => document.getElementById("avaliacoes")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            >
+              <Estrelas nota={produto.avaliacoes_media} />
+              <span className="small text-muted">
+                {produto.avaliacoes_media.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} ({produto.avaliacoes_total}{" "}
+                avaliaç{produto.avaliacoes_total === 1 ? "ão" : "ões"})
+              </span>
+            </button>
+          )}
 
           {config?.slug && (
             <div className="mb-2">
@@ -355,6 +371,7 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
         </Col>
       </Row>
 
+      <AvaliacoesProduto produtoId={produto.id} />
       <ProdutosRelacionados produtoId={produto.id} />
 
       {config?.guia_medidas && (

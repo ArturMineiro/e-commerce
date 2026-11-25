@@ -18,6 +18,7 @@ import type {
   Produto,
   StatusPedido,
   Usuario,
+  AvaliacaoAdmin,
 } from "../types";
 
 /**
@@ -316,6 +317,22 @@ export const useAlterarRole = () => {
 };
 
 /* ---------- Cupons ---------- */
+
+/* ---------- Avaliações ---------- */
+
+export const useAvaliacoesAdmin = () =>
+  useQuery({
+    queryKey: ["admin", "avaliacoes"],
+    queryFn: async () => (await api.get<AvaliacaoAdmin[]>("/admin/avaliacoes")).data,
+  });
+
+export const useAlternarAvaliacao = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: ({ id, visivel }: { id: number; visivel: boolean }) => api.put(`/admin/avaliacoes/${id}`, { visivel }),
+    onSuccess: () => invalidar(["admin", "avaliacoes"], ["avaliacoes"], ["produtos"], ["produto"]),
+  });
+};
 
 export const useCupons = () =>
   useQuery({

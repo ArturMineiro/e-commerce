@@ -27,6 +27,7 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
   const formas = config?.formas_pagamento ?? [];
   const formaAtual = formas.find((f) => f.id === pedido.forma_pagamento) ?? formas[0];
   const outras = formas.filter((f) => f.id !== formaAtual?.id);
+  const podeAvaliar = pedido.status === "enviado" || pedido.status === "entregue";
 
   const pagarCom = (forma: FormaPagamentoId) => {
     // Pix já no pedido: a tela do Pix busca o código sozinha
@@ -63,6 +64,11 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
               <div className="small">
                 {item.quantidade}x {formatarPreco(item.preco_unitario)}
               </div>
+              {podeAvaliar && item.produto_id && (
+                <Link to={{ pathname: `/produto/${item.produto_id}`, hash: "#avaliacoes" }} className="small">
+                  Avaliar produto
+                </Link>
+              )}
             </div>
             <div className="fw-semibold">{formatarPreco(item.subtotal)}</div>
           </li>
