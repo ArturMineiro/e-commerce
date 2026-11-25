@@ -59,6 +59,8 @@ class ConfiguracaoController extends Controller
             'mercado_pago_ativo' => $this->mercadoPago->configurado(),
             'pix_configurado' => $this->pix->configurado(),
             'pix_tipos' => PixService::TIPOS,
+            'pix_provedores' => PixService::PROVEDORES,
+            'pix_automatico' => $this->pix->automatico(),
             'stripe_ativo' => $this->stripe->configurado(),
             'stripe_modo_teste' => $this->stripe->modoTeste(),
             'stripe_secret_key_definido' => (bool) Configuracao::obter('stripe_secret_key'),
@@ -126,6 +128,7 @@ class ConfiguracaoController extends Controller
 
             // Pix direto na chave da loja
             'pix_ativo' => 'nullable|boolean',
+            'pix_provedor' => ['nullable', Rule::in(array_keys(PixService::PROVEDORES))],
             'pix_tipo' => ['nullable', Rule::in(array_keys(PixService::TIPOS))],
             'pix_chave' => 'nullable|string|max:100',
             'pix_nome' => 'nullable|string|max:25',
@@ -255,8 +258,18 @@ class ConfiguracaoController extends Controller
         }
 
         $ligado = array_key_exists('pix_ativo', $dados) ? (bool) $dados['pix_ativo'] : $this->pix->ativo();
-        if ($ligado && $chave === '') {
+        $provedor = (string) ($dados['pix_provedor'] ?? $this->pix->provedor());
+        if (!$ligado) {
+            return;
+        }
+        if ($provedor === 'chave' && $chave === '') {
             throw ValidationException::withMessages(['pix_chave' => 'Informe a chave Pix para ativar o Pix.']);
+        }
+        if ($provedor === 'mercado_pago' && empty($dados['mp_access_token']) && !$this->mercadoPago->configurado()) {
+            throw ValidationException::withMessages(['pix_provedor' => 'Para receber o Pix pelo Mercado Pago, salve antes o Access Token no quadro do Mercado Pago.']);
+        }
+        if ($provedor === 'stripe' && empty($dados['stripe_secret_key']) && !$this->stripe->configurado()) {
+            throw ValidationException::withMessages(['pix_provedor' => 'Para receber o Pix pela Stripe, salve antes a chave secreta no quadro da Stripe.']);
         }
     }
 

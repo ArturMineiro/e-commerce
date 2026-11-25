@@ -1359,3 +1359,25 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
 .frete-gratis-progresso .progress-bar {
   background-color: var(--cor-primaria);
 }
+
+/* Escolha de quem recebe o Pix (painel) */
+.opcao-provedor {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.opcao-provedor.ativa {
+  border-color: var(--cor-secundaria);
+  background: color-mix(in srgb, var(--cor-secundaria) 6%, #fff);
+}
+
+.opcao-provedor .form-check-input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}

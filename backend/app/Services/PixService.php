@@ -25,15 +25,43 @@ class PixService
         'aleatoria' => 'Chave aleatória',
     ];
 
+    /** Quem gera o Pix: a chave da loja (confirmação manual) ou um intermediador (confirmação automática). */
+    public const PROVEDORES = [
+        'chave' => 'Chave Pix da loja',
+        'mercado_pago' => 'Mercado Pago',
+        'stripe' => 'Stripe',
+    ];
+
     public function ativo(): bool
     {
         return (bool) Configuracao::obter('pix_ativo');
     }
 
-    /** Pix pronto para receber: ligado e com chave válida. */
+    public function provedor(): string
+    {
+        $provedor = (string) Configuracao::obter('pix_provedor', 'chave');
+
+        return array_key_exists($provedor, self::PROVEDORES) ? $provedor : 'chave';
+    }
+
+    /** Pix gerado pelo Mercado Pago ou pela Stripe: o pedido é confirmado sozinho. */
+    public function automatico(): bool
+    {
+        return $this->provedor() !== 'chave';
+    }
+
+    /** Pix pronto para receber: ligado e com chave válida (ou com o intermediador configurado). */
     public function configurado(): bool
     {
-        return $this->ativo() && $this->chave() !== null;
+        if (!$this->ativo()) {
+            return false;
+        }
+
+        return match ($this->provedor()) {
+            'mercado_pago' => app(MercadoPagoService::class)->configurado(),
+            'stripe' => app(StripeService::class)->configurado(),
+            default => $this->chave() !== null,
+        };
     }
 
     /** Chave salva, no formato exigido pelo Pix (null se faltar ou for inválida). */
@@ -76,7 +104,12 @@ class PixService
     /** Dados do Pix de um pedido para a tela de pagamento. */
     public function paraPedido(Pedido $pedido): array
     {
-        return $this->montar((float) $pedido->total, static::identificador($pedido));
+        if ($this->automatico()) {
+            return app(PixAutomaticoService::class)->cobranca($pedido, $this->provedor());
+        }
+
+        return $this->montar((float) $pedido->total, static::identificador($pedido))
+            + ['automatico' => false, 'provedor' => 'chave', 'expira_em' => null];
     }
 
     /** Pix de R$ 1,00 para o dono conferir no app do banco se a chave e o nome estão certos. */

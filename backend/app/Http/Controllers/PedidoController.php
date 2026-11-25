@@ -6,6 +6,7 @@ use App\Models\Pedido;
 use App\Services\MercadoPagoService;
 use App\Services\PagamentoService;
 use App\Services\PedidoService;
+use App\Services\PixAutomaticoService;
 use App\Services\PixService;
 use App\Services\StripeService;
 use Illuminate\Http\Request;
@@ -21,7 +22,8 @@ class PedidoController extends Controller
         private MercadoPagoService $mercadoPago,
         private StripeService $stripe,
         private PixService $pix,
-        private PagamentoService $pagamentos
+        private PagamentoService $pagamentos,
+        private PixAutomaticoService $pixAutomatico
     ) {
     }
 
@@ -104,14 +106,31 @@ class PedidoController extends Controller
         return response()->json($pagamento);
     }
 
-    /** Pix do pedido (a tela consulta de tempos em tempos para saber se a loja já confirmou). */
+    /**
+     * Pix do pedido. A tela consulta de tempos em tempos: com Pix automático (Mercado Pago ou
+     * Stripe), cada consulta também pergunta ao intermediador se já foi pago (funciona mesmo
+     * sem webhook, como em localhost).
+     */
     public function pix($id)
     {
         $pedido = $this->pedidoDoUsuario($id);
+        $automatico = $this->pix->automatico();
 
-        $pix = $pedido->status === 'aguardando_pagamento' && $this->pix->configurado()
-            ? $this->pix->paraPedido($pedido)
-            : null;
+        if ($automatico) {
+            $this->pixAutomatico->sincronizar($pedido, $this->pedidos);
+            $pedido->refresh();
+        }
+
+        $pix = null;
+        $podeGerar = $pedido->status === 'aguardando_pagamento' && $this->pix->configurado()
+            && (!$automatico || $pedido->forma_pagamento === 'pix');
+        if ($podeGerar) {
+            try {
+                $pix = $this->pix->paraPedido($pedido);
+            } catch (\Throwable $e) {
+                Log::error('Erro ao gerar o Pix do pedido', ['pedido' => $pedido->id, 'erro' => $e->getMessage()]);
+            }
+        }
 
         return response()->json(['pedido' => $this->resumoPagamento($pedido), 'pix' => $pix]);
     }

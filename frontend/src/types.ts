@@ -256,6 +256,10 @@ export interface PixPedido {
   cidade: string;
   tipo_chave: string | null;
   identificador: string;
+  /** gerado pelo Mercado Pago ou pela Stripe: o pedido é confirmado sozinho */
+  automatico?: boolean;
+  provedor?: "chave" | "mercado_pago" | "stripe";
+  expira_em?: string | null;
 }
 
 export interface RespostaPagamento {
@@ -346,6 +350,9 @@ export interface ConfigAdmin extends ConfigLoja {
   pedido_expira_horas: string;
   pix_configurado: boolean;
   pix_tipos: Record<string, string>;
+  pix_provedor: "chave" | "mercado_pago" | "stripe";
+  pix_provedores: Record<string, string>;
+  pix_automatico: boolean;
   stripe_ativo: boolean;
   stripe_modo_teste: boolean;
   stripe_secret_key_definido: boolean;

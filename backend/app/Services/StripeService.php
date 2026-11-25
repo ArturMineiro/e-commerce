@@ -118,6 +118,48 @@ class StripeService
         return $resposta->json();
     }
 
+    /**
+     * Cobrança Pix pela Stripe (PaymentIntent confirmado na hora): o copia e cola vem em
+     * next_action.pix_display_qr_code.data. Exige conta Stripe no Brasil com o Pix habilitado.
+     */
+    public function criarPix(Pedido $pedido, int $segundos): array
+    {
+        $loja = app(LojaAtual::class)->get();
+        $valor = (int) round($pedido->total * 100);
+        $segundos = max(600, min(1209600, $segundos));
+
+        $resposta = $this->cliente()
+            ->withHeaders(['Idempotency-Key' => "pix-{$pedido->id}-{$valor}-{$segundos}-" . ($loja->id ?? 0) . '-' . now()->format('YmdHi')])
+            ->post('/payment_intents', [
+                'amount' => $valor,
+                'currency' => 'brl',
+                'payment_method_types' => ['pix'],
+                'payment_method_data' => ['type' => 'pix'],
+                'payment_method_options' => ['pix' => ['expires_after_seconds' => $segundos]],
+                'confirm' => 'true',
+                'description' => Str::limit("Pedido #{$pedido->id} - " . Configuracao::obter('nome_loja', 'Loja'), 250, ''),
+                'receipt_email' => $pedido->email,
+                'metadata' => ['pedido_id' => (string) $pedido->id, 'loja' => (string) ($loja->slug ?? ''), 'forma' => 'pix'],
+            ]);
+
+        if ($resposta->failed()) {
+            throw new RuntimeException('Erro ao criar o Pix na Stripe: ' . $resposta->body());
+        }
+
+        return $resposta->json();
+    }
+
+    public function buscarIntencao(string $id): ?array
+    {
+        if (!preg_match('/^pi_[A-Za-z0-9]+$/', $id)) {
+            return null;
+        }
+
+        $resposta = $this->cliente()->get('/payment_intents/' . $id);
+
+        return $resposta->successful() ? $resposta->json() : null;
+    }
+
     public function buscarSessao(string $id): ?array
     {
         if (!preg_match('/^cs_(test|live)_[A-Za-z0-9]+$/', $id)) {

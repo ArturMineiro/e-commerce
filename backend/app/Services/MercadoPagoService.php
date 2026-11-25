@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Configuracao;
 use App\Models\Pedido;
 use App\Support\LojaAtual;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -156,6 +157,52 @@ class MercadoPagoService
 
         if ($resposta->failed()) {
             throw new RuntimeException('Erro ao criar pagamento no Mercado Pago: ' . $resposta->body());
+        }
+
+        return $resposta->json();
+    }
+
+    /**
+     * Cobrança Pix pela API de pagamentos (o cliente paga na própria loja, sem sair do site).
+     * O copia e cola vem em point_of_interaction.transaction_data.qr_code; o pagamento usa o
+     * número do pedido como external_reference, então o webhook já sabe de qual pedido é.
+     */
+    public function criarPix(Pedido $pedido, Carbon $expira): array
+    {
+        [$nome, $sobrenome] = array_pad(preg_split('/\s+/', trim((string) $pedido->nome), 2) ?: [], 2, '');
+        $payer = [
+            'email' => $pedido->email,
+            'first_name' => Str::limit($nome, 60, ''),
+            'last_name' => Str::limit($sobrenome, 60, ''),
+        ];
+        if ($pedido->cpf) {
+            $payer['identification'] = ['type' => 'CPF', 'number' => preg_replace('/\D/', '', $pedido->cpf)];
+        }
+
+        $corpo = [
+            'transaction_amount' => round((float) $pedido->total, 2),
+            'description' => Str::limit("Pedido #{$pedido->id} - " . Configuracao::obter('nome_loja', 'Loja'), 200, ''),
+            'payment_method_id' => 'pix',
+            'external_reference' => (string) $pedido->id,
+            'metadata' => ['pedido_id' => $pedido->id],
+            'date_of_expiration' => $expira->copy()->timezone(config('app.timezone'))->format('Y-m-d\TH:i:s.vP'),
+            'payer' => $payer,
+        ];
+
+        // O MP só aceita notification_url pública (https)
+        $webhook = $this->webhookUrl();
+        if (Str::startsWith($webhook, 'https://')) {
+            $corpo['notification_url'] = $webhook;
+        }
+
+        // Mesmo pedido, valor e prazo = mesma chave: repetir a chamada não cria um segundo Pix
+        $hash = md5(implode('|', ['pix', app(LojaAtual::class)->id(), $pedido->id, $corpo['transaction_amount'], $expira->timestamp]));
+        $chave = substr($hash, 0, 8) . '-' . substr($hash, 8, 4) . '-' . substr($hash, 12, 4) . '-' . substr($hash, 16, 4) . '-' . substr($hash, 20, 12);
+
+        $resposta = $this->cliente()->withHeaders(['X-Idempotency-Key' => $chave])->post('/v1/payments', $corpo);
+
+        if ($resposta->failed()) {
+            throw new RuntimeException('Erro ao criar o Pix no Mercado Pago: ' . $resposta->body());
         }
 
         return $resposta->json();

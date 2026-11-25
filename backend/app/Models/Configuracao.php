@@ -74,6 +74,9 @@ class Configuracao extends Model
         'comprimento_padrao' => '20',
         // Pix direto na chave da loja (tipo: cpf | cnpj | telefone | email | aleatoria)
         'pix_ativo' => '0',
+        // Quem gera o Pix: chave (código fixo da chave da loja, confirmação manual),
+        // mercado_pago ou stripe (cobrança no intermediador, confirmação automática)
+        'pix_provedor' => 'chave',
         'pix_tipo' => '',
         'pix_chave' => '',
         'pix_nome' => '',

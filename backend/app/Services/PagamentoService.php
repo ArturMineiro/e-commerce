@@ -28,7 +28,9 @@ class PagamentoService
         $formas = [];
 
         if ($this->pix->configurado()) {
-            $formas[] = ['id' => 'pix', 'nome' => 'Pix', 'descricao' => 'QR Code ou Pix Copia e Cola no app do seu banco'];
+            $formas[] = ['id' => 'pix', 'nome' => 'Pix', 'descricao' => $this->pix->automatico()
+                ? 'QR Code ou Pix Copia e Cola, com confirmação na hora'
+                : 'QR Code ou Pix Copia e Cola no app do seu banco'];
         }
         if ($this->stripe->configurado()) {
             $formas[] = ['id' => 'cartao', 'nome' => 'Cartão de crédito', 'descricao' => 'Pagamento seguro processado pela Stripe'];

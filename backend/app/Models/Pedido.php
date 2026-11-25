@@ -40,11 +40,13 @@ class Pedido extends Model
         'distancia_km' => 'float',
         'total' => 'float',
         'pago_em' => 'datetime',
+        'pix_expira_em' => 'datetime',
+        'pix_valor' => 'float',
         'pagamento_informado_em' => 'datetime',
         'estoque_baixado' => 'boolean',
     ];
 
-    protected $hidden = ['mp_preference_id', 'stripe_session_id'];
+    protected $hidden = ['mp_preference_id', 'stripe_session_id', 'pix_copia_e_cola'];
 
     protected $appends = ['pagar_ate'];
 

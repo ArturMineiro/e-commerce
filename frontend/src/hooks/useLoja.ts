@@ -259,7 +259,9 @@ export const usePixPedido = (id: number | string | undefined) =>
     queryKey: ["pedidos", Number(id), "pix"],
     queryFn: async () => (await api.get<RespostaPixPedido>(`/pedidos/${id}/pix`)).data,
     enabled: !!id,
-    refetchInterval: (q) => (q.state.data?.pedido.status === "aguardando_pagamento" ? 8000 : false),
+    // Pix automático (Mercado Pago/Stripe) confirma em segundos: consulta mais vezes
+    refetchInterval: (q) =>
+      q.state.data?.pedido.status === "aguardando_pagamento" ? (q.state.data?.pix?.automatico ? 4000 : 8000) : false,
     refetchIntervalInBackground: false,
   });
 

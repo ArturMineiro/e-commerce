@@ -223,7 +223,9 @@ class PedidoService
 
         $pedido->mp_payment_id = (string) ($pagamento['id'] ?? $pedido->mp_payment_id);
         $pedido->mp_status = $statusMp;
-        $pedido->metodo_pagamento = $pagamento['payment_type_id'] ?? $pedido->metodo_pagamento;
+        $pedido->metodo_pagamento = ($pagamento['payment_method_id'] ?? null) === 'pix'
+            ? 'pix'
+            : ($pagamento['payment_type_id'] ?? $pedido->metodo_pagamento);
 
         switch ($statusMp) {
             case 'approved':
@@ -270,6 +272,33 @@ class PedidoService
                 Log::warning('Valor pago na Stripe menor que o total do pedido', ['pedido' => $pedido->id, 'pago' => $valorPago]);
             } else {
                 $pedido->metodo_pagamento = 'credit_card';
+                $this->confirmarPagamento($pedido);
+            }
+        }
+
+        $pedido->save();
+        $this->notificarMudanca($pedido, $statusAnterior);
+
+        return $pedido;
+    }
+
+    /** Aplica ao pedido um Pix gerado na Stripe (PaymentIntent consultado na API). */
+    public function aplicarPagamentoStripePix(Pedido $pedido, array $intencao): Pedido
+    {
+        if ((string) ($intencao['metadata']['pedido_id'] ?? '') !== (string) $pedido->id) {
+            Log::warning('Pix da Stripe não pertence ao pedido', ['pedido' => $pedido->id, 'intencao' => $intencao['id'] ?? null]);
+            return $pedido;
+        }
+
+        $statusAnterior = $pedido->status;
+        $pedido->stripe_payment_intent = $intencao['id'] ?? $pedido->stripe_payment_intent;
+
+        if (($intencao['status'] ?? null) === 'succeeded') {
+            $valorPago = ((int) ($intencao['amount_received'] ?? $intencao['amount'] ?? 0)) / 100;
+            if ($valorPago + 0.01 < $pedido->total) {
+                Log::warning('Pix da Stripe com valor menor que o total do pedido', ['pedido' => $pedido->id, 'pago' => $valorPago]);
+            } else {
+                $pedido->metodo_pagamento = 'pix';
                 $this->confirmarPagamento($pedido);
             }
         }

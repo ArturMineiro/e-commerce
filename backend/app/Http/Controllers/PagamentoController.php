@@ -48,8 +48,8 @@ class PagamentoController extends Controller
     }
 
     /**
-     * Eventos da Stripe: checkout.session.completed / async_payment_succeeded (pago) e
-     * charge.refunded (estorno). O corpo só diz QUAL objeto mudou: o estado é sempre
+     * Eventos da Stripe: checkout.session.completed / async_payment_succeeded (cartão pago),
+     * payment_intent.succeeded (Pix pago) e charge.refunded (estorno). O corpo só diz QUAL objeto mudou: o estado é sempre
      * consultado na API da Stripe.
      */
     public function stripe(Request $request, StripeService $stripe, PedidoService $pedidos)
@@ -73,6 +73,13 @@ class PagamentoController extends Controller
                 $sessao = $stripe->buscarSessao($objetoId);
                 if ($sessao && ($pedido = Pedido::find($sessao['client_reference_id'] ?? null))) {
                     $pedidos->aplicarPagamentoStripe($pedido, $sessao);
+                }
+            } elseif (str_starts_with($tipo, 'payment_intent.') && $objetoId !== '') {
+                // Pix gerado na Stripe (os de cartão chegam pelos eventos da sessão de checkout)
+                $intencao = $stripe->buscarIntencao($objetoId);
+                $pedido = $intencao ? Pedido::find($intencao['metadata']['pedido_id'] ?? null) : null;
+                if ($pedido && $pedido->forma_pagamento === 'pix') {
+                    $pedidos->aplicarPagamentoStripePix($pedido, $intencao);
                 }
             } elseif ($tipo === 'charge.refunded' && $objetoId !== '') {
                 $cobranca = $stripe->buscarCobranca($objetoId);

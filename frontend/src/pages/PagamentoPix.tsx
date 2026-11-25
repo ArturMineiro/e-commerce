@@ -134,7 +134,13 @@ function PagamentoPix() {
                 No app do seu banco, entre em <strong>Pix → Pix Copia e Cola</strong>
               </li>
               <li>
-                Confira o valor e o recebedor (<strong>{pix.recebedor}</strong>) e confirme
+                {pix.automatico ? (
+                  <>Confira o valor e confirme o pagamento</>
+                ) : (
+                  <>
+                    Confira o valor e o recebedor (<strong>{pix.recebedor}</strong>) e confirme
+                  </>
+                )}
               </li>
             </ol>
 
@@ -167,7 +173,15 @@ function PagamentoPix() {
             </div>
 
             <div className="pix-status" aria-live="polite">
-              {pedido.pagamento_informado_em ? (
+              {pix.automatico ? (
+                <>
+                  <span className="spinner-grow spinner-grow-sm flex-shrink-0 mt-1 text-success" aria-hidden />
+                  <span>
+                    Aguardando o pagamento. Assim que o Pix for pago, esta tela confirma sozinha, em poucos segundos.
+                    {pix.expira_em && <> Código válido até {formatarPrazo(pix.expira_em)}.</>}
+                  </span>
+                </>
+              ) : pedido.pagamento_informado_em ? (
                 <>
                   <FaClock className="flex-shrink-0 mt-1" aria-hidden />
                   <span>Recebemos seu aviso! A loja vai conferir o Pix e confirmar o pedido. Esta tela atualiza sozinha.</span>
@@ -180,7 +194,7 @@ function PagamentoPix() {
               )}
             </div>
 
-            {!pedido.pagamento_informado_em && (
+            {!pix.automatico && !pedido.pagamento_informado_em && (
               <Button
                 variant="outline-success"
                 className="w-100"
@@ -190,10 +204,15 @@ function PagamentoPix() {
                 {informar.isPending ? "Avisando a loja..." : "Já paguei"}
               </Button>
             )}
-            {config?.whatsapp && (
+            {!pix.automatico && config?.whatsapp && (
               <a className="btn btn-success w-100 mt-2" target="_blank" rel="noreferrer" href={linkWhatsapp(config.whatsapp, mensagemComprovante)}>
                 <FaWhatsapp aria-hidden /> Enviar comprovante pelo WhatsApp
               </a>
+            )}
+            {pix.automatico && (
+              <p className="small text-muted text-center mt-3 mb-0">
+                Pagamento processado com segurança pelo {pix.provedor === "stripe" ? "Stripe" : "Mercado Pago"}.
+              </p>
             )}
             <p className="small text-muted text-center mt-3 mb-0">
               Você também encontra este Pix em <Link to={`/meus-pedidos?pedido=${pedido.id}`}>Meus pedidos</Link>.

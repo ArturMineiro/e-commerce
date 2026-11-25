@@ -65,28 +65,55 @@ function Segredo(props: {
 
 /* ---------------- Pix ---------------- */
 
+type ProvedorPix = ConfigAdmin["pix_provedor"];
+
+const PROVEDORES_PIX: { valor: ProvedorPix; titulo: string; texto: string }[] = [
+  {
+    valor: "chave",
+    titulo: "Direto na sua chave Pix",
+    texto: "Sem taxa: o dinheiro cai na hora na sua conta. Você confere o extrato e confirma o pedido em Pedidos.",
+  },
+  {
+    valor: "mercado_pago",
+    titulo: "Pelo Mercado Pago (Mercado Livre)",
+    texto: "Confirmação automática: o pedido vira “Pago” sozinho. O dinheiro cai na sua conta Mercado Pago, que cobra uma taxa por venda.",
+  },
+  {
+    valor: "stripe",
+    titulo: "Pela Stripe",
+    texto: "Confirmação automática. Precisa de uma conta Stripe no Brasil com o Pix habilitado; a Stripe cobra uma taxa por venda.",
+  },
+];
+
 function CartaoPix({ config }: { config: ConfigAdmin }) {
   const salvar = useSalvarConfigJson();
   const notificar = useToast();
   const qc = useQueryClient();
   const [ativo, setAtivo] = useState(config.pix_ativo);
+  const [provedor, setProvedor] = useState<ProvedorPix>(config.pix_provedor || "chave");
   const [tipo, setTipo] = useState(config.pix_tipo || "cpf");
   const [chave, setChave] = useState(config.pix_chave);
   const [nome, setNome] = useState(config.pix_nome);
   const [cidade, setCidade] = useState(config.pix_cidade);
   const [desconto, setDesconto] = useState(config.pix_desconto ? String(config.pix_desconto) : "");
   const [testar, setTestar] = useState(false);
-  const teste = usePixTeste(testar && !!config.pix_chave);
+  const teste = usePixTeste(testar && !!config.pix_chave && provedor === "chave");
 
   useEffect(() => {
     setAtivo(config.pix_ativo);
     setChave(config.pix_chave);
-  }, [config.pix_ativo, config.pix_chave]);
+    setProvedor(config.pix_provedor || "chave");
+  }, [config.pix_ativo, config.pix_chave, config.pix_provedor]);
+
+  const conectado: Record<ProvedorPix, boolean> = { chave: true, mercado_pago: config.mercado_pago_ativo, stripe: config.stripe_ativo };
 
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
+    // A chave só vai junto quando é ela que recebe (trocar de intermediador não apaga a chave salva)
+    const dadosChave =
+      provedor === "chave" ? { pix_tipo: tipo, pix_chave: chave.trim(), pix_nome: nome.trim(), pix_cidade: cidade.trim() } : {};
     salvar.mutate(
-      { pix_ativo: ativo, pix_tipo: tipo, pix_chave: chave.trim(), pix_nome: nome.trim(), pix_cidade: cidade.trim(), pix_desconto: Number(desconto || 0) },
+      { pix_ativo: ativo, pix_provedor: provedor, ...dadosChave, pix_desconto: Number(desconto || 0) },
       {
         onSuccess: () => {
           notificar(ativo ? "Pix ativado! Seus clientes já podem pagar com Pix." : "Configurações do Pix salvas.");
@@ -104,14 +131,16 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
       <Card.Body>
         <div className="d-flex justify-content-between align-items-center gap-2 mb-2">
           <h2 className="h5 mb-0 d-flex align-items-center gap-2">
-            <FaPix className="opcao-pix" aria-hidden /> Pix direto na sua conta
+            <FaPix className="opcao-pix" aria-hidden /> Pix
           </h2>
-          {config.pix_configurado ? <Badge bg="success">Ativo</Badge> : <Badge bg="secondary">Desligado</Badge>}
+          {config.pix_configurado ? (
+            <Badge bg="success">{config.pix_automatico ? "Ativo · automático" : "Ativo"}</Badge>
+          ) : (
+            <Badge bg="secondary">Desligado</Badge>
+          )}
         </div>
         <p className="small text-muted">
-          Sem taxa e sem intermediário: o cliente paga pelo app do banco com QR Code ou copia e cola, já com o valor do pedido,
-          e o dinheiro cai na hora na sua conta. Como o banco não avisa o site, confira o extrato e confirme o pedido em{" "}
-          <strong>Pedidos</strong>. O cliente pode te avisar pelo botão “Já paguei”.
+          O cliente paga pelo app do banco com QR Code ou copia e cola, já com o valor do pedido, sem sair da loja.
         </p>
 
         <Form onSubmit={enviar}>
@@ -123,47 +152,74 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
             checked={ativo}
             onChange={(e) => setAtivo(e.target.checked)}
           />
+
+          <fieldset className="mb-3">
+            <legend className="form-label fs-6 mb-2">Como o dinheiro do Pix chega até você?</legend>
+            <div className="d-grid gap-2">
+              {PROVEDORES_PIX.map((p) => (
+                <label key={p.valor} className={`opcao-provedor ${provedor === p.valor ? "ativa" : ""}`}>
+                  <Form.Check.Input type="radio" name="pix-provedor" checked={provedor === p.valor} onChange={() => setProvedor(p.valor)} />
+                  <span>
+                    <strong className="d-block">{p.titulo}</strong>
+                    <span className="small text-muted d-block">{p.texto}</span>
+                    {p.valor !== "chave" && (
+                      <span className={`small fw-semibold ${conectado[p.valor] ? "text-success" : "text-warning-emphasis"}`}>
+                        {conectado[p.valor]
+                          ? "Conta conectada"
+                          : `Primeiro conecte a conta no quadro ${p.valor === "stripe" ? "da Stripe" : "do Mercado Pago"}, mais abaixo.`}
+                      </span>
+                    )}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
           <Row className="g-3">
-            <Col sm={5}>
-              <Form.Group controlId="pix-tipo">
-                <Form.Label>Tipo de chave</Form.Label>
-                <Form.Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                  {Object.entries(config.pix_tipos).map(([valor, texto]) => (
-                    <option key={valor} value={valor}>
-                      {texto}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col sm={7}>
-              <Form.Group controlId="pix-chave">
-                <Form.Label>Chave Pix</Form.Label>
-                <Form.Control
-                  value={chave}
-                  onChange={(e) => setChave(e.target.value)}
-                  placeholder={exemplo.placeholder}
-                  inputMode={exemplo.inputMode}
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  maxLength={100}
-                />
-              </Form.Group>
-            </Col>
-            <Col sm={7}>
-              <Form.Group controlId="pix-nome">
-                <Form.Label>Nome de quem recebe</Form.Label>
-                <Form.Control value={nome} onChange={(e) => setNome(e.target.value)} maxLength={25} placeholder={config.nome_loja} />
-                <Form.Text>Até 25 letras. Use o nome do titular da conta.</Form.Text>
-              </Form.Group>
-            </Col>
-            <Col sm={5}>
-              <Form.Group controlId="pix-cidade">
-                <Form.Label>Cidade</Form.Label>
-                <Form.Control value={cidade} onChange={(e) => setCidade(e.target.value)} maxLength={15} placeholder="Rio de Janeiro" />
-              </Form.Group>
-            </Col>
+            {provedor === "chave" && (
+              <>
+                <Col sm={5}>
+                  <Form.Group controlId="pix-tipo">
+                    <Form.Label>Tipo de chave</Form.Label>
+                    <Form.Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+                      {Object.entries(config.pix_tipos).map(([valor, texto]) => (
+                        <option key={valor} value={valor}>
+                          {texto}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col sm={7}>
+                  <Form.Group controlId="pix-chave">
+                    <Form.Label>Chave Pix</Form.Label>
+                    <Form.Control
+                      value={chave}
+                      onChange={(e) => setChave(e.target.value)}
+                      placeholder={exemplo.placeholder}
+                      inputMode={exemplo.inputMode}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      maxLength={100}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col sm={7}>
+                  <Form.Group controlId="pix-nome">
+                    <Form.Label>Nome de quem recebe</Form.Label>
+                    <Form.Control value={nome} onChange={(e) => setNome(e.target.value)} maxLength={25} placeholder={config.nome_loja} />
+                    <Form.Text>Até 25 letras. Use o nome do titular da conta.</Form.Text>
+                  </Form.Group>
+                </Col>
+                <Col sm={5}>
+                  <Form.Group controlId="pix-cidade">
+                    <Form.Label>Cidade</Form.Label>
+                    <Form.Control value={cidade} onChange={(e) => setCidade(e.target.value)} maxLength={15} placeholder="Rio de Janeiro" />
+                  </Form.Group>
+                </Col>
+              </>
+            )}
             <Col sm={7}>
               <Form.Group controlId="pix-desconto">
                 <Form.Label>Desconto para quem paga no Pix (%)</Form.Label>
@@ -181,10 +237,10 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
             </Col>
           </Row>
 
-          {tipo === "cpf" && (
+          {provedor === "chave" && tipo === "cpf" && (
             <Alert variant="light" className="border small mt-3 mb-0">
               Dica: com a chave CPF, o número aparece para quem copia o código Pix. Uma <strong>chave aleatória</strong> (crie no app
-              do banco em Pix → Minhas chaves) mantém seu CPF em sigilo.
+              do banco em Pix → Minhas chaves) mantém seu CPF em sigilo. Ou receba pelo Mercado Pago ou pela Stripe.
             </Alert>
           )}
 
@@ -192,7 +248,7 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
             <Button type="submit" className="btn-loja" disabled={salvar.isPending}>
               {salvar.isPending ? "Salvando..." : "Salvar Pix"}
             </Button>
-            {config.pix_chave && (
+            {provedor === "chave" && config.pix_chave && (
               <Button variant="outline-secondary" onClick={() => setTestar((t) => !t)}>
                 {testar ? "Esconder teste" : "Testar meu Pix"}
               </Button>
@@ -200,7 +256,7 @@ function CartaoPix({ config }: { config: ConfigAdmin }) {
           </div>
         </Form>
 
-        {testar && (
+        {testar && provedor === "chave" && (
           <div className="pix-teste mt-3">
             {teste.isLoading ? (
               <p className="mb-0 small">Gerando Pix de teste...</p>
