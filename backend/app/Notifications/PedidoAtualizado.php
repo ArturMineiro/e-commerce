@@ -40,6 +40,17 @@ class PedidoAtualizado extends Notification
             default => ["Atualização do pedido #{$p->id}", 'Seu pedido foi atualizado.'],
         };
 
+        // Retirada e motoboy: "enviado"/"entregue" têm outro sentido
+        if ($p->tipo_entrega === 'retirada' && $this->evento === 'enviado') {
+            $instrucoes = trim((string) Configuracao::obter('retirada_instrucoes'));
+            [$assunto, $intro] = ["Seu pedido #{$p->id} está pronto para retirada", 'Boa notícia: seu pedido já está separado e pronto para retirar. '
+                . ($instrucoes !== '' ? $instrucoes : 'A loja vai combinar com você o dia e o horário.')];
+        } elseif ($p->tipo_entrega === 'retirada' && $this->evento === 'entregue') {
+            [$assunto, $intro] = ["Pedido #{$p->id} retirado", 'Obrigado por retirar seu pedido. Esperamos que goste!'];
+        } elseif ($p->tipo_entrega === 'local' && $this->evento === 'enviado') {
+            [$assunto, $intro] = ["Seu pedido #{$p->id} saiu para entrega", 'Boa notícia: seu pedido saiu para entrega e chega em breve no endereço combinado.'];
+        }
+
         // Pedido no Pix: o e-mail leva direto para a tela com o QR Code e o copia e cola
         $pagarComPix = $this->evento === 'recebido' && $p->forma_pagamento === 'pix' && $p->status === 'aguardando_pagamento';
         if ($pagarComPix) {

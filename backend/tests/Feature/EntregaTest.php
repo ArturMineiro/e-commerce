@@ -7,6 +7,7 @@ use App\Models\Cor;
 use App\Models\Pedido;
 use App\Models\Produto;
 use App\Models\User;
+use App\Notifications\PedidoAtualizado;
 use App\Services\GeocodificadorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -354,5 +355,25 @@ class EntregaTest extends TestCase
             ->assertJsonPath('endereco.bairro', 'Bairro Y');
 
         $this->getJson('/api/admin/entrega/simular?cep=01001-000')->assertOk()->assertJsonPath('faixa', null);
+    }
+
+    public function test_email_de_retirada_e_de_motoboy_usa_as_palavras_certas()
+    {
+        Configuracao::definir('retirada_instrucoes', 'Retire no Centro, das 10h às 18h.');
+        $pedido = new Pedido(['nome' => 'Maria Silva', 'email' => 'maria@teste.com', 'tipo_entrega' => 'retirada', 'total' => 100]);
+        $pedido->id = 7;
+
+        $pronto = (new PedidoAtualizado($pedido, 'enviado'))->toMail(null);
+        $this->assertStringContainsString('está pronto para retirada', $pronto->subject);
+        $this->assertStringContainsString('Retire no Centro', implode(' ', $pronto->introLines));
+        $this->assertStringNotContainsString('a caminho', implode(' ', $pronto->introLines));
+
+        $this->assertStringContainsString('retirado', (new PedidoAtualizado($pedido, 'entregue'))->toMail(null)->subject);
+
+        $pedido->tipo_entrega = 'local';
+        $this->assertStringContainsString('saiu para entrega', (new PedidoAtualizado($pedido, 'enviado'))->toMail(null)->subject);
+
+        $pedido->tipo_entrega = 'envio';
+        $this->assertStringContainsString('foi enviado', (new PedidoAtualizado($pedido, 'enviado'))->toMail(null)->subject);
     }
 }

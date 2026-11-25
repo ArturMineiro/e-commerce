@@ -2,7 +2,7 @@
 import { Badge, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { formatarPreco } from "../lib/api";
-import type { StatusPedido } from "../types";
+import type { StatusPedido, TipoEntrega } from "../types";
 
 export function Carregando({ texto = "Carregando..." }: { texto?: string }) {
   return (
@@ -49,11 +49,19 @@ export const STATUS_PEDIDO: Record<StatusPedido, { texto: string; cor: string }>
   cancelado: { texto: "Cancelado", cor: "secondary" },
 };
 
-export function StatusBadge({ status }: { status: StatusPedido }) {
+/** Texto do status conforme a entrega: na retirada, "enviado" é "Pronto para retirar"; no motoboy, "Saiu para entrega". */
+export function textoStatus(status: StatusPedido, tipoEntrega?: TipoEntrega | null): string {
+  if (tipoEntrega === "retirada" && status === "enviado") return "Pronto para retirar";
+  if (tipoEntrega === "retirada" && status === "entregue") return "Retirado";
+  if (tipoEntrega === "local" && status === "enviado") return "Saiu para entrega";
+  return STATUS_PEDIDO[status]?.texto ?? status;
+}
+
+export function StatusBadge({ status, tipoEntrega }: { status: StatusPedido; tipoEntrega?: TipoEntrega | null }) {
   const info = STATUS_PEDIDO[status] ?? { texto: status, cor: "secondary" };
   return (
     <Badge bg={info.cor} text={info.cor === "warning" || info.cor === "info" ? "dark" : undefined}>
-      {info.texto}
+      {textoStatus(status, tipoEntrega)}
     </Badge>
   );
 }

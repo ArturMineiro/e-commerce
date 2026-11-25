@@ -9,6 +9,8 @@ import { formatarPrazo, linkWhatsapp } from "../lib/utils";
 import type { FormaPagamentoId, Pedido } from "../types";
 import { diasUteis } from "../lib/entrega";
 import { useTituloPagina } from "../lib/titulo";
+import AndamentoPedido from "../components/AndamentoPedido";
+import Rastreio from "../components/Rastreio";
 
 const NOME_FORMA: Record<FormaPagamentoId, string> = {
   pix: "Pix",
@@ -49,6 +51,8 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
 
   return (
     <>
+      <AndamentoPedido pedido={pedido} />
+
       <ul className="list-unstyled mb-3">
         {pedido.itens.map((item) => (
           <li key={item.id} className="d-flex gap-3 align-items-center py-2 border-bottom">
@@ -79,12 +83,7 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
               {pedido.bairro} · {pedido.cidade}/{pedido.uf} · {pedido.cep}
             </>
           )}
-          {pedido.codigo_rastreio && (
-            <>
-              <br />
-              <strong>Rastreio:</strong> {pedido.codigo_rastreio}
-            </>
-          )}
+          {pedido.codigo_rastreio && <Rastreio codigo={pedido.codigo_rastreio} />}
         </div>
         <div className="col-md-6 small text-md-end">
           Subtotal: {formatarPreco(pedido.subtotal)}
@@ -190,7 +189,7 @@ function MeusPedidos() {
                 <div className="d-flex flex-wrap gap-2 gap-md-4 align-items-center w-100 me-3">
                   <strong>#{pedido.id}</strong>
                   <span className="text-muted small">{formatarData(pedido.created_at)}</span>
-                  <StatusBadge status={pedido.status} />
+                  <StatusBadge status={pedido.status} tipoEntrega={pedido.tipo_entrega} />
                   <span className="ms-auto fw-semibold">{formatarPreco(pedido.total)}</span>
                 </div>
               </Accordion.Header>

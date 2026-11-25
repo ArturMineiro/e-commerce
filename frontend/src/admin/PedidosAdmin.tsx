@@ -4,7 +4,7 @@ import { FaCircleCheck, FaPix } from "react-icons/fa6";
 import { useSearchParams } from "react-router-dom";
 import { useAtualizarPedido, usePedidosAdmin } from "../hooks/useAdmin";
 import { useToast } from "../components/Toast";
-import { Carregando, STATUS_PEDIDO, StatusBadge } from "../components/Ui";
+import { Carregando, STATUS_PEDIDO, StatusBadge, textoStatus } from "../components/Ui";
 import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
 import { formatarPrazo, linkWhatsapp } from "../lib/utils";
 import type { FormaPagamentoId, Pedido, StatusPedido } from "../types";
@@ -62,7 +62,7 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
     <Modal show onHide={onClose} size="lg" centered scrollable>
       <Modal.Header closeButton>
         <Modal.Title>
-          Pedido #{pedido.id} <StatusBadge status={pedido.status} />
+          Pedido #{pedido.id} <StatusBadge status={pedido.status} tipoEntrega={pedido.tipo_entrega} />
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -214,14 +214,15 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
             <Form.Group controlId="pedido-status">
               <Form.Label>Status</Form.Label>
               <Form.Select value={status} onChange={(e) => setStatus(e.target.value as StatusPedido)}>
-                {Object.entries(STATUS_PEDIDO).map(([valor, { texto }]) => (
+                {(Object.keys(STATUS_PEDIDO) as StatusPedido[]).map((valor) => (
                   <option key={valor} value={valor}>
-                    {texto}
+                    {textoStatus(valor, pedido.tipo_entrega)}
                   </option>
                 ))}
               </Form.Select>
               <Form.Text>
-                Marcar como pago baixa o estoque; cancelar devolve. Cartão e Mercado Pago atualizam sozinhos; Pix você confirma.
+                As peças ficam reservadas desde o pedido; cancelar devolve ao estoque. Cartão e Mercado Pago atualizam sozinhos;
+                Pix você confirma. O cliente recebe um e-mail a cada mudança.
               </Form.Text>
             </Form.Group>
           </Col>
@@ -337,7 +338,7 @@ function PedidosAdmin() {
                     <td>{p.itens.reduce((s, i) => s + i.quantidade, 0)}</td>
                     <td className="text-nowrap">{formatarPreco(p.total)}</td>
                     <td>
-                      <StatusBadge status={p.status} />
+                      <StatusBadge status={p.status} tipoEntrega={p.tipo_entrega} />
                       {p.forma_pagamento && <div className="small text-muted mt-1">{FORMAS[p.forma_pagamento]}</div>}
                       {confirmacaoManual(p) && p.pagamento_informado_em && (
                         <Badge bg="success" className="mt-1">
