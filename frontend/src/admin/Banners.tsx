@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Badge, Button, ButtonGroup, Card, Col, Form, Row } from "react-bootstrap";
 import { FaMobileScreenButton, FaPen, FaTrash } from "react-icons/fa6";
 import {
@@ -18,6 +18,7 @@ import { imagemUrl, mensagemErro } from "../lib/api";
 import { useTituloPagina } from "../lib/titulo";
 import type { Banner, PosicaoTextoBanner } from "../types";
 import { comprimirImagem } from "../lib/imagens";
+import { usePreviaArquivo } from "../hooks/usePreviaArquivo";
 
 interface Textos {
   titulo: string;
@@ -28,13 +29,6 @@ interface Textos {
 }
 
 const textosVazios: Textos = { titulo: "", subtitulo: "", botao_texto: "", posicao_texto: "esquerda", link: "" };
-
-/** Endereço local para mostrar a foto escolhida antes de enviar. */
-function usePreviaArquivo(arquivo: File | null | undefined): string | null {
-  const url = useMemo(() => (arquivo ? URL.createObjectURL(arquivo) : null), [arquivo]);
-  useEffect(() => () => (url ? URL.revokeObjectURL(url) : undefined), [url]);
-  return url;
-}
 
 /** Campos de texto do banner (usados ao criar e ao editar). */
 function CamposTexto({ valor, onChange, idBase }: { valor: Textos; onChange: (v: Textos) => void; idBase: string }) {

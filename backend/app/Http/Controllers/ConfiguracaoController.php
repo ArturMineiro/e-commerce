@@ -141,6 +141,8 @@ class ConfiguracaoController extends Controller
             'remover_melhor_envio_token' => 'nullable|boolean',
             'logo' => 'nullable|' . Imagens::regra(2048),
             'remover_logo' => 'nullable|boolean',
+            'favicon' => 'nullable|' . Imagens::regra(1024),
+            'remover_favicon' => 'nullable|boolean',
             'logo_com_nome' => 'nullable|boolean',
 
             // Aparência
@@ -183,7 +185,7 @@ class ConfiguracaoController extends Controller
             array_merge(array_keys(Configuracao::PUBLICAS), array_keys(Configuracao::PRIVADAS)),
             Configuracao::JSON,
             Configuracao::CALCULADAS,
-            ['logo', 'modelo_loja']
+            ['logo', 'favicon', 'modelo_loja']
         );
         foreach ($chavesTexto as $chave) {
             if (array_key_exists($chave, $dados)) {
@@ -215,12 +217,16 @@ class ConfiguracaoController extends Controller
             $this->localizarOrigem();
         }
 
-        $logoAtual = Configuracao::obter('logo');
-        if ($request->hasFile('logo') || $request->boolean('remover_logo')) {
-            if ($logoAtual) {
-                Storage::disk('public')->delete($logoAtual);
+        // Logo e ícone da aba: arquivo novo substitui o anterior (que é apagado); remover volta ao padrão
+        foreach (['logo', 'favicon'] as $chave) {
+            if (!$request->hasFile($chave) && !$request->boolean("remover_{$chave}")) {
+                continue;
             }
-            Configuracao::definir('logo', $request->hasFile('logo') ? Imagens::salvar($request->file('logo'), 'logo', 'logo') : null);
+            $atual = Configuracao::obter($chave);
+            if ($atual) {
+                Storage::disk('public')->delete($atual);
+            }
+            Configuracao::definir($chave, $request->hasFile($chave) ? Imagens::salvar($request->file($chave), 'logo', $chave) : null);
         }
 
         return $this->admin();

@@ -348,6 +348,8 @@ export interface ConfigLoja {
   logo: string | null;
   /** mostra o nome da loja ao lado do logo no topo */
   logo_com_nome: boolean;
+  /** ícone da aba do navegador (quadrado); sem ele, a loja usa o logo */
+  favicon: string | null;
   cor_primaria: string;
   cor_secundaria: string;
   email: string;

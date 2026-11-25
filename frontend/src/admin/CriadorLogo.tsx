@@ -87,11 +87,11 @@ function CriadorLogo({ nomeLoja, slogan, corPrimaria, corDestaque, fonteTitulos,
     [estilo, iniciais, fundo, invertido, corPrimaria, corDestaque, fonteTitulos]
   );
 
-  const simboloEmCanvas = () => {
+  const simboloEmCanvas = (o: OpcoesLogo = opcoes) => {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 512;
     const ctx = canvas.getContext("2d");
-    if (ctx) desenharSimbolo(ctx, 512, opcoes);
+    if (ctx) desenharSimbolo(ctx, 512, o);
     return canvas;
   };
 
@@ -100,8 +100,11 @@ function CriadorLogo({ nomeLoja, slogan, corPrimaria, corDestaque, fonteTitulos,
   const usarNaLoja = async () => {
     try {
       const arquivo = await canvasParaArquivo(simboloEmCanvas(), "logo.png");
+      // Na aba o ícone fica minúsculo: sem fundo, o desenho some em abas escuras
+      const icone = await canvasParaArquivo(simboloEmCanvas(opcoes.fundo === "nenhum" ? { ...opcoes, fundo: "quadrado" } : opcoes), "favicon.png");
       const form = new FormData();
       form.append("logo", arquivo);
+      form.append("favicon", icone);
       form.append("logo_com_nome", "1");
       salvar.mutate(form, {
         onSuccess: () => notificar("Logo aplicado! Ele aparece no topo da loja, ao lado do nome, e na aba do navegador."),

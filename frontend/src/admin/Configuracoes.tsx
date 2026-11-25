@@ -8,10 +8,12 @@ import { imagemUrl, mensagemErro } from "../lib/api";
 import { POLITICAS, textoSugerido, type TipoPolitica } from "../lib/politicas";
 import type { ConfigAdmin } from "../types";
 import { comprimirImagem } from "../lib/imagens";
+import { iconeComInicial } from "../lib/icone";
+import { usePreviaArquivo } from "../hooks/usePreviaArquivo";
 
 type CamposTexto = Omit<
   ConfigAdmin,
-  | "logo" | "pagamento_online" | "mp_access_token_definido" | "mp_webhook_secret_definido" | "webhook_url"
+  | "logo" | "favicon" | "pagamento_online" | "mp_access_token_definido" | "mp_webhook_secret_definido" | "webhook_url"
   | "frete_fixo" | "frete_gratis_acima" | "melhor_envio_sandbox" | "melhor_envio_token_definido" | "melhor_envio_ativo"
 > & { frete_fixo: string; frete_gratis_acima: string };
 
@@ -24,6 +26,10 @@ function Configuracoes() {
   const [logo, setLogo] = useState<File | null>(null);
   const [removerLogo, setRemoverLogo] = useState(false);
   const [logoComNome, setLogoComNome] = useState(false);
+  const [favicon, setFavicon] = useState<File | null>(null);
+  const [removerFavicon, setRemoverFavicon] = useState(false);
+  const previaLogo = usePreviaArquivo(logo);
+  const previaFavicon = usePreviaArquivo(favicon);
 
   useEffect(() => {
     if (config) {
@@ -50,6 +56,8 @@ function Configuracoes() {
     if (logo) form.append("logo", await comprimirImagem(logo, 800));
     if (removerLogo) form.append("remover_logo", "1");
     form.append("logo_com_nome", logoComNome ? "1" : "0");
+    if (favicon) form.append("favicon", await comprimirImagem(favicon, 512));
+    if (removerFavicon) form.append("remover_favicon", "1");
     Object.entries(extras).forEach(([k, v]) => form.append(k, v));
 
     salvar.mutate(form, {
@@ -57,6 +65,8 @@ function Configuracoes() {
         notificar("Configurações salvas!");
         setLogo(null);
         setRemoverLogo(false);
+        setFavicon(null);
+        setRemoverFavicon(false);
       },
       onError: (erro) => notificar(mensagemErro(erro), "danger"),
     });
@@ -110,8 +120,13 @@ function Configuracoes() {
                   <Form.Group controlId="cfg-logo">
                     <Form.Label>Logo</Form.Label>
                     <div className="d-flex align-items-center gap-3">
-                      {config.logo && !removerLogo && !logo && (
-                        <img src={imagemUrl(config.logo)} alt="Logo atual" style={{ height: 56, maxWidth: 160, objectFit: "contain" }} className="bg-light rounded p-1" />
+                      {(previaLogo || (config.logo && !removerLogo)) && (
+                        <img
+                          src={previaLogo ?? imagemUrl(config.logo)}
+                          alt={previaLogo ? "Logo novo (falta salvar)" : "Logo atual"}
+                          style={{ height: 56, maxWidth: 160, objectFit: "contain" }}
+                          className="bg-light rounded p-1"
+                        />
                       )}
                       <Form.Control
                         type="file"
@@ -139,6 +154,44 @@ function Configuracoes() {
                     )}
                     <Form.Text>
                       Não tem logo? <Link to="/admin/aparencia#criar-logo">Crie um em Aparência</Link>.
+                    </Form.Text>
+                  </Form.Group>
+                </Col>
+                <Col xs={12}>
+                  <Form.Group controlId="cfg-favicon">
+                    <Form.Label>Ícone da aba do navegador</Form.Label>
+                    <div className="d-flex align-items-center gap-3 flex-wrap">
+                      <div className="aba-navegador" aria-hidden="true">
+                        <img
+                          src={
+                            previaFavicon ??
+                            (config.favicon && !removerFavicon
+                              ? imagemUrl(config.favicon)
+                              : previaLogo ?? (config.logo && !removerLogo ? imagemUrl(config.logo) : iconeComInicial(campos.nome_loja, campos.cor_primaria)))
+                          }
+                          alt=""
+                        />
+                        <span>{campos.nome_loja || "Minha loja"}</span>
+                      </div>
+                      <Form.Control
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="campo-favicon"
+                        onChange={(e) => setFavicon((e.target as HTMLInputElement).files?.[0] ?? null)}
+                      />
+                    </div>
+                    {config.favicon && (
+                      <Form.Check
+                        className="mt-2"
+                        id="cfg-remover-favicon"
+                        label="Remover ícone (a aba passa a mostrar o logo)"
+                        checked={removerFavicon}
+                        onChange={(e) => setRemoverFavicon(e.target.checked)}
+                      />
+                    )}
+                    <Form.Text>
+                      Imagem quadrada, de preferência 512 × 512 px, com desenho grosso (a aba mostra bem pequeno). Sem ícone, a aba usa o logo;
+                      sem logo, a inicial da loja.
                     </Form.Text>
                   </Form.Group>
                 </Col>

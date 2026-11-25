@@ -253,6 +253,39 @@ class CatalogoAvancadoTest extends TestCase
         $this->postJson('/api/admin/configuracoes', ['logo_com_nome' => 'talvez'])->assertStatus(422);
     }
 
+    public function test_icone_da_aba_envia_troca_e_remove()
+    {
+        Storage::fake('public');
+        $this->actingAs($this->admin(), 'api');
+        // PNG de 1x1 (o PHP daqui não tem a extensão GD para gerar imagens)
+        $png = fn (string $nome) => UploadedFile::fake()->createWithContent(
+            $nome,
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')
+        );
+        $json = ['Accept' => 'application/json'];
+
+        $this->getJson('/api/configuracoes')->assertJsonPath('favicon', null);
+
+        $this->post('/api/admin/configuracoes', ['favicon' => $png('icone.png')], $json)->assertOk();
+        $primeiro = $this->getJson('/api/configuracoes')->json('favicon');
+        $this->assertStringContainsString('/logo/', $primeiro);
+        Storage::disk('public')->assertExists($primeiro);
+
+        // Trocar apaga o arquivo anterior e não mexe no logo
+        $this->post('/api/admin/configuracoes', ['favicon' => $png('novo.png')], $json)->assertOk();
+        $segundo = $this->getJson('/api/configuracoes')->assertJsonPath('logo', null)->json('favicon');
+        $this->assertNotSame($primeiro, $segundo);
+        Storage::disk('public')->assertMissing($primeiro);
+        Storage::disk('public')->assertExists($segundo);
+
+        $texto = UploadedFile::fake()->createWithContent('icone.png', 'não é imagem');
+        $this->post('/api/admin/configuracoes', ['favicon' => $texto], $json)->assertStatus(422);
+
+        $this->postJson('/api/admin/configuracoes', ['remover_favicon' => true])->assertOk();
+        $this->getJson('/api/configuracoes')->assertJsonPath('favicon', null);
+        Storage::disk('public')->assertMissing($segundo);
+    }
+
     public function test_url_de_fontes_respeita_pesos_existentes()
     {
         $url = Fontes::url(['Bebas Neue', 'Inter', 'Sistema', 'Inter', 'Fonte Falsa']);

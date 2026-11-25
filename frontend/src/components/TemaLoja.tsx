@@ -5,6 +5,7 @@ import { corDeContraste } from "../lib/utils";
 import { carregarFontes } from "../lib/fontes";
 import type { EstiloCantos } from "../types";
 import { definirTituloLoja } from "../lib/titulo";
+import { definirCorDaBarra, definirIconesDaAba, iconeComInicial } from "../lib/icone";
 
 /** Raio dos cartões e dos botões para cada estilo de cantos. */
 const CANTOS: Record<EstiloCantos, { raio: string; botao: string; campo: string }> = {
@@ -39,15 +40,10 @@ function TemaLoja() {
 
     definirTituloLoja(config.nome_loja, config.slogan, config.descricao);
 
-    if (config.logo) {
-      let icone = document.querySelector<HTMLLinkElement>("link[rel='icon']");
-      if (!icone) {
-        icone = document.createElement("link");
-        icone.rel = "icon";
-        document.head.appendChild(icone);
-      }
-      icone.href = imagemUrl(config.logo);
-    }
+    // Ícone da aba: o enviado para isso; senão o logo; senão a inicial da loja na cor principal
+    const imagemIcone = config.favicon || config.logo;
+    definirIconesDaAba(imagemIcone ? imagemUrl(imagemIcone) : iconeComInicial(config.nome_loja, config.cor_primaria), !!imagemIcone);
+    definirCorDaBarra(config.cor_primaria);
   }, [config]);
 
   return null;

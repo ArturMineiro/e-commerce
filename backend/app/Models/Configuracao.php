@@ -26,6 +26,7 @@ class Configuracao extends Model
         'descricao' => 'Bem-vindo à nossa loja!',
         'logo' => null,
         'logo_com_nome' => '0', // mostra o nome da loja ao lado do logo (símbolo) no topo
+        'favicon' => null, // ícone da aba do navegador (quadrado); sem ele, a loja usa o logo
         'cor_primaria' => '#212529',
         'cor_secundaria' => '#0d6efd',
         'email' => '',
