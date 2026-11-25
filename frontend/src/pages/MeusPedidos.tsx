@@ -94,6 +94,14 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
         <div className="col-md-6 small text-md-end">
           Subtotal: {formatarPreco(pedido.subtotal)}
           <br />
+          {(pedido.promocoes ?? []).map((p) => (
+            <span key={p.id}>
+              <span className="text-success">
+                {p.nome}: -{formatarPreco(p.desconto)}
+              </span>
+              <br />
+            </span>
+          ))}
           {pedido.desconto > 0 && (
             <>
               <span className="text-success">
@@ -108,7 +116,7 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
               <br />
             </>
           )}
-          Frete{pedido.frete_servico && ` (${pedido.frete_servico})`}: {pedido.frete > 0 ? formatarPreco(pedido.frete) : "Grátis"}
+          Frete{pedido.frete_servico && ` (${pedido.frete_servico})`}: {pedido.frete > 0 ? formatarPreco(pedido.frete) : pedido.frete_gratis_cupom ? "Grátis (cupom)" : "Grátis"}
           {pedido.frete_prazo === 0 && <span className="text-muted"> · no mesmo dia</span>}
           {!!pedido.frete_prazo && <span className="text-muted"> · até {diasUteis(pedido.frete_prazo)}</span>}
           <br />

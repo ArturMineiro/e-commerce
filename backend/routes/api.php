@@ -13,6 +13,7 @@ use App\Http\Controllers\EspecificacaoController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\PagamentoController;
+use App\Http\Controllers\PromocaoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\PlataformaController;
 use App\Http\Controllers\PlataformaPublicoController;
@@ -73,6 +74,7 @@ Route::middleware('loja')->group(function () {
     Route::get('/produtos/{id}/relacionados', [ProdutoController::class, 'relacionados']);
     Route::post('/produtos/{id}/avise-me', [ProdutoController::class, 'aviseMe'])->middleware('throttle:10,1');
     Route::get('/produtos/{id}/avaliacoes', [AvaliacaoController::class, 'index']);
+    Route::get('/promocoes', [PromocaoController::class, 'vigentes']);
     Route::get('/produtos/{produtoId}/modelos', [ModeloController::class, 'listarPorProduto']);
 
     // Notificações do Mercado Pago (sem auth; a validação é feita consultando a API do MP).
@@ -158,6 +160,12 @@ Route::middleware('loja')->group(function () {
 
         Route::get('/avaliacoes', [AvaliacaoController::class, 'adminIndex']);
         Route::put('/avaliacoes/{id}', [AvaliacaoController::class, 'adminUpdate']);
+
+        Route::get('/promocoes', [PromocaoController::class, 'index']);
+        Route::post('/promocoes', [PromocaoController::class, 'store']);
+        Route::post('/promocoes/produtos', [PromocaoController::class, 'produtos']);
+        Route::put('/promocoes/{id}', [PromocaoController::class, 'update']);
+        Route::delete('/promocoes/{id}', [PromocaoController::class, 'destroy']);
 
         Route::get('/cupons', [CupomController::class, 'index']);
         Route::post('/cupons', [CupomController::class, 'store']);

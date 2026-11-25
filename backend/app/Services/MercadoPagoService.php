@@ -98,14 +98,15 @@ class MercadoPagoService
             ];
         })->values()->all();
 
-        // Com cupom, o MP não aceita item negativo: envia os produtos como um item único já com desconto.
-        if ($pedido->desconto > 0) {
+        // Com cupom ou promoção, o MP não aceita item negativo: envia os produtos como um item único já com desconto.
+        $descontos = (float) $pedido->desconto + (float) $pedido->desconto_promocao;
+        if ($descontos > 0) {
             $quantidade = (int) $pedido->itens->sum('quantidade');
             $itens = [[
                 'id' => 'pedido-' . $pedido->id,
-                'title' => Str::limit("Pedido #{$pedido->id} ({$quantidade} itens, cupom {$pedido->cupom_codigo})", 250),
+                'title' => Str::limit("Pedido #{$pedido->id} ({$quantidade} itens, com desconto" . ($pedido->cupom_codigo ? " do cupom {$pedido->cupom_codigo}" : '') . ')', 250),
                 'quantity' => 1,
-                'unit_price' => round($pedido->subtotal - $pedido->desconto, 2),
+                'unit_price' => round($pedido->subtotal - $descontos, 2),
                 'currency_id' => 'BRL',
             ]];
         }

@@ -187,9 +187,18 @@ function Checkout() {
 
   const opcaoEscolhida = retirada ? null : (opcoesFrete?.find((o) => o.id === freteId) ?? null);
   const desconto = cupom?.desconto ?? 0;
-  const frete = retirada ? 0 : opcaoEscolhida ? opcaoEscolhida.preco : freteDinamico ? null : carrinho.frete;
-  // Desconto do Pix sobre os produtos (depois do cupom), igual ao calculado pelo servidor
-  const baseProdutos = Math.max(carrinho.subtotal - desconto, 0);
+  const freteGratisCupom = !!cupom?.frete_gratis && !retirada;
+  const frete = retirada
+    ? 0
+    : opcaoEscolhida
+      ? opcaoEscolhida.preco
+      : freteDinamico
+        ? null
+        : freteGratisCupom
+          ? 0
+          : carrinho.frete;
+  // Desconto do Pix sobre os produtos (depois das promoções e do cupom), igual ao calculado pelo servidor
+  const baseProdutos = Math.max(carrinho.subtotal - carrinho.desconto_promocao - desconto, 0);
   const descontoPix = forma === "pix" && (config?.pix_desconto ?? 0) > 0 ? Math.round(baseProdutos * (config?.pix_desconto ?? 0)) / 100 : 0;
   const total = baseProdutos - descontoPix + (frete ?? 0);
   const faltaFrete = !retirada && freteDinamico && !opcaoEscolhida;
@@ -518,6 +527,7 @@ function Checkout() {
                   <div className="d-flex justify-content-between align-items-center bg-light rounded-3 px-3 py-2 mb-3">
                     <span className="small">
                       <FaTag className="me-1 text-success" aria-hidden /> Cupom <strong>{cupom.codigo}</strong>
+                      {cupom.frete_gratis && <span className="text-success"> · frete grátis</span>}
                     </span>
                     <Button
                       variant="link"
@@ -554,6 +564,8 @@ function Checkout() {
                 )}
 
                 <ResumoValores
+                  promocoes={carrinho.promocoes}
+                  freteGratisCupom={freteGratisCupom && (frete ?? 1) === 0}
                   subtotal={carrinho.subtotal}
                   desconto={desconto}
                   descontoPix={descontoPix}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Carrinho;
 use App\Models\Modelo;
 use App\Models\Produto;
+use App\Services\DescontosService;
 use App\Services\FreteService;
 use App\Services\PedidoService;
 use App\Support\LojaAtual;
@@ -12,7 +13,7 @@ use Illuminate\Http\Request;
 
 class CarrinhoController extends Controller
 {
-    public function index(PedidoService $pedidos, FreteService $frete)
+    public function index(PedidoService $pedidos, FreteService $frete, DescontosService $descontosService)
     {
         $itens = $pedidos->itensDoCarrinho(auth('api')->user());
 
@@ -28,16 +29,22 @@ class CarrinhoController extends Controller
         ]);
 
         $subtotal = round($linhas->sum('subtotal'), 2);
+        // Promoções automáticas (leve X pague Y etc.); o cupom é conferido no checkout
+        $descontos = $descontosService->calcular($itens);
+        $baseProdutos = round($subtotal - $descontos['desconto_promocao'], 2);
         $modo = $frete->modo();
         // Com Melhor Envio, entrega local ou sem envio, o frete depende do CEP: é calculado no checkout.
-        $valorFrete = $linhas->isEmpty() ? 0 : ($frete->dependeDoCep() ? null : $frete->valorFixo($subtotal));
+        $valorFrete = $linhas->isEmpty() ? 0 : ($frete->dependeDoCep() ? null : $frete->valorFixo($baseProdutos));
 
         return response()->json([
             'itens' => $linhas,
             'subtotal' => $subtotal,
+            'promocoes' => $descontos['promocoes'],
+            'desconto_promocao' => $descontos['desconto_promocao'],
+            'dicas_promocao' => $descontos['dicas'],
             'frete' => $valorFrete,
             'frete_modo' => $modo,
-            'total' => round($subtotal + ($valorFrete ?? 0), 2),
+            'total' => round($baseProdutos + ($valorFrete ?? 0), 2),
         ]);
     }
 

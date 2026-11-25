@@ -1,8 +1,8 @@
 import { textoMeios } from "../lib/pagamento";
 import { useMemo, useState } from "react";
-import { Alert, Badge, Breadcrumb, Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
+import { Alert, Badge, Breadcrumb, Button, Col, Container, Modal, Row, Table } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { FaHeart, FaRegHeart, FaRulerHorizontal, FaShieldHalved, FaTruckFast, FaWhatsapp } from "react-icons/fa6";
+import { FaHeart, FaRegHeart, FaRulerHorizontal, FaShieldHalved, FaTags, FaTruckFast, FaWhatsapp } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import {
   useAdicionarCarrinho,
@@ -18,6 +18,7 @@ import { linkWhatsapp } from "../lib/utils";
 import type { Produto } from "../types";
 import BotaoCompartilhar from "../components/BotaoCompartilhar";
 import AviseMe from "../components/AviseMe";
+import SeletorQuantidade from "../components/SeletorQuantidade";
 import CalcularFrete from "../components/CalcularFrete";
 import ProdutosRelacionados from "../components/ProdutosRelacionados";
 import { linkCompartilhar } from "../lib/compartilhar";
@@ -221,6 +222,12 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
               </div>
             )}
           </div>
+          {produto.selo_promocao && (
+            <div className="dica-promocao small mb-2">
+              <FaTags className="me-1" aria-hidden />
+              <strong>{produto.selo_promocao}</strong> — o desconto aparece sozinho no carrinho.
+            </div>
+          )}
           {produto.em_promocao && precoBase !== null && precoFinal !== null && (
             <p className="text-success small fw-semibold mb-3">
               Você economiza {formatarPreco(precoBase - precoFinal)}
@@ -301,19 +308,20 @@ function DetalheConteudo({ produto }: { produto: Produto }) {
             />
           ) : (
             <>
-              <Form.Group className="mb-3" controlId="quantidade" style={{ maxWidth: 140 }}>
-                <Form.Label className="fw-semibold">Quantidade</Form.Label>
-                <Form.Control
-                  type="number"
-                  min={1}
-                  max={estoque || undefined}
-                  value={quantidade}
-                  onChange={(e) => setQuantidade(Math.max(1, Math.min(Number(e.target.value) || 1, estoque || 1)))}
+              <div className="mb-3">
+                <div className="fw-semibold mb-2" id="rotulo-quantidade">
+                  Quantidade
+                </div>
+                <SeletorQuantidade
+                  valor={quantidade}
+                  max={estoque || 1}
+                  onChange={(q) => setQuantidade(Math.max(1, Math.min(q, estoque || 1)))}
+                  rotulo="Quantidade"
                 />
                 {modeloSelecionado && estoque <= 5 && (
-                  <Form.Text className="text-danger">Restam apenas {estoque} unidade(s).</Form.Text>
+                  <div className="small text-danger mt-1">{estoque === 1 ? "Resta só 1 unidade." : `Restam só ${estoque} unidades.`}</div>
                 )}
-              </Form.Group>
+              </div>
 
               <div className="d-grid d-sm-flex gap-2 mb-3">
                 <Button className="btn-loja px-4" size="lg" onClick={() => adicionarAoCarrinho(true)} disabled={adicionar.isPending}>

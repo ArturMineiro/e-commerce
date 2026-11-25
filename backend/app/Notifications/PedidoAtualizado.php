@@ -73,13 +73,16 @@ class PedidoAtualizado extends Notification
                 $variacao = $item->variacao ? " ({$item->variacao})" : '';
                 $mensagem->line("{$item->quantidade}x {$item->nome_produto}{$variacao} — " . $this->real($item->subtotal));
             }
+            foreach ($p->promocoes ?? [] as $promocao) {
+                $mensagem->line("Promoção {$promocao['nome']}: -" . $this->real((float) $promocao['desconto']));
+            }
             if ($p->desconto > 0) {
                 $mensagem->line('Desconto' . ($p->cupom_codigo ? " ({$p->cupom_codigo})" : '') . ': -' . $this->real($p->desconto));
             }
             if ($p->desconto_pagamento > 0) {
                 $mensagem->line('Desconto no Pix: -' . $this->real($p->desconto_pagamento));
             }
-            $mensagem->line('Frete' . ($p->frete_servico ? " ({$p->frete_servico})" : '') . ': ' . ($p->frete > 0 ? $this->real($p->frete) : 'grátis'));
+            $mensagem->line('Frete' . ($p->frete_servico ? " ({$p->frete_servico})" : '') . ': ' . ($p->frete > 0 ? $this->real($p->frete) : ($p->frete_gratis_cupom ? 'grátis (cupom)' : 'grátis')));
             $mensagem->line('**Total: ' . $this->real($p->total) . '**');
             if ($p->tipo_entrega === 'retirada') {
                 $instrucoes = trim((string) Configuracao::obter('retirada_instrucoes'));

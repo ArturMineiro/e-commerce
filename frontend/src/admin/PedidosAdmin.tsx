@@ -174,6 +174,14 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
                 <td className="text-end">{formatarPreco(item.subtotal)}</td>
               </tr>
             ))}
+            {(pedido.promocoes ?? []).map((p) => (
+              <tr key={p.id} className="text-success">
+                <td colSpan={3} className="text-end">
+                  Promoção: {p.nome}
+                </td>
+                <td className="text-end">-{formatarPreco(p.desconto)}</td>
+              </tr>
+            ))}
             {pedido.desconto > 0 && (
               <tr className="text-success">
                 <td colSpan={3} className="text-end">

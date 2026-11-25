@@ -65,6 +65,8 @@ export interface Modelo {
 export interface Produto {
   id: number;
   nome: string;
+  /** promoção automática que vale para o produto (ex.: "Leve 2, pague 1") */
+  selo_promocao?: string | null;
   descricao: string | null;
   preco: number | null;
   desconto_percentual: number;
@@ -129,9 +131,26 @@ export interface FaixaEntrega {
   prazo_dias: number | null;
 }
 
+export interface PromocaoAplicada {
+  id: number;
+  nome: string;
+  desconto: number;
+}
+
+export interface DicaPromocao {
+  promocao_id: number;
+  nome: string;
+  faltam: number;
+  mensagem: string;
+}
+
 export interface Carrinho {
   itens: ItemCarrinho[];
   subtotal: number;
+  /** promoções automáticas (leve X pague Y...) já calculadas pelo servidor */
+  promocoes: PromocaoAplicada[];
+  desconto_promocao: number;
+  dicas_promocao: DicaPromocao[];
   /** null = depende do CEP (calculado no checkout) */
   frete: number | null;
   frete_modo: FreteModo;
@@ -146,18 +165,25 @@ export interface OpcaoFrete {
   prazo: number | null;
   tipo?: TipoEntrega;
   distancia_km?: number | null;
+  /** cupom de frete grátis: preço antes do cupom */
+  preco_original?: number;
+  frete_gratis_cupom?: boolean;
 }
 
 export interface Cupom {
   id: number;
   codigo: string;
-  tipo: "percentual" | "fixo";
+  tipo: "percentual" | "fixo" | "frete_gratis";
   valor: number;
   minimo_pedido: number;
   validade_ate: string | null;
   limite_usos: number | null;
   usos: number;
   ativo: boolean;
+  /** usos por cliente (null = sem limite) */
+  por_cliente: number | null;
+  primeira_compra: boolean;
+  categoria_ids: number[] | null;
 }
 
 export interface CupomAplicado {
@@ -165,6 +191,34 @@ export interface CupomAplicado {
   tipo: Cupom["tipo"];
   valor: number;
   desconto: number;
+  frete_gratis?: boolean;
+}
+
+export type TipoPromocao = "leve_pague" | "unidade_desconto" | "progressivo";
+
+export interface Promocao {
+  id: number;
+  nome: string;
+  tipo: TipoPromocao;
+  quantidade: number;
+  pague: number | null;
+  percentual: number | null;
+  escopo: "todos" | "categorias" | "produtos";
+  alvo_ids: number[] | null;
+  inicio: string | null;
+  fim: string | null;
+  ativo: boolean;
+  selo: string;
+  vigente: boolean;
+}
+
+export interface PromocaoVigente {
+  id: number;
+  nome: string;
+  selo: string;
+  escopo: Promocao["escopo"];
+  alvo_ids: number[];
+  fim: string | null;
 }
 
 export type StatusPedido =
@@ -231,6 +285,10 @@ export interface Pedido extends Omit<DadosEntrega, "cep" | "logradouro" | "numer
   pagamento_informado_em: string | null;
   /** desconto da forma de pagamento (ex.: Pix) */
   desconto_pagamento: number;
+  /** promoções automáticas aplicadas */
+  desconto_promocao?: number;
+  promocoes?: PromocaoAplicada[] | null;
+  frete_gratis_cupom?: boolean;
   /** até quando pagar; depois o pedido é cancelado e as peças voltam para a loja */
   pagar_ate: string | null;
   codigo_rastreio: string | null;

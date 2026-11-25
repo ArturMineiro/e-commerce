@@ -48,7 +48,15 @@ class Produto extends Model
         'promocao_ate' => 'datetime',
     ];
 
-    protected $appends = ['em_promocao', 'preco_base', 'preco_final', 'estoque_total'];
+    protected $appends = ['em_promocao', 'preco_base', 'preco_final', 'estoque_total', 'selo_promocao'];
+
+    /** Selo da promoção automática que vale para o produto (ex.: "Leve 2, pague 1"). */
+    public function getSeloPromocaoAttribute(): ?string
+    {
+        $promocao = Promocao::vigentesDaLoja()->first(fn (Promocao $p) => $p->valePara((int) $this->id, $this->categoria_id ? (int) $this->categoria_id : null));
+
+        return $promocao?->selo;
+    }
 
     public function categoria()
     {

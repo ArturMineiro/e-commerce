@@ -81,11 +81,12 @@ class StripeService
         ))->values()->all();
 
         // Com cupom, a Stripe não aceita item negativo: vai um item único com o valor já descontado.
-        if ($pedido->desconto > 0) {
+        $descontos = (float) $pedido->desconto + (float) $pedido->desconto_promocao;
+        if ($descontos > 0) {
             $quantidade = (int) $pedido->itens->sum('quantidade');
             $itens = [$linha(
-                "Pedido #{$pedido->id} ({$quantidade} itens, cupom {$pedido->cupom_codigo})",
-                round($pedido->subtotal - $pedido->desconto, 2),
+                "Pedido #{$pedido->id} ({$quantidade} itens, com desconto" . ($pedido->cupom_codigo ? " do cupom {$pedido->cupom_codigo}" : '') . ')',
+                round($pedido->subtotal - $descontos, 2),
                 1
             )];
         }

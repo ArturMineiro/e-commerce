@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { Button, Card, Col, Container, Form, ProgressBar, Row } from "react-bootstrap";
+import { Button, Card, Col, Container, ProgressBar, Row } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { FaTrash, FaTruckFast } from "react-icons/fa6";
+import { FaTags, FaTrash, FaTruckFast } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import { useAtualizarItemCarrinho, useCarrinho, useConfigLoja, useRemoverItemCarrinho } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import SeletorQuantidade from "../components/SeletorQuantidade";
 import { Carregando } from "../components/Ui";
 import { formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
-import type { ItemCarrinho } from "../types";
+import type { ItemCarrinho, PromocaoAplicada } from "../types";
 import { useTituloPagina } from "../lib/titulo";
 
 export function ResumoValores({
@@ -18,6 +19,8 @@ export function ResumoValores({
   desconto = 0,
   descontoPix = 0,
   cupom,
+  promocoes = [],
+  freteGratisCupom = false,
   textoFretePendente = "Calculado no checkout",
 }: {
   subtotal: number;
@@ -26,6 +29,8 @@ export function ResumoValores({
   desconto?: number;
   descontoPix?: number;
   cupom?: string | null;
+  promocoes?: PromocaoAplicada[];
+  freteGratisCupom?: boolean;
   textoFretePendente?: string;
 }) {
   return (
@@ -34,6 +39,15 @@ export function ResumoValores({
         <dt className="fw-normal">Subtotal</dt>
         <dd className="mb-1">{formatarPreco(subtotal)}</dd>
       </div>
+      {promocoes.map((p) => (
+        <div key={p.id} className="d-flex justify-content-between text-success gap-2">
+          <dt className="fw-normal">
+            <FaTags className="me-1" aria-hidden />
+            {p.nome}
+          </dt>
+          <dd className="mb-1 text-nowrap">-{formatarPreco(p.desconto)}</dd>
+        </div>
+      ))}
       {desconto > 0 && (
         <div className="d-flex justify-content-between text-success">
           <dt className="fw-normal">Desconto{cupom && ` (${cupom})`}</dt>
@@ -54,7 +68,7 @@ export function ResumoValores({
           ) : frete > 0 ? (
             formatarPreco(frete)
           ) : (
-            <span className="text-success">Grátis</span>
+            <span className="text-success">{freteGratisCupom ? "Grátis (cupom)" : "Grátis"}</span>
           )}
         </dd>
       </div>
@@ -80,38 +94,41 @@ function LinhaItem({ item, onRemover }: { item: ItemCarrinho; onRemover: (item: 
   };
 
   return (
-    <div className="d-flex gap-3 py-3 border-bottom align-items-center">
-      <Link to={`/produto/${item.produto.id}`}>
+    <div className="linha-carrinho">
+      <Link to={`/produto/${item.produto.id}`} className="flex-shrink-0">
         <img src={imagemUrl(item.produto.imagens?.[0])} alt={item.produto.nome} className="miniatura-carrinho" />
       </Link>
-      <div className="flex-grow-1">
-        <Link to={`/produto/${item.produto.id}`} className="text-reset fw-semibold text-decoration-none">
-          {item.produto.nome}
-        </Link>
-        {item.variacao && <div className="small text-muted">{item.variacao}</div>}
-        <div className="small">{formatarPreco(item.preco_unitario)} cada</div>
+      <div className="flex-grow-1" style={{ minWidth: 0 }}>
+        <div className="d-flex justify-content-between align-items-start gap-2">
+          <div style={{ minWidth: 0 }}>
+            <Link to={`/produto/${item.produto.id}`} className="text-reset fw-semibold text-decoration-none linha-carrinho-nome">
+              {item.produto.nome}
+            </Link>
+            {item.variacao && <div className="small text-muted">{item.variacao}</div>}
+          </div>
+          <Button variant="link" className="text-danger p-1 flex-shrink-0" onClick={() => onRemover(item)} aria-label={`Remover ${item.produto.nome}`}>
+            <FaTrash />
+          </Button>
+        </div>
+        <div className="d-flex justify-content-between align-items-center gap-2 mt-2">
+          <SeletorQuantidade
+            valor={item.quantidade}
+            max={item.estoque}
+            onChange={alterarQuantidade}
+            disabled={atualizar.isPending}
+            rotulo={`Quantidade de ${item.produto.nome}`}
+          />
+          <div className="text-end">
+            <div className="fw-semibold">{formatarPreco(item.subtotal)}</div>
+            {item.quantidade > 1 && <div className="small text-muted">{formatarPreco(item.preco_unitario)} cada</div>}
+          </div>
+        </div>
         {item.quantidade > item.estoque && (
-          <div className="small text-danger">Apenas {item.estoque} disponível(is). Ajuste a quantidade.</div>
+          <div className="small text-danger mt-1">
+            {item.estoque === 1 ? "Só 1 disponível." : `Só ${item.estoque} disponíveis.`} Ajuste a quantidade.
+          </div>
         )}
       </div>
-      <Form.Control
-        type="number"
-        min={1}
-        max={item.estoque}
-        defaultValue={item.quantidade}
-        key={item.quantidade}
-        onBlur={(e) => alterarQuantidade(Number(e.target.value))}
-        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-        style={{ width: 80 }}
-        aria-label={`Quantidade de ${item.produto.nome}`}
-        disabled={atualizar.isPending}
-      />
-      <div className="text-end fw-semibold" style={{ minWidth: 90 }}>
-        {formatarPreco(item.subtotal)}
-      </div>
-      <Button variant="link" className="text-danger" onClick={() => onRemover(item)} aria-label={`Remover ${item.produto.nome}`}>
-        <FaTrash />
-      </Button>
     </div>
   );
 }
@@ -152,7 +169,7 @@ function CarrinhoPage() {
 
   const temProblemaEstoque = carrinho.itens.some((i) => i.quantidade > i.estoque);
   const faltaParaFreteGratis =
-    config && config.frete_gratis_acima > 0 ? config.frete_gratis_acima - carrinho.subtotal : 0;
+    config && config.frete_gratis_acima > 0 ? config.frete_gratis_acima - (carrinho.subtotal - carrinho.desconto_promocao) : 0;
 
   return (
     <Container className="py-4">
@@ -171,7 +188,18 @@ function CarrinhoPage() {
           <Card className="shadow-sm border-0">
             <Card.Body>
               <h2 className="h5">Resumo</h2>
-              <ResumoValores {...carrinho} />
+              {carrinho.dicas_promocao.map((d) => (
+                <div key={d.promocao_id} className="dica-promocao small mb-3" role="status">
+                  <FaTags className="me-1" aria-hidden />
+                  {d.mensagem}
+                </div>
+              ))}
+              <ResumoValores
+                subtotal={carrinho.subtotal}
+                frete={carrinho.frete}
+                total={carrinho.total}
+                promocoes={carrinho.promocoes}
+              />
               {config && config.frete_gratis_acima > 0 && (
                 <div className="frete-gratis-progresso mt-3" aria-live="polite">
                   {faltaParaFreteGratis > 0 ? (
@@ -181,7 +209,7 @@ function CarrinhoPage() {
                         Faltam <strong>{formatarPreco(faltaParaFreteGratis)}</strong> para o frete grátis
                       </div>
                       <ProgressBar
-                        now={Math.min(100, (carrinho.subtotal / config.frete_gratis_acima) * 100)}
+                        now={Math.min(100, ((carrinho.subtotal - carrinho.desconto_promocao) / config.frete_gratis_acima) * 100)}
                         aria-label="Quanto falta para o frete grátis"
                       />
                     </>

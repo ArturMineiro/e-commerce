@@ -50,7 +50,8 @@ function ProdutoCard({ produto }: { produto: Produto }) {
               -{Math.round(produto.desconto_percentual)}%
             </Badge>
           )}
-          {produto.destaque && !produto.em_promocao && (
+          {produto.selo_promocao && <span className="selo-promocao">{produto.selo_promocao}</span>}
+          {produto.destaque && !produto.em_promocao && !produto.selo_promocao && (
             <Badge bg="dark" className="px-2 py-1">
               Destaque
             </Badge>

@@ -7,6 +7,7 @@ import type {
   ConfigAdmin,
   Cor,
   Cupom,
+  Promocao,
   Dashboard,
   Especificacao,
   GradeTamanho,
@@ -354,5 +355,40 @@ export const useExcluirCupom = () => {
   return useMutation({
     mutationFn: (id: number) => api.delete(`/admin/cupons/${id}`),
     onSuccess: () => invalidar(["admin", "cupons"]),
+  });
+};
+/* ---------- Promoções ---------- */
+
+export const usePromocoes = () =>
+  useQuery({
+    queryKey: ["admin", "promocoes"],
+    queryFn: async () => (await api.get<Promocao[]>("/admin/promocoes")).data,
+  });
+
+export const useSalvarPromocao = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: ({ id, ...dados }: Partial<Promocao>) =>
+      id ? api.put<Promocao>(`/admin/promocoes/${id}`, dados) : api.post<Promocao>("/admin/promocoes", dados),
+    // o selo aparece nos produtos e o desconto no carrinho
+    onSuccess: () => invalidar(["admin", "promocoes"], ["produtos"], ["produto"], ["carrinho"], ["promocoes"]),
+  });
+};
+
+export const useExcluirPromocao = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/promocoes/${id}`),
+    onSuccess: () => invalidar(["admin", "promocoes"], ["produtos"], ["produto"], ["carrinho"], ["promocoes"]),
+  });
+};
+
+/** Mesmo desconto (%) e prazo para vários produtos; 0% tira da promoção. */
+export const usePromocaoProdutos = () => {
+  const invalidar = useInvalidar();
+  return useMutation({
+    mutationFn: (dados: { produto_ids: number[]; desconto_percentual: number; promocao_ate: string | null }) =>
+      api.post<{ atualizados: number }>("/admin/promocoes/produtos", dados),
+    onSuccess: () => invalidar(["admin", "produtos"], ["produtos"], ["produto"], ["carrinho"]),
   });
 };

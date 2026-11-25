@@ -11,7 +11,11 @@ class Cupom extends Model
 
     protected $fillable = [
         'codigo', 'tipo', 'valor', 'minimo_pedido', 'validade_ate', 'limite_usos', 'usos', 'ativo',
+        'por_cliente', 'primeira_compra', 'categoria_ids',
     ];
+
+    /** percentual (% dos produtos) | fixo (R$) | frete_gratis (zera o frete de envio/entrega) */
+    public const TIPOS = ['percentual', 'fixo', 'frete_gratis'];
 
     protected $casts = [
         'valor' => 'float',
@@ -20,6 +24,9 @@ class Cupom extends Model
         'limite_usos' => 'integer',
         'usos' => 'integer',
         'ativo' => 'boolean',
+        'por_cliente' => 'integer',
+        'primeira_compra' => 'boolean',
+        'categoria_ids' => 'array',
     ];
 
     public function setCodigoAttribute($valor): void
@@ -53,9 +60,12 @@ class Cupom extends Model
         return null;
     }
 
-    /** Valor do desconto aplicado ao subtotal (nunca maior que o subtotal). */
+    /** Valor do desconto sobre os produtos (nunca maior que eles). Frete grátis não desconta dos produtos. */
     public function calcularDesconto(float $subtotal): float
     {
+        if ($this->tipo === 'frete_gratis' || $subtotal <= 0) {
+            return 0.0;
+        }
         $desconto = $this->tipo === 'fixo' ? $this->valor : $subtotal * ($this->valor / 100);
 
         return round(min($desconto, $subtotal), 2);

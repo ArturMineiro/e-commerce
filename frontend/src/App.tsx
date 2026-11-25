@@ -35,6 +35,7 @@ const Categorias = lazy(() => import("./admin/Categorias"));
 const Cores = lazy(() => import("./admin/Cores"));
 const Banners = lazy(() => import("./admin/Banners"));
 const Cupons = lazy(() => import("./admin/Cupons"));
+const Promocoes = lazy(() => import("./admin/Promocoes"));
 const AvaliacoesAdmin = lazy(() => import("./admin/Avaliacoes"));
 const PedidosAdmin = lazy(() => import("./admin/PedidosAdmin"));
 const Usuarios = lazy(() => import("./admin/Usuarios"));
@@ -125,6 +126,7 @@ function App() {
               <Route path="categorias" element={<Categorias />} />
               <Route path="cores" element={<Cores />} />
               <Route path="banners" element={<Banners />} />
+              <Route path="promocoes" element={<Promocoes />} />
               <Route path="cupons" element={<Cupons />} />
               <Route path="avaliacoes" element={<AvaliacoesAdmin />} />
               <Route path="usuarios" element={<Usuarios />} />

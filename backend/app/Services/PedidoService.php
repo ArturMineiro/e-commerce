@@ -24,7 +24,12 @@ use Illuminate\Validation\ValidationException;
  */
 class PedidoService
 {
-    public function __construct(private FreteService $frete, private PixService $pix, private AvisoEstoqueService $avisos)
+    public function __construct(
+        private FreteService $frete,
+        private PixService $pix,
+        private AvisoEstoqueService $avisos,
+        private DescontosService $descontos
+    )
     {
     }
 
@@ -61,26 +66,22 @@ class PedidoService
      * Valida o cupom para o subtotal informado.
      * @return array{0: ?Cupom, 1: float} cupom e desconto
      */
-    public function aplicarCupom(?string $codigo, float $subtotal, bool $bloquear = false): array
+    /** Promoções e cupom do carrinho (ver DescontosService). */
+    public function descontosDoCarrinho(User $user, ?string $cupom = null): array
     {
-        if (!trim((string) $codigo)) {
-            return [null, 0.0];
-        }
-
-        $query = Cupom::where('codigo', mb_strtoupper(trim($codigo)));
-        $cupom = ($bloquear ? $query->lockForUpdate() : $query)->first();
-
-        if (!$cupom) {
-            throw ValidationException::withMessages(['cupom' => 'Cupom não encontrado.']);
-        }
-        if ($motivo = $cupom->motivoInvalido($subtotal)) {
-            throw ValidationException::withMessages(['cupom' => $motivo]);
-        }
-
-        return [$cupom, $cupom->calcularDesconto($subtotal)];
+        return $this->descontos->calcular($this->itensDoCarrinho($user), $cupom, $user);
     }
 
-    /** Opções de frete para o carrinho atual (já considera cupom para o "frete grátis acima de"). */
+    /** Cupom de frete grátis: zera o envio e a entrega local (a retirada já é grátis). */
+    private function aplicarFreteGratis(array $opcao): array
+    {
+        if (($opcao['tipo'] ?? 'envio') === 'retirada' || (float) $opcao['preco'] <= 0) {
+            return $opcao;
+        }
+
+        return array_merge($opcao, ['preco' => 0.0, 'preco_original' => (float) $opcao['preco'], 'frete_gratis_cupom' => true]);
+    }
+
     public function cotarFrete(User $user, string $cep, ?string $cupom = null): array
     {
         $itens = $this->itensDoCarrinho($user);
@@ -88,10 +89,10 @@ class PedidoService
             throw ValidationException::withMessages(['carrinho' => 'Seu carrinho está vazio.']);
         }
 
-        $subtotal = round($itens->sum('subtotal'), 2);
-        [, $desconto] = $this->aplicarCupom($cupom, $subtotal);
+        $d = $this->descontos->calcular($itens, $cupom, $user);
+        $opcoes = $this->frete->cotar($cep, $itens, $d['subtotal'] - $d['desconto_promocao'] - $d['desconto_cupom']);
 
-        return $this->frete->cotar($cep, $itens, $subtotal - $desconto);
+        return $d['frete_gratis'] ? array_map(fn ($o) => $this->aplicarFreteGratis($o), $opcoes) : $opcoes;
     }
 
     /**
@@ -110,7 +111,8 @@ class PedidoService
             throw ValidationException::withMessages(['carrinho' => 'Seu carrinho está vazio.']);
         }
         $subtotalPrevia = round($previa->sum('subtotal'), 2);
-        [, $descontoPrevia] = $this->aplicarCupom($codigoCupom, $subtotalPrevia);
+        $d = $this->descontos->calcular($previa, $codigoCupom, $user);
+        $descontoPrevia = $d['desconto_promocao'] + $d['desconto_cupom'];
 
         // Loja só com frete fixo: não precisa escolher. Com entrega local, Melhor Envio ou retirada, sim.
         $servico = $servicoFrete !== null && $servicoFrete !== '' ? (string) $servicoFrete : null;
@@ -121,6 +123,9 @@ class PedidoService
             throw ValidationException::withMessages(['frete_servico_id' => 'Escolha uma opção de entrega.']);
         }
         $opcaoFrete = $this->frete->opcaoEscolhida($dados['cep'] ?? null, $servico, $previa, $subtotalPrevia - $descontoPrevia);
+        if ($d['frete_gratis']) {
+            $opcaoFrete = $this->aplicarFreteGratis($opcaoFrete);
+        }
 
         // 2) Transação: revalida tudo com os registros bloqueados.
         // Libera as peças de pedidos que passaram do prazo de pagamento antes de conferir o estoque
@@ -173,16 +178,22 @@ class PedidoService
                 throw ValidationException::withMessages(['carrinho' => 'Seu carrinho mudou. Revise os valores e tente novamente.']);
             }
 
-            [$cupom, $desconto] = $this->aplicarCupom($codigoCupom, $subtotal, true);
+            $calculo = $this->descontos->calcular($itens, $codigoCupom, $user, true);
+            $cupom = $calculo['cupom'];
+            $desconto = $calculo['desconto_cupom'];
+            $descontoPromocao = $calculo['desconto_promocao'];
             if ($cupom) {
                 $cupom->increment('usos');
             }
-            $descontoPagamento = $this->descontoPagamento($dados['forma_pagamento'] ?? null, $subtotal - $desconto);
+            $descontoPagamento = $this->descontoPagamento($dados['forma_pagamento'] ?? null, $subtotal - $descontoPromocao - $desconto);
 
             $pedido = Pedido::create(array_merge($dados, [
                 'user_id' => $user->id,
                 'status' => 'aguardando_pagamento',
                 'subtotal' => $subtotal,
+                'desconto_promocao' => $descontoPromocao,
+                'promocoes' => $calculo['promocoes'] ?: null,
+                'frete_gratis_cupom' => !empty($opcaoFrete['frete_gratis_cupom']),
                 'cupom_id' => $cupom->id ?? null,
                 'cupom_codigo' => $cupom->codigo ?? null,
                 'desconto' => $desconto,
@@ -192,7 +203,7 @@ class PedidoService
                 'frete_prazo' => $opcaoFrete['prazo'],
                 'tipo_entrega' => $opcaoFrete['tipo'] ?? 'envio',
                 'distancia_km' => $opcaoFrete['distancia_km'] ?? null,
-                'total' => round($subtotal - $desconto - $descontoPagamento + $opcaoFrete['preco'], 2),
+                'total' => round($subtotal - $descontoPromocao - $desconto - $descontoPagamento + $opcaoFrete['preco'], 2),
             ]));
 
             $pedido->itens()->createMany($linhas);
@@ -456,8 +467,9 @@ class PedidoService
     {
         $pedido->forma_pagamento = $forma;
         $pedido->pagamento_informado_em = null;
-        $pedido->desconto_pagamento = $this->descontoPagamento($forma, $pedido->subtotal - $pedido->desconto);
-        $pedido->total = round($pedido->subtotal - $pedido->desconto - $pedido->desconto_pagamento + $pedido->frete, 2);
+        $baseProdutos = $pedido->subtotal - $pedido->desconto_promocao - $pedido->desconto;
+        $pedido->desconto_pagamento = $this->descontoPagamento($forma, $baseProdutos);
+        $pedido->total = round($baseProdutos - $pedido->desconto_pagamento + $pedido->frete, 2);
         $pedido->save();
 
         return $pedido;
