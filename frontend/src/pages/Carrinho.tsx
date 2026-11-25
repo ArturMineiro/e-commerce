@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Alert, Button, Card, Col, Container, Form, Row } from "react-bootstrap";
+import { Button, Card, Col, Container, Form, ProgressBar, Row } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { FaTrash } from "react-icons/fa6";
+import { FaTrash, FaTruckFast } from "react-icons/fa6";
 import { useAuth } from "../hooks/AuthContext";
 import { useAtualizarItemCarrinho, useCarrinho, useConfigLoja, useRemoverItemCarrinho } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
@@ -172,10 +172,26 @@ function CarrinhoPage() {
             <Card.Body>
               <h2 className="h5">Resumo</h2>
               <ResumoValores {...carrinho} />
-              {faltaParaFreteGratis > 0 && carrinho.frete !== 0 && (
-                <Alert variant="info" className="small mt-3 mb-0 py-2">
-                  Faltam {formatarPreco(faltaParaFreteGratis)} para ganhar frete grátis!
-                </Alert>
+              {config && config.frete_gratis_acima > 0 && (
+                <div className="frete-gratis-progresso mt-3" aria-live="polite">
+                  {faltaParaFreteGratis > 0 ? (
+                    <>
+                      <div className="small mb-1">
+                        <FaTruckFast className="me-1" aria-hidden />
+                        Faltam <strong>{formatarPreco(faltaParaFreteGratis)}</strong> para o frete grátis
+                      </div>
+                      <ProgressBar
+                        now={Math.min(100, (carrinho.subtotal / config.frete_gratis_acima) * 100)}
+                        aria-label="Quanto falta para o frete grátis"
+                      />
+                    </>
+                  ) : (
+                    <div className="small text-success fw-semibold">
+                      <FaTruckFast className="me-1" aria-hidden />
+                      Você ganhou frete grátis!
+                    </div>
+                  )}
+                </div>
               )}
               <Button
                 className="btn-loja w-100 mt-3"

@@ -1244,3 +1244,11 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5,
 .avaliacoes-produto {
   scroll-margin-top: 110px;
 }
+
+/* Carrinho: quanto falta para o frete grátis */
+.frete-gratis-progresso .progress {
+  height: 8px;
+}
+.frete-gratis-progresso .progress-bar {
+  background-color: var(--cor-primaria);
+}
