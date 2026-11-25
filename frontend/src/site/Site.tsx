@@ -5,6 +5,7 @@ import Cabecalho from "./Cabecalho";
 import Landing from "./Landing";
 import { MARCA } from "./marca";
 import "./site.css";
+import ScrollParaTopo from "../components/ScrollParaTopo";
 
 const CriarLoja = lazy(() => import("./CriarLoja"));
 const Entrar = lazy(() => import("./Entrar"));
@@ -35,6 +36,7 @@ function Site() {
 
   return (
     <Suspense fallback={<div className="s-pagina-simples" aria-busy="true" />}>
+      <ScrollParaTopo />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/criar-loja" element={<CriarLoja />} />

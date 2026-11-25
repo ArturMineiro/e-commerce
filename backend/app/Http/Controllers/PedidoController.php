@@ -134,7 +134,7 @@ class PedidoController extends Controller
 
     private function resumoPagamento(Pedido $pedido): array
     {
-        return $pedido->only(['id', 'status', 'total', 'forma_pagamento', 'pago_em', 'pagamento_informado_em', 'created_at']);
+        return $pedido->only(['id', 'status', 'total', 'forma_pagamento', 'pago_em', 'pagamento_informado_em', 'pagar_ate', 'created_at']);
     }
 
     /**
@@ -185,6 +185,9 @@ class PedidoController extends Controller
 
     public function adminIndex(Request $request)
     {
+        // Sem depender do agendador do servidor: ao abrir os pedidos, os vencidos já são cancelados
+        $this->pedidos->expirarPendentes();
+
         $query = Pedido::with(['itens', 'user:id,name,email'])->orderByDesc('id');
 
         if ($status = $request->query('status')) {

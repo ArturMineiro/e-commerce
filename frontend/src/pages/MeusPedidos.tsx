@@ -5,7 +5,7 @@ import { useConfigLoja, useMeusPedidos, usePagarPedido } from "../hooks/useLoja"
 import { useToast } from "../components/Toast";
 import { Carregando, StatusBadge } from "../components/Ui";
 import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
-import { linkWhatsapp } from "../lib/utils";
+import { formatarPrazo, linkWhatsapp } from "../lib/utils";
 import type { FormaPagamentoId, Pedido } from "../types";
 
 const NOME_FORMA: Record<FormaPagamentoId, string> = {
@@ -112,6 +112,12 @@ function DetalhePedido({ pedido }: { pedido: Pedido }) {
       {pedido.status === "aguardando_pagamento" && pedido.pagamento_informado_em && (
         <Alert variant="success" className="mt-3 mb-0 py-2 small d-flex gap-2 align-items-center">
           <FaClock aria-hidden /> Você avisou que pagou o Pix. A loja vai conferir e confirmar o pedido.
+        </Alert>
+      )}
+
+      {pedido.status === "aguardando_pagamento" && pedido.pagar_ate && (
+        <Alert variant="warning" className="mt-3 mb-0 py-2 small d-flex gap-2 align-items-center">
+          <FaClock aria-hidden /> Pague até {formatarPrazo(pedido.pagar_ate)} para garantir as peças. Depois disso o pedido é cancelado.
         </Alert>
       )}
 

@@ -15,7 +15,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Pedidos não pagos no prazo são cancelados e as peças voltam ao estoque
+        $schedule->command('pedidos:expirar')->hourly()->withoutOverlapping();
     }
 
     /**

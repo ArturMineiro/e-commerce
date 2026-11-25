@@ -123,8 +123,13 @@ class PedidoService
         $opcaoFrete = $this->frete->opcaoEscolhida($dados['cep'] ?? null, $servico, $previa, $subtotalPrevia - $descontoPrevia);
 
         // 2) Transação: revalida tudo com os registros bloqueados.
+        // Libera as peças de pedidos que passaram do prazo de pagamento antes de conferir o estoque
+        $this->expirarPendentes();
+
         $pedido = DB::transaction(function () use ($user, $dados, $codigoCupom, $opcaoFrete, $subtotalPrevia) {
             $itens = $this->itensDoCarrinho($user, true);
+            // Trava o estoque das peças: duas compras ao mesmo tempo não levam a mesma última peça
+            $estoques = $this->bloquearEstoque($itens);
             $linhas = [];
 
             foreach ($itens as $item) {
@@ -137,11 +142,16 @@ class PedidoService
                 if ($produto->modelos->isNotEmpty() && !$modelo) {
                     throw ValidationException::withMessages(['carrinho' => "Escolha a variação (cor/tamanho) de \"{$produto->nome}\"."]);
                 }
-                if ($item->quantidade > $item->estoque) {
+                $chave = $modelo ? "m{$modelo->id}" : "p{$produto->id}";
+                $disponivel = $estoques[$chave] ?? 0;
+                if ($item->quantidade > $disponivel) {
                     throw ValidationException::withMessages([
-                        'carrinho' => "Estoque insuficiente para \"{$produto->nome}\" (disponível: {$item->estoque}).",
+                        'carrinho' => $disponivel > 0
+                            ? "Estoque insuficiente para \"{$produto->nome}\" (disponível: {$disponivel})."
+                            : "\"{$produto->nome}\"" . ($modelo && $modelo->descricao() ? " ({$modelo->descricao()})" : '') . ' acabou de esgotar.',
                     ]);
                 }
+                $estoques[$chave] = $disponivel - $item->quantidade;
                 if ($item->preco_unitario <= 0) {
                     throw ValidationException::withMessages(['carrinho' => "O produto \"{$produto->nome}\" está sem preço definido."]);
                 }
@@ -185,6 +195,10 @@ class PedidoService
 
             $pedido->itens()->createMany($linhas);
             Carrinho::where('user_id', $user->id)->delete();
+
+            // As peças ficam reservadas para este pedido (voltam se ele for cancelado ou expirar)
+            $this->baixarEstoque($pedido);
+            $pedido->save();
 
             return $pedido->load('itens');
         });
@@ -326,15 +340,15 @@ class PedidoService
             return $pedido;
         }
 
-        if (in_array($status, Pedido::STATUS_PAGOS, true)) {
-            if (!$pedido->pago_em) {
-                $pedido->pago_em = now();
-            }
-            $this->baixarEstoque($pedido);
+        if (in_array($status, Pedido::STATUS_PAGOS, true) && !$pedido->pago_em) {
+            $pedido->pago_em = now();
         }
 
-        if (in_array($status, ['cancelado', 'aguardando_pagamento'], true)) {
+        // Pedido em aberto ou pago segura as peças; cancelado devolve
+        if ($status === 'cancelado') {
             $this->devolverEstoque($pedido);
+        } else {
+            $this->baixarEstoque($pedido);
         }
 
         if ($status === 'cancelado') {
@@ -393,6 +407,63 @@ class PedidoService
         } catch (\Throwable $e) {
             Log::error('Falha ao enviar e-mail', ['para' => $email, 'erro' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Cancela os pedidos da loja atual que passaram do prazo de pagamento, devolvendo as peças.
+     * Não mexe em pedidos em que o cliente avisou que pagou (a loja confere) nem nos "a combinar".
+     *
+     * @return int quantos pedidos foram cancelados
+     */
+    public function expirarPendentes(): int
+    {
+        $cancelados = 0;
+
+        Pedido::where('status', 'aguardando_pagamento')
+            ->whereNull('pagamento_informado_em')
+            ->whereNotNull('forma_pagamento')
+            ->where('forma_pagamento', '!=', 'combinar')
+            ->where('created_at', '<', now()->subHours(max(1, (int) Configuracao::obter('pedido_expira_horas', 24))))
+            ->orderBy('id')
+            ->limit(200)
+            ->get()
+            ->each(function (Pedido $pedido) use (&$cancelados) {
+                $horas = Pedido::horasParaPagar($pedido->forma_pagamento);
+                if ($horas <= 0 || $pedido->created_at->copy()->addHours($horas)->isFuture()) {
+                    return;
+                }
+
+                DB::transaction(function () use ($pedido) {
+                    $this->cancelar($pedido);
+                    $pedido->save();
+                });
+                $this->enviarEmails($pedido, 'expirado');
+                $cancelados++;
+            });
+
+        return $cancelados;
+    }
+
+    /** Quantidade em estoque de cada peça do carrinho, com as linhas travadas até o fim da transação. */
+    private function bloquearEstoque(Collection $itens): array
+    {
+        $estoques = [];
+
+        $modelos = $itens->pluck('modelo.id')->filter()->unique()->values();
+        if ($modelos->isNotEmpty()) {
+            foreach (Modelo::whereKey($modelos)->orderBy('id')->lockForUpdate()->get(['id', 'quantidade']) as $modelo) {
+                $estoques["m{$modelo->id}"] = (int) $modelo->quantidade;
+            }
+        }
+
+        $produtos = $itens->filter(fn ($item) => !$item->modelo)->pluck('produto.id')->unique()->values();
+        if ($produtos->isNotEmpty()) {
+            foreach (Produto::whereKey($produtos)->orderBy('id')->lockForUpdate()->get(['id', 'quantidade']) as $produto) {
+                $estoques["p{$produto->id}"] = (int) $produto->quantidade;
+            }
+        }
+
+        return $estoques;
     }
 
     private function ajustarUsoCupom(Pedido $pedido, int $delta): void

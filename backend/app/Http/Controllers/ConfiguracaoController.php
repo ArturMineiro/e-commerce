@@ -93,6 +93,7 @@ class ConfiguracaoController extends Controller
             'frete_gratis_acima' => 'nullable|numeric|min:0',
             'frete_modo' => 'nullable|in:fixo,melhor_envio,nenhum',
             'frete_fixo_nome' => 'nullable|string|max:60',
+            'pedido_expira_horas' => 'nullable|integer|min:0|max:168',
             'frete_fixo_prazo' => 'nullable|integer|min:0|max:90',
 
             // Entrega local por distância e retirada na loja

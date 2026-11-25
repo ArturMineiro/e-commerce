@@ -428,6 +428,60 @@ function CartaoMercadoPago({ config }: { config: ConfigAdmin }) {
   );
 }
 
+const PRAZOS_PAGAMENTO = [
+  { valor: "6", texto: "6 horas" },
+  { valor: "12", texto: "12 horas" },
+  { valor: "24", texto: "24 horas (recomendado)" },
+  { valor: "48", texto: "2 dias" },
+  { valor: "72", texto: "3 dias" },
+  { valor: "0", texto: "Nunca cancelar sozinho" },
+];
+
+/** Por quanto tempo o pedido segura as peças esperando o pagamento. */
+function CartaoPrazo({ config }: { config: ConfigAdmin }) {
+  const salvar = useSalvarConfigJson();
+  const notificar = useToast();
+  const [horas, setHoras] = useState(config.pedido_expira_horas || "24");
+
+  return (
+    <Card className="border-0 shadow-sm">
+      <Card.Body>
+        <h2 className="h5 mb-1">Prazo para pagar</h2>
+        <p className="small text-muted">
+          Quando o cliente fecha o pedido, as peças ficam reservadas para ele. Se o pagamento não chegar no prazo, o pedido é
+          cancelado sozinho e as peças voltam para a loja. Quem tocou em “Já paguei” e os pedidos a combinar não são cancelados.
+        </p>
+        <div className="d-flex gap-2 flex-wrap align-items-center">
+          <Form.Select
+            value={horas}
+            onChange={(e) => setHoras(e.target.value)}
+            aria-label="Prazo para pagar"
+            style={{ maxWidth: 260 }}
+          >
+            {PRAZOS_PAGAMENTO.map((p) => (
+              <option key={p.valor} value={p.valor}>
+                {p.texto}
+              </option>
+            ))}
+          </Form.Select>
+          <Button
+            variant="outline-secondary"
+            disabled={salvar.isPending || horas === (config.pedido_expira_horas || "24")}
+            onClick={() =>
+              salvar.mutate(
+                { pedido_expira_horas: Number(horas) },
+                { onSuccess: () => notificar("Prazo salvo!"), onError: (erro) => notificar(mensagemErro(erro), "danger") }
+              )
+            }
+          >
+            {salvar.isPending ? "Salvando..." : "Salvar prazo"}
+          </Button>
+        </div>
+      </Card.Body>
+    </Card>
+  );
+}
+
 function Pagamentos() {
   const { data: config, isLoading } = useConfigAdmin();
 
@@ -448,7 +502,10 @@ function Pagamentos() {
       </p>
       <Row className="g-4">
         <Col xl={6}>
-          <CartaoPix config={config} />
+          <div className="d-grid gap-4">
+            <CartaoPix config={config} />
+            <CartaoPrazo config={config} />
+          </div>
         </Col>
         <Col xl={6}>
           <div className="d-grid gap-4">

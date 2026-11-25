@@ -35,6 +35,8 @@ class PedidoAtualizado extends Notification
             'enviado' => ["Seu pedido #{$p->id} foi enviado", 'Boa notícia: seu pedido já está a caminho!'],
             'entregue' => ["Pedido #{$p->id} entregue", 'Seu pedido foi entregue. Esperamos que goste!'],
             'cancelado' => ["Pedido #{$p->id} cancelado", 'Seu pedido foi cancelado. Se tiver dúvidas, responda este e-mail ou fale com a loja.'],
+            'expirado' => ["Pedido #{$p->id} cancelado por falta de pagamento", 'Não identificamos o pagamento do seu pedido dentro do prazo, então ele foi cancelado e as peças voltaram para a loja. '
+                . 'Se você já pagou, responda este e-mail ou fale com a loja que resolvemos.'],
             default => ["Atualização do pedido #{$p->id}", 'Seu pedido foi atualizado.'],
         };
 

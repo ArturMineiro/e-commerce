@@ -22,6 +22,7 @@ import EsqueciSenha from "./pages/EsqueciSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import { useConfigLoja } from "./hooks/useLoja";
 import { urlPlataforma } from "./lib/loja";
+import ScrollParaTopo from "./components/ScrollParaTopo";
 
 // O painel só é baixado por quem acessa /admin
 const AdminLayout = lazy(() => import("./admin/AdminLayout"));
@@ -96,6 +97,7 @@ function App() {
 
   return (
     <>
+      <ScrollParaTopo />
       <TemaLoja />
       <a href="#conteudo" className="visually-hidden-focusable position-absolute p-2 bg-white">
         Pular para o conteúdo

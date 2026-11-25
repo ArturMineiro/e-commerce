@@ -6,7 +6,7 @@ import { useAtualizarPedido, usePedidosAdmin } from "../hooks/useAdmin";
 import { useToast } from "../components/Toast";
 import { Carregando, STATUS_PEDIDO, StatusBadge } from "../components/Ui";
 import { formatarData, formatarPreco, imagemUrl, mensagemErro } from "../lib/api";
-import { linkWhatsapp } from "../lib/utils";
+import { formatarPrazo, linkWhatsapp } from "../lib/utils";
 import type { FormaPagamentoId, Pedido, StatusPedido } from "../types";
 
 const FORMAS: Record<FormaPagamentoId, string> = {
@@ -130,6 +130,11 @@ function DetalhePedido({ pedido, onClose }: { pedido: Pedido; onClose: () => voi
                     : pedido.forma_pagamento === "pix"
                     ? `Aguardando o Pix de ${formatarPreco(pedido.total)} (identificador PEDIDO${pedido.id}).`
                     : "Pagamento a combinar com o cliente."}
+                  {pedido.pagar_ate && (
+                    <span className="d-block text-muted mt-1">
+                      Sem pagamento, cancela sozinho {formatarPrazo(pedido.pagar_ate)} e as peças voltam ao estoque.
+                    </span>
+                  )}
                 </span>
                 <Button size="sm" variant="success" onClick={confirmarPagamento} disabled={atualizar.isPending}>
                   <FaCircleCheck aria-hidden /> Confirmar pagamento

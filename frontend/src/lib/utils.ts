@@ -39,3 +39,15 @@ export function tipoLink(link: string | null | undefined): "interno" | "externo"
   if (/^\/(?![/\\])\S*$/.test(valor)) return "interno";
   return null;
 }
+
+/** Prazo curto e legível: "hoje às 14:30", "amanhã às 09:00" ou "25/11 às 14:30". */
+export function formatarPrazo(iso: string): string {
+  const data = new Date(iso);
+  const hora = data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const dia = (d: Date) => d.toLocaleDateString("pt-BR");
+  const hoje = new Date();
+  const amanha = new Date(hoje.getTime() + 24 * 60 * 60 * 1000);
+  if (dia(data) === dia(hoje)) return `hoje às ${hora}`;
+  if (dia(data) === dia(amanha)) return `amanhã às ${hora}`;
+  return `${data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} às ${hora}`;
+}

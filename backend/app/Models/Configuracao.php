@@ -72,6 +72,8 @@ class Configuracao extends Model
         'pix_chave' => '',
         'pix_nome' => '',
         'pix_cidade' => '',
+        // Pedido não pago é cancelado depois deste prazo e as peças voltam para a loja (0 = nunca)
+        'pedido_expira_horas' => '24',
         // Envio com valor fixo: nome exibido (ex.: "Correios") e prazo em dias úteis
         'frete_fixo_nome' => '',
         'frete_fixo_prazo' => '',

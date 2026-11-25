@@ -224,6 +224,8 @@ export interface Pedido extends Omit<DadosEntrega, "cep" | "logradouro" | "numer
   metodo_pagamento: string | null;
   pago_em: string | null;
   pagamento_informado_em: string | null;
+  /** até quando pagar; depois o pedido é cancelado e as peças voltam para a loja */
+  pagar_ate: string | null;
   codigo_rastreio: string | null;
   created_at: string;
   itens: PedidoItem[];
@@ -257,7 +259,7 @@ export interface RespostaPagamento {
 }
 
 export interface RespostaPixPedido {
-  pedido: Pick<Pedido, "id" | "status" | "total" | "forma_pagamento" | "pago_em" | "pagamento_informado_em" | "created_at">;
+  pedido: Pick<Pedido, "id" | "status" | "total" | "forma_pagamento" | "pago_em" | "pagamento_informado_em" | "pagar_ate" | "created_at">;
   pix: PixPedido | null;
 }
 
@@ -324,6 +326,8 @@ export interface ConfigAdmin extends ConfigLoja {
   pix_chave: string;
   pix_nome: string;
   pix_cidade: string;
+  /** horas para pagar antes do cancelamento automático ("0" = nunca) */
+  pedido_expira_horas: string;
   pix_configurado: boolean;
   pix_tipos: Record<string, string>;
   stripe_ativo: boolean;

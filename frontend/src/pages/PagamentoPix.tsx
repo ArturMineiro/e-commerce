@@ -7,7 +7,7 @@ import { useConfigLoja, useInformarPix, usePixPedido } from "../hooks/useLoja";
 import { useToast } from "../components/Toast";
 import { Carregando, StatusBadge } from "../components/Ui";
 import { formatarPreco, mensagemErro } from "../lib/api";
-import { linkWhatsapp } from "../lib/utils";
+import { formatarPrazo, linkWhatsapp } from "../lib/utils";
 
 /** Copia um texto; sem a API de área de transferência (ex.: http na rede local), seleciona e copia. */
 async function copiarTexto(texto: string, campoId: string): Promise<boolean> {
@@ -119,6 +119,12 @@ function PagamentoPix() {
               <h1 className="h4 mt-2 mb-1">Pague com Pix para concluir</h1>
               <p className="text-muted small mb-1">Pedido #{pedido.id}</p>
               <div className="pix-valor">{formatarPreco(pix.valor)}</div>
+              {pedido.pagar_ate && (
+                <p className="small text-muted mb-0">
+                  Pague até <strong>{formatarPrazo(pedido.pagar_ate)}</strong>. Depois disso o pedido é cancelado e as peças voltam
+                  para a loja.
+                </p>
+              )}
             </div>
 
             <ol className="pix-passos">
